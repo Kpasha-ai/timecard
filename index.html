@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{
     --pine:#122820; --sage:#4E7A68; --sage-mist:#DCE8E2; --bone:#F4F1E8; --card:#FFFFFF;
@@ -248,9 +249,11 @@
     </div>
     <div class="sp"></div>
     <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
+    <button class="btn-ghost" onclick="openImportHours()">Import hours</button>
     <button class="btn-ghost" onclick="openSearch()">Search</button>
     <button class="btn-ghost" onclick="openHistory()">History</button>
     <button class="btn-ghost" onclick="signOut()">Sign out</button>
+    <span style="color:rgba(244,241,232,.4);font-family:var(--mono);font-size:10px;margin-left:6px" title="Build marker — confirms which version is actually live">build 2026-08-11.2</span>
   </header>
   <main>
     <!-- WEEK -->
@@ -479,6 +482,35 @@
       <div class="field"><label>Email</label><input id="editClientEmail"></div>
       <div id="editClientMatters"></div>
       <button class="btn btn-primary" style="margin-top:14px" onclick="saveEditClient()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT HOURS -->
+<div class="overlay" id="importOverlay" onclick="if(event.target===this)closeImportHours()">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head"><h2>Import hours</h2><button class="close" onclick="closeImportHours()">✕</button></div>
+    <div class="modal-body">
+      <p class="hint" style="margin-top:0">Upload PDFs or photos of your notes, or paste text directly. Nothing is saved until you review and approve it below.</p>
+
+      <div class="field"><label>Upload files</label>
+        <input type="file" id="importFileInput" multiple accept=".pdf,image/*,.txt" onchange="onImportFilesSelected(this.files)">
+      </div>
+      <div id="importFileList"></div>
+
+      <div class="field" style="margin-top:12px"><label>Or paste text</label>
+        <textarea id="importPasteText" rows="5" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" placeholder="Paste notes, an email, whatever you've got…"></textarea>
+      </div>
+
+      <p class="hint" id="importStatus" style="min-height:16px"></p>
+      <button class="btn btn-primary" onclick="runImportParse()">Read documents</button>
+
+      <div id="importPreviewSection" style="display:none;margin-top:18px;border-top:1px solid var(--line);padding-top:16px">
+        <h3>Review before importing</h3>
+        <p class="hint" style="margin-top:0">Check each entry — dates, hours, and tags can all be edited or removed before anything saves.</p>
+        <div id="importPreviewRows"></div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="commitImportEntries()">Import approved entries</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1028,6 +1060,142 @@ async function togglePaid(periodKey, checked){
 }
 
 /* ================= paystub PDF ================= */
+/* ================= import hours (AI-assisted) ================= */
+let importFiles = [];          // {name, kind:'text'|'image', content, mediaType?}
+let importParsedEntries = [];  // {date, hours, description, tag}
+
+function openImportHours(){
+  importFiles = [];
+  importParsedEntries = [];
+  $('importFileList').innerHTML = '';
+  $('importPasteText').value = '';
+  $('importStatus').textContent = '';
+  $('importPreviewSection').style.display = 'none';
+  $('importFileInput').value = '';
+  $('importOverlay').classList.add('on');
+}
+function closeImportHours(){ $('importOverlay').classList.remove('on'); }
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function extractPdfContent(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let fullText = '';
+  for(let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    fullText += textContent.items.map(it => it.str).join(' ') + '\n';
+  }
+  // very little real text per page strongly suggests a scanned document — fall back to images
+  if(fullText.trim().length < 40 * pdf.numPages){
+    const images = [];
+    for(let i = 1; i <= pdf.numPages; i++){
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      images.push(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+    }
+    return { type: 'images', images };
+  }
+  return { type: 'text', text: fullText };
+}
+
+async function onImportFilesSelected(fileList){
+  for(const file of fileList){
+    if(file.type === 'application/pdf'){
+      $('importStatus').textContent = `Reading ${file.name}…`;
+      const result = await extractPdfContent(file);
+      if(result.type === 'text'){
+        importFiles.push({ name: file.name, kind: 'text', content: result.text });
+      } else {
+        result.images.forEach((b64, i) => importFiles.push({ name: `${file.name} (page ${i+1})`, kind: 'image', content: b64, mediaType: 'image/jpeg' }));
+      }
+    } else if(file.type.startsWith('image/')){
+      const b64 = await fileToBase64(file);
+      importFiles.push({ name: file.name, kind: 'image', content: b64, mediaType: file.type });
+    } else {
+      const text = await file.text();
+      importFiles.push({ name: file.name, kind: 'text', content: text });
+    }
+  }
+  $('importStatus').textContent = '';
+  renderImportFileList();
+}
+function renderImportFileList(){
+  $('importFileList').innerHTML = importFiles.length
+    ? importFiles.map((f,i) => `<div class="rowitem"><span class="nm">${escapeHtml(f.name)}</span><button type="button" class="row-del" onclick="removeImportFile(${i})">✕</button></div>`).join('')
+    : '';
+}
+function removeImportFile(i){ importFiles.splice(i,1); renderImportFileList(); }
+
+async function runImportParse(){
+  const pastedText = $('importPasteText').value.trim();
+  const items = importFiles.map(f => f.kind === 'image' ? {type:'image', content:f.content, mediaType:f.mediaType} : {type:'text', content:f.content});
+  if(pastedText) items.push({ type:'text', content: pastedText });
+  if(!items.length) return toast('Add a file or paste some text first');
+
+  $('importStatus').textContent = 'Reading your documents… this can take a moment.';
+  try {
+    const knownTags = await myTags();
+    const resp = await fetch('/api/parse-hours', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, knownTags })
+    });
+    const data = await resp.json();
+    $('importStatus').textContent = '';
+    if(!resp.ok) return toast(data.error || 'Could not parse documents');
+    importParsedEntries = data.entries || [];
+    renderImportPreview();
+  } catch(e){
+    $('importStatus').textContent = '';
+    toast('Could not reach the import service — check your connection');
+  }
+}
+
+function renderImportPreview(){
+  $('importPreviewSection').style.display = '';
+  $('importPreviewRows').innerHTML = importParsedEntries.length
+    ? importParsedEntries.map((e,i) => `
+      <div class="inviterow" style="margin-bottom:6px;flex-wrap:wrap">
+        <input type="date" value="${e.date||''}" style="width:140px" onchange="setImportField(${i},'date',this.value)">
+        <input type="number" min="0" step="0.25" value="${e.hours||''}" placeholder="hrs" style="width:70px" onchange="setImportField(${i},'hours',this.value)">
+        <input type="text" value="${escapeHtml(e.tag||'')}" placeholder="tag" style="width:110px;text-transform:uppercase" onchange="setImportField(${i},'tag',this.value)">
+        <input type="text" value="${escapeHtml(e.description||'')}" placeholder="description" style="flex:1;min-width:160px" onchange="setImportField(${i},'description',this.value)">
+        <button type="button" class="row-del" onclick="removeImportEntry(${i})">✕</button>
+      </div>`).join('')
+    : '<div class="hint">No entries were found in what you provided.</div>';
+}
+function setImportField(i, field, val){
+  if(field==='hours'){ const n=parseFloat(val); importParsedEntries[i].hours = (!isNaN(n)&&n>=0)?n:0; }
+  else if(field==='tag'){ importParsedEntries[i].tag = caseKey(val); }
+  else importParsedEntries[i][field] = val;
+}
+function removeImportEntry(i){ importParsedEntries.splice(i,1); renderImportPreview(); }
+
+async function commitImportEntries(){
+  const valid = importParsedEntries.filter(e => e.date && e.hours > 0);
+  if(!valid.length) return toast('Nothing valid to import — check dates and hours');
+  let inserted = 0;
+  for(const e of valid){
+    const { error } = await supa.from('work_entries').insert({ user_id: me.id, work_date: e.date, tag: e.tag||'', hours: e.hours, description: e.description||'' });
+    if(!error) inserted++;
+  }
+  logHist(`Imported ${inserted} entries from documents`);
+  toast(`Imported ${inserted} of ${valid.length} entries`);
+  closeImportHours();
+  if(view==='week') await loadWeek();
+}
+
 async function makeStub(periodKey){
   if(!window.jspdf?.jsPDF) return toast('PDF library not loaded — check your connection and reload');
   const periods = payPeriods(8);
@@ -1481,8 +1649,18 @@ function renderEditClientMatters(){
       <h4>${escapeHtml(m.tag)}</h4>
       <div id="editMatterPicks-${m.id}">${renderEditMatterRowsHtml(m.id)}</div>
       <button type="button" class="addbtn" onclick="addEditMatterRow('${m.id}')">+ Add person</button>
+      <button type="button" class="removebtn" style="margin-top:10px" onclick="removeMatterEntirely('${m.id}','${escapeHtml(m.tag)}')">Remove matter</button>
     </div>
   `).join('') : '<p class="hint" style="margin-top:14px">No matters yet for this client — use "+ Add matter" first.</p>';
+}
+async function removeMatterEntirely(matterId, tag){
+  const { error } = await supa.from('matters').delete().eq('id', matterId);
+  if(error) return toast(errText(error));
+  editingClientMatters = editingClientMatters.filter(m => m.id !== matterId);
+  delete editingMatterRows[matterId];
+  logHist(`Removed matter ${tag}`);
+  toast(`${tag} removed — logged hours under that tag are untouched`);
+  renderEditClientMatters();
 }
 function renderEditMatterRowsHtml(matterId){
   const rows = editingMatterRows[matterId] || [];
