@@ -51,7 +51,8 @@
   .app.on{display:flex}
   header{background:var(--pine);color:var(--bone);padding:0 22px;height:58px;display:flex;align-items:center;gap:16px}
   header .brand{font-size:19px}
-  .sp{flex:1}
+  .sp{flex:1;display:flex;justify-content:center;align-items:center}
+  .btn-add-hours{background:var(--stamp);color:#3A2708;border:0;border-radius:9px;font-size:14px;font-weight:700;padding:10px 22px;white-space:nowrap}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
   .btn-ghost-dark{background:transparent;border:1.5px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600}
   main{max-width:900px;margin:0 auto;padding:22px;width:100%}
@@ -247,13 +248,12 @@
       <button id="tabMatters" onclick="setView('matters')">Client/Matter</button>
       <button id="tabBilling" onclick="setView('billing')">Billing</button>
     </div>
-    <div class="sp"></div>
+    <div class="sp"><button class="btn-add-hours" onclick="openAddHours()">Add hours</button></div>
     <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
     <button class="btn-ghost" onclick="openImportHours()">Import hours</button>
     <button class="btn-ghost" onclick="openSearch()">Search</button>
     <button class="btn-ghost" onclick="openHistory()">History</button>
     <button class="btn-ghost" onclick="signOut()">Sign out</button>
-    <span style="color:rgba(244,241,232,.4);font-family:var(--mono);font-size:10px;margin-left:6px" title="Build marker — confirms which version is actually live">build 2026-08-11.2</span>
   </header>
   <main>
     <!-- WEEK -->
@@ -482,6 +482,38 @@
       <div class="field"><label>Email</label><input id="editClientEmail"></div>
       <div id="editClientMatters"></div>
       <button class="btn btn-primary" style="margin-top:14px" onclick="saveEditClient()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD HOURS -->
+<div class="overlay" id="addHoursOverlay" onclick="if(event.target===this)closeAddHours()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h2>Add hours</h2><button class="close" onclick="closeAddHours()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Date</label><input type="date" id="addHrsDate"></div>
+
+      <div class="field"><label>Client <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <select id="addHrsClient" onchange="onAddHoursClientChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+          <option value="">No client / general hours</option>
+        </select>
+      </div>
+      <div class="field"><label>Matter / tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <select id="addHrsMatter" onchange="onAddHoursMatterChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+          <option value="">No matter — just log hours</option>
+        </select>
+      </div>
+
+      <div class="row2">
+        <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="addHrsHours" placeholder="0"></div>
+        <div class="field"><label>Rate ($/h) <span style="text-transform:none;letter-spacing:0;font-weight:500">— fills from the matter, editable</span></label><input type="number" min="0" step="5" id="addHrsRate" placeholder="0"></div>
+      </div>
+
+      <div class="field"><label>Description</label>
+        <textarea id="addHrsDesc" rows="3" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" placeholder="What did you work on?"></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveAddHours()">Save hours</button>
     </div>
   </div>
 </div>
@@ -1060,6 +1092,86 @@ async function togglePaid(periodKey, checked){
 }
 
 /* ================= paystub PDF ================= */
+/* ================= add hours (quick entry) ================= */
+let addHoursClientsCache = [];
+let addHoursMattersCache = [];   // matters belonging to whichever client is currently selected
+
+function todayKeyLocal(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+async function openAddHours(){
+  $('addHrsDate').value = todayKeyLocal();
+  $('addHrsHours').value = '';
+  $('addHrsRate').value = '';
+  $('addHrsDesc').value = '';
+  $('addHrsClient').innerHTML = '<option value="">No client / general hours</option>';
+  $('addHrsClient').value = '';
+  $('addHrsMatter').innerHTML = '<option value="">No matter — just log hours</option>';
+  $('addHrsMatter').value = '';
+  addHoursMattersCache = [];
+
+  invAllMembers = await teamMembers();   // ensure this is fresh regardless of which tab was open before
+  const ownerIds = invAllMembers.map(m=>m.id);
+  const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
+  addHoursClientsCache = clients || [];
+  $('addHrsClient').innerHTML += addHoursClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+
+  $('addHoursOverlay').classList.add('on');
+}
+function closeAddHours(){ $('addHoursOverlay').classList.remove('on'); }
+
+async function onAddHoursClientChange(){
+  const clientId = $('addHrsClient').value;
+  $('addHrsMatter').innerHTML = '<option value="">No matter — just log hours</option>';
+  $('addHrsMatter').value = '';
+  $('addHrsRate').value = '';
+  addHoursMattersCache = [];
+  if(!clientId) return;
+  const { data: matters } = await supa.from('matters').select('*').eq('client_id', clientId);
+  addHoursMattersCache = matters || [];
+  $('addHrsMatter').innerHTML += addHoursMattersCache.map(m=>`<option value="${m.tag}">${escapeHtml(m.tag)}</option>`).join('');
+}
+
+async function onAddHoursMatterChange(){
+  const tag = $('addHrsMatter').value;
+  if(!tag){ $('addHrsRate').value = ''; return; }
+  await loadMatterRates();
+  const rate = rateForLine(me.id, tag);
+  $('addHrsRate').value = rate || '';
+}
+
+async function saveAddHours(){
+  const date = $('addHrsDate').value;
+  const hours = parseFloat($('addHrsHours').value);
+  const tag = $('addHrsMatter').value;
+  const rateVal = parseFloat($('addHrsRate').value);
+  const desc = $('addHrsDesc').value.trim();
+
+  if(!date) return toast('Pick a date');
+  if(isNaN(hours) || hours <= 0) return toast('Enter hours worked');
+
+  const { error } = await supa.from('work_entries').insert({ user_id: me.id, work_date: date, tag: tag||'', hours, description: desc });
+  if(error) return toast(errText(error));
+
+  // saving a rate here actually persists it as this matter's standing rate for
+  // you — that's what makes "override" mean something, not just a one-time preview
+  if(tag && !isNaN(rateVal) && rateVal >= 0){
+    const matter = addHoursMattersCache.find(m => m.tag === tag);
+    if(matter){
+      await supa.from('matter_rates').upsert({ matter_id: matter.id, member_id: me.id, rate: rateVal }, { onConflict: 'matter_id,member_id' });
+    }
+  }
+
+  logHist(`Logged ${fmtH(hours)}h${tag?` to ${tag}`:''} via Add Hours`);
+  toast('Hours saved');
+  closeAddHours();
+  if(view==='week') await loadWeek();
+  else if(view==='month') await loadMonth();
+  else if(view==='pay') await loadPay();
+}
+
 /* ================= import hours (AI-assisted) ================= */
 let importFiles = [];          // {name, kind:'text'|'image', content, mediaType?}
 let importParsedEntries = [];  // {date, hours, description, tag}
@@ -2144,5 +2256,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-11.3</div>
 </body>
 </html>
