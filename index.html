@@ -218,6 +218,10 @@
         </div>
         <div class="field"><label>Username <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="username" placeholder="e.g. pasha"></div>
         <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567"></div>
+        <div class="field"><label>Your rate of pay ($/h) <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+          <input id="signupRate" type="number" min="0" step="5" placeholder="0">
+          <p class="hint" style="margin-top:5px">Your standard rate — shows up on Pay, and is the default when adding hours or setting up a matter. You can change it anytime.</p>
+        </div>
       </div>
       <div class="field"><label>Email <span class="req">*</span></label><input id="email" type="email" autocomplete="email"></div>
       <div class="field" id="confirmEmailField" style="display:none"><label>Confirm email <span class="req">*</span></label><input id="confirmEmail" type="email" autocomplete="email"></div>
@@ -504,6 +508,11 @@
     <div class="modal-body">
       <div class="field"><label>Date</label><input type="date" id="addHrsDate"></div>
 
+      <div class="field"><label>Who is this for</label>
+        <select id="addHrsPerson" onchange="onAddHoursPersonChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+        </select>
+      </div>
+
       <div class="field"><label>Client <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
         <select id="addHrsClient" onchange="onAddHoursClientChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
           <option value="">No client / general hours</option>
@@ -519,10 +528,14 @@
         <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="addHrsHours" placeholder="0"></div>
         <div class="field"><label>Rate ($/h)</label><input type="number" min="0" step="5" id="addHrsRate" placeholder="0"></div>
       </div>
-      <p class="hint" style="margin-top:-6px;margin-bottom:14px">Rate fills in from the matter automatically — change it here and it becomes the new standing rate.</p>
+      <p class="hint" style="margin-top:-6px;margin-bottom:14px">Rate fills in automatically for whoever's selected above — change it here and it becomes their new standing rate for this matter.</p>
 
-      <div class="field"><label>Description</label>
-        <textarea id="addHrsDesc" rows="3" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" placeholder="What did you work on?"></textarea>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label style="margin-bottom:0">Description</label>
+          <button type="button" class="removebtn" style="font-size:11px;padding:4px 8px" onclick="useLastDescription()">Use last description</button>
+        </div>
+        <textarea id="addHrsDesc" rows="3" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px" placeholder="What did you work on?"></textarea>
       </div>
 
       <button class="btn btn-primary" onclick="saveAddHours()">Save hours</button>
@@ -692,6 +705,8 @@ async function submitAuth(){
       const username = $('username').value.trim().toLowerCase();
       const phone = $('signupPhone').value.trim();
       const confirmEmail = $('confirmEmail').value.trim();
+      const signupRateVal = parseFloat($('signupRate').value);
+      const signupRate = (!isNaN(signupRateVal) && signupRateVal >= 0) ? signupRateVal : 0;
       const password2 = $('password2').value;
       if(!first || !last) return msg('Enter your first and last name.');
       if(!phone) return msg('Enter a phone number.');
@@ -702,7 +717,7 @@ async function submitAuth(){
       const color = TEAM_COLORS[Math.floor(Math.random()*TEAM_COLORS.length)];
       const { data, error } = await supa.auth.signUp({
         email, password,
-        options: { data: { first_name:first, last_name:last, username, phone, role:'worker', color } }
+        options: { data: { first_name:first, last_name:last, username, phone, role:'worker', color, rate:signupRate } }
       });
       if(error) return msg(errText(error));
       if(data.user && !data.session){
@@ -1083,6 +1098,7 @@ async function togglePaid(periodKey, checked){
 /* ================= add hours (quick entry) ================= */
 let addHoursClientsCache = [];
 let addHoursMattersCache = [];   // matters belonging to whichever client is currently selected
+let lastUsedDescription = '';
 
 function todayKeyLocal(){
   const d = new Date();
@@ -1101,6 +1117,10 @@ async function openAddHours(){
   addHoursMattersCache = [];
 
   invAllMembers = await teamMembers();   // ensure this is fresh regardless of which tab was open before
+  $('addHrsPerson').innerHTML = invAllMembers.map(m=>`<option value="${m.id}" ${m.self?'selected':''}>${escapeHtml(m.name)}${m.self?' (you)':''}</option>`).join('');
+  $('addHrsPerson').value = me.id;
+  $('addHrsRate').value = personalRateFor(me.id) || '';
+
   const ownerIds = invAllMembers.map(m=>m.id);
   const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
   addHoursClientsCache = clients || [];
@@ -1110,11 +1130,27 @@ async function openAddHours(){
 }
 function closeAddHours(){ $('addHoursOverlay').classList.remove('on'); }
 
+function useLastDescription(){
+  if(!lastUsedDescription) return toast('No previous description yet');
+  $('addHrsDesc').value = lastUsedDescription;
+}
+
+async function onAddHoursPersonChange(){
+  const personId = $('addHrsPerson').value;
+  const tag = $('addHrsMatter').value;
+  if(tag){
+    await loadMatterRates();
+    $('addHrsRate').value = rateForLine(personId, tag) || '';
+  } else {
+    $('addHrsRate').value = personalRateFor(personId) || '';
+  }
+}
+
 async function onAddHoursClientChange(){
   const clientId = $('addHrsClient').value;
   $('addHrsMatter').innerHTML = '<option value="">No matter — just log hours</option>';
   $('addHrsMatter').value = '';
-  $('addHrsRate').value = '';
+  $('addHrsRate').value = personalRateFor($('addHrsPerson').value) || '';
   addHoursMattersCache = [];
   if(!clientId) return;
   const { data: matters } = await supa.from('matters').select('*').eq('client_id', clientId);
@@ -1124,14 +1160,15 @@ async function onAddHoursClientChange(){
 
 async function onAddHoursMatterChange(){
   const tag = $('addHrsMatter').value;
-  if(!tag){ $('addHrsRate').value = ''; return; }
+  const personId = $('addHrsPerson').value;
+  if(!tag){ $('addHrsRate').value = personalRateFor(personId) || ''; return; }
   await loadMatterRates();
-  const rate = rateForLine(me.id, tag);
-  $('addHrsRate').value = rate || '';
+  $('addHrsRate').value = rateForLine(personId, tag) || '';
 }
 
 async function saveAddHours(){
   const date = $('addHrsDate').value;
+  const personId = $('addHrsPerson').value || me.id;
   const hours = parseFloat($('addHrsHours').value);
   const tag = $('addHrsMatter').value;
   const rateVal = parseFloat($('addHrsRate').value);
@@ -1140,24 +1177,29 @@ async function saveAddHours(){
   if(!date) return toast('Pick a date');
   if(isNaN(hours) || hours <= 0) return toast('Enter hours worked');
 
-  const { error } = await supa.from('work_entries').insert({ user_id: me.id, work_date: date, tag: tag||'', hours, description: desc });
+  const { error } = await supa.from('work_entries').insert({ user_id: personId, work_date: date, tag: tag||'', hours, description: desc });
   if(error) return toast(errText(error));
+  lastUsedDescription = desc;
 
   // saving a rate here actually persists it as this matter's standing rate for
-  // you — that's what makes "override" mean something, not just a one-time preview
+  // whoever these hours are for — that's what makes "override" mean something,
+  // not just a one-time preview
   if(tag && !isNaN(rateVal) && rateVal >= 0){
     const matter = addHoursMattersCache.find(m => m.tag === tag);
     if(matter){
-      await supa.from('matter_rates').upsert({ matter_id: matter.id, member_id: me.id, rate: rateVal }, { onConflict: 'matter_id,member_id' });
+      await supa.from('matter_rates').upsert({ matter_id: matter.id, member_id: personId, rate: rateVal }, { onConflict: 'matter_id,member_id' });
     }
   }
 
-  logHist(`Logged ${fmtH(hours)}h${tag?` to ${tag}`:''} via Add Hours`);
+  const personLabel = invAllMembers.find(m=>m.id===personId);
+  logHist(`Logged ${fmtH(hours)}h${tag?` to ${tag}`:''}${personLabel && !personLabel.self ? ` for ${personLabel.name}` : ''} via Add Hours`);
   toast('Hours saved');
   closeAddHours();
-  if(view==='week') await loadWeek();
-  else if(view==='month') await loadMonth();
-  else if(view==='pay') await loadPay();
+  if(personId === me.id){
+    if(view==='week') await loadWeek();
+    else if(view==='month') await loadMonth();
+    else if(view==='pay') await loadPay();
+  }
 }
 
 /* ================= import hours (AI-assisted) ================= */
@@ -1441,7 +1483,7 @@ async function resolveColorCollisions(){
 }
 
 async function teamMembers(){
-  const out = [{ id: me.id, name: `${me.first_name} ${me.last_name}`, self:true, color: me.color }];
+  const out = [{ id: me.id, name: `${me.first_name} ${me.last_name}`, self:true, color: me.color, rate: Number(me.rate)||0 }];
   const seen = new Set([me.id]);
 
   // people I employ
@@ -1461,7 +1503,7 @@ async function teamMembers(){
   if(otherIds.length){
     const { data: profs } = await supa.from('profiles').select('*').in('id', otherIds);
     (profs||[]).forEach(p => {
-      if(!seen.has(p.id)){ out.push({ id:p.id, name:`${p.first_name} ${p.last_name}`, self:false, color:p.color }); seen.add(p.id); }
+      if(!seen.has(p.id)){ out.push({ id:p.id, name:`${p.first_name} ${p.last_name}`, self:false, color:p.color, rate: Number(p.rate)||0 }); seen.add(p.id); }
     });
   }
   return out;
@@ -1687,7 +1729,12 @@ function addMatterMemberRow(){
   renderMatterMemberRows();
 }
 function removeMatterMemberRow(i){ matterWizardRows.splice(i,1); renderMatterMemberRows(); }
-function setMatterRowMember(i,val){ matterWizardRows[i].memberId = val; }
+function setMatterRowMember(i,val){
+  matterWizardRows[i].memberId = val;
+  const person = invAllMembers.find(m=>m.id===val);
+  matterWizardRows[i].rate = person ? (Number(person.rate)||0) : 0;
+  renderMatterMemberRows();
+}
 function setMatterRowRate(i,val){ const r=parseFloat(val); matterWizardRows[i].rate = (!isNaN(r)&&r>=0)?r:0; }
 function renderMatterMemberRows(){
   $('matterMemberPicks').innerHTML = matterWizardRows.length ? matterWizardRows.map((row,i) => `
@@ -1793,7 +1840,12 @@ function removeEditMatterRow(matterId, i){
   editingMatterRows[matterId].splice(i,1);
   $('editMatterPicks-'+matterId).innerHTML = renderEditMatterRowsHtml(matterId);
 }
-function setEditMatterMember(matterId, i, val){ editingMatterRows[matterId][i].memberId = val; }
+function setEditMatterMember(matterId, i, val){
+  editingMatterRows[matterId][i].memberId = val;
+  const person = invAllMembers.find(m=>m.id===val);
+  editingMatterRows[matterId][i].rate = person ? (Number(person.rate)||0) : 0;
+  $('editMatterPicks-'+matterId).innerHTML = renderEditMatterRowsHtml(matterId);
+}
 function setEditMatterRate(matterId, i, val){ const r=parseFloat(val); editingMatterRows[matterId][i].rate = (!isNaN(r)&&r>=0)?r:0; }
 
 async function saveEditClient(){
@@ -1848,10 +1900,19 @@ async function loadMatterRates(){
   return matterRatesCache;
 }
 function rateFor(tag){ return caseRatesCache?.[tag] ?? 0; }
-// resolution order: this specific matter's rate for this person, set when the
-// matter was created or edited, then the case's tag-level default, then $0
+function personalRateFor(personId){
+  const person = invAllMembers.find(m => m.id === personId);
+  return person ? Number(person.rate)||0 : 0;
+}
+// resolution order: this specific matter's rate for this person (set when the
+// matter was created or edited) → that person's own standard rate → the
+// case's legacy tag-level default → $0
 function rateForLine(personId, tag){
-  return matterRatesCache?.[tag]?.[personId] ?? rateFor(tag);
+  const matterRate = matterRatesCache?.[tag]?.[personId];
+  if(matterRate !== undefined) return matterRate;
+  const personal = personalRateFor(personId);
+  if(personal) return personal;
+  return rateFor(tag);
 }
 
 async function saveTagRate(tag, rate){
@@ -2254,6 +2315,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.4</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.5</div>
 </body>
 </html>
