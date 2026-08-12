@@ -459,8 +459,9 @@
           <p class="hint" style="margin-top:5px">Added to your team's shared tag list.</p>
         </div>
         <p class="hint" style="margin-top:0">Add whoever will bill hours to this matter, and set what each person's time is charged at. You can still change rates later from Billing.</p>
+        <div id="matterMemberBubbles" class="tagchips" style="margin-bottom:10px"></div>
+        <button class="addbtn" onclick="addAllMatterMembers()" style="margin-bottom:12px">+ Add everyone</button>
         <div id="matterMemberPicks"></div>
-        <button class="addbtn" onclick="addMatterMemberRow()">+ Add person</button>
         <div style="display:flex;gap:8px;margin-top:16px">
           <button class="btn-ghost-dark" id="matterBackBtn" onclick="matterWizardBack()">‹ Back</button>
           <button class="btn btn-primary" onclick="finishMatterWizard()">Create Matter</button>
@@ -1737,28 +1738,39 @@ function matterWizardBack(){
   $('matterWizardTitle').textContent = 'Create Matter — Step 1';
 }
 
-function addMatterMemberRow(){
-  matterWizardRows.push({ memberId:'', rate:0 });
+function addMatterMemberBubble(memberId){
+  if(matterWizardRows.some(r=>r.memberId===memberId)) return;   // already added, ignore
+  const person = invAllMembers.find(m=>m.id===memberId);
+  matterWizardRows.push({ memberId, rate: person ? (Number(person.rate)||0) : 0 });
+  renderMatterMemberRows();
+}
+function addAllMatterMembers(){
+  invAllMembers.forEach(m => {
+    if(!matterWizardRows.some(r=>r.memberId===m.id)){
+      matterWizardRows.push({ memberId: m.id, rate: Number(m.rate)||0 });
+    }
+  });
   renderMatterMemberRows();
 }
 function removeMatterMemberRow(i){ matterWizardRows.splice(i,1); renderMatterMemberRows(); }
-function setMatterRowMember(i,val){
-  matterWizardRows[i].memberId = val;
-  const person = invAllMembers.find(m=>m.id===val);
-  matterWizardRows[i].rate = person ? (Number(person.rate)||0) : 0;
-  renderMatterMemberRows();
-}
 function setMatterRowRate(i,val){ const r=parseFloat(val); matterWizardRows[i].rate = (!isNaN(r)&&r>=0)?r:0; }
+function renderMatterMemberBubbles(){
+  const addedIds = new Set(matterWizardRows.map(r=>r.memberId));
+  $('matterMemberBubbles').innerHTML = invAllMembers.map(m => {
+    const added = addedIds.has(m.id);
+    return `<span class="tagchip" style="cursor:${added?'default':'pointer'};opacity:${added?'.45':'1'}" ${added?'':`onclick="addMatterMemberBubble('${m.id}')"`}>${escapeHtml(m.name)}${m.self?' (you)':''}${added?' ✓':''}</span>`;
+  }).join('');
+}
 function renderMatterMemberRows(){
-  $('matterMemberPicks').innerHTML = matterWizardRows.length ? matterWizardRows.map((row,i) => `
-    <div class="inviterow" style="margin-bottom:8px">
-      <select onchange="setMatterRowMember(${i},this.value)" style="flex:1;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
-        <option value="">Choose a person…</option>
-        ${invAllMembers.map(m=>`<option value="${m.id}" ${row.memberId===m.id?'selected':''}>${escapeHtml(m.name)}${m.self?' (you)':''}</option>`).join('')}
-      </select>
+  $('matterMemberPicks').innerHTML = matterWizardRows.length ? matterWizardRows.map((row,i) => {
+    const person = invAllMembers.find(m=>m.id===row.memberId);
+    return `<div class="inviterow" style="margin-bottom:8px">
+      <span style="flex:1;font-weight:600;padding:9px 11px">${person ? escapeHtml(person.name)+(person.self?' (you)':'') : '—'}</span>
       <input type="number" min="0" step="5" value="${row.rate}" style="width:80px" placeholder="Rate" onchange="setMatterRowRate(${i},this.value)">
       <button type="button" class="row-del" onclick="removeMatterMemberRow(${i})">✕</button>
-    </div>`).join('') : '<div class="hint">No one added yet — click below.</div>';
+    </div>`;
+  }).join('') : '<div class="hint">No one added yet — click a name above.</div>';
+  renderMatterMemberBubbles();
 }
 
 async function finishMatterWizard(){
@@ -1817,11 +1829,13 @@ function renderEditClientMatters(){
   $('editClientMatters').innerHTML = editingClientMatters.length ? editingClientMatters.map(m => `
     <div class="edit-matter-block">
       <h4>${escapeHtml(m.tag)}</h4>
+      <div id="editMatterBubbles-${m.id}" class="tagchips" style="margin-bottom:8px"></div>
+      <button type="button" class="addbtn" onclick="addAllEditMatterMembers('${m.id}')" style="margin-bottom:10px">+ Add everyone</button>
       <div id="editMatterPicks-${m.id}">${renderEditMatterRowsHtml(m.id)}</div>
-      <button type="button" class="addbtn" onclick="addEditMatterRow('${m.id}')">+ Add person</button>
       <button type="button" class="removebtn" style="margin-top:10px" onclick="removeMatterEntirely('${m.id}','${escapeHtml(m.tag)}')">Remove matter</button>
     </div>
   `).join('') : '<p class="hint" style="margin-top:14px">No matters yet for this client — use "+ Add matter" first.</p>';
+  editingClientMatters.forEach(m => renderEditMatterBubbles(m.id));
 }
 async function removeMatterEntirely(matterId, tag){
   const { error } = await supa.from('matters').delete().eq('id', matterId);
@@ -1834,30 +1848,47 @@ async function removeMatterEntirely(matterId, tag){
 }
 function renderEditMatterRowsHtml(matterId){
   const rows = editingMatterRows[matterId] || [];
-  return rows.length ? rows.map((row,i) => `
-    <div class="inviterow" style="margin-bottom:6px">
-      <select onchange="setEditMatterMember('${matterId}',${i},this.value)" style="flex:1;padding:8px 10px;border:1.5px solid var(--line);border-radius:7px">
-        <option value="">Choose a person…</option>
-        ${invAllMembers.map(mm=>`<option value="${mm.id}" ${row.memberId===mm.id?'selected':''}>${escapeHtml(mm.name)}${mm.self?' (you)':''}</option>`).join('')}
-      </select>
+  return rows.length ? rows.map((row,i) => {
+    const person = invAllMembers.find(mm=>mm.id===row.memberId);
+    return `<div class="inviterow" style="margin-bottom:6px">
+      <span style="flex:1;font-weight:600;padding:8px 10px">${person ? escapeHtml(person.name)+(person.self?' (you)':'') : '—'}</span>
       <input type="number" min="0" step="5" value="${row.rate}" style="width:70px" onchange="setEditMatterRate('${matterId}',${i},this.value)">
       <button type="button" class="row-del" onclick="removeEditMatterRow('${matterId}',${i})">✕</button>
-    </div>`).join('') : '<div class="hint">No one added yet.</div>';
+    </div>`;
+  }).join('') : '<div class="hint">No one added yet — click a name above.</div>';
 }
-function addEditMatterRow(matterId){
+function renderEditMatterBubbles(matterId){
+  const rows = editingMatterRows[matterId] || [];
+  const addedIds = new Set(rows.map(r=>r.memberId));
+  const el = $('editMatterBubbles-'+matterId);
+  if(!el) return;
+  el.innerHTML = invAllMembers.map(m => {
+    const added = addedIds.has(m.id);
+    return `<span class="tagchip" style="cursor:${added?'default':'pointer'};opacity:${added?'.45':'1'}" ${added?'':`onclick="addEditMatterBubble('${matterId}','${m.id}')"`}>${escapeHtml(m.name)}${m.self?' (you)':''}${added?' ✓':''}</span>`;
+  }).join('');
+}
+function addEditMatterBubble(matterId, memberId){
   editingMatterRows[matterId] = editingMatterRows[matterId] || [];
-  editingMatterRows[matterId].push({ memberId:'', rate:0 });
+  if(editingMatterRows[matterId].some(r=>r.memberId===memberId)) return;
+  const person = invAllMembers.find(m=>m.id===memberId);
+  editingMatterRows[matterId].push({ memberId, rate: person ? (Number(person.rate)||0) : 0 });
   $('editMatterPicks-'+matterId).innerHTML = renderEditMatterRowsHtml(matterId);
+  renderEditMatterBubbles(matterId);
+}
+function addAllEditMatterMembers(matterId){
+  editingMatterRows[matterId] = editingMatterRows[matterId] || [];
+  invAllMembers.forEach(m => {
+    if(!editingMatterRows[matterId].some(r=>r.memberId===m.id)){
+      editingMatterRows[matterId].push({ memberId: m.id, rate: Number(m.rate)||0 });
+    }
+  });
+  $('editMatterPicks-'+matterId).innerHTML = renderEditMatterRowsHtml(matterId);
+  renderEditMatterBubbles(matterId);
 }
 function removeEditMatterRow(matterId, i){
   editingMatterRows[matterId].splice(i,1);
   $('editMatterPicks-'+matterId).innerHTML = renderEditMatterRowsHtml(matterId);
-}
-function setEditMatterMember(matterId, i, val){
-  editingMatterRows[matterId][i].memberId = val;
-  const person = invAllMembers.find(m=>m.id===val);
-  editingMatterRows[matterId][i].rate = person ? (Number(person.rate)||0) : 0;
-  $('editMatterPicks-'+matterId).innerHTML = renderEditMatterRowsHtml(matterId);
+  renderEditMatterBubbles(matterId);
 }
 function setEditMatterRate(matterId, i, val){ const r=parseFloat(val); editingMatterRows[matterId][i].rate = (!isNaN(r)&&r>=0)?r:0; }
 
@@ -2328,6 +2359,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.6</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.7</div>
 </body>
 </html>
