@@ -153,6 +153,10 @@
   .inviterow{display:flex;gap:8px}
   .inviterow input{flex:1;max-width:220px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px}
   .btn-bill{background:var(--sage);color:#fff;border:0;border-radius:8px;font-size:13px;font-weight:600;padding:9px 14px;white-space:nowrap}
+  .client-action-btn{border:0;border-radius:8px;font-size:12px;font-weight:600;padding:6px 10px;white-space:nowrap}
+  .client-action-btn.neutral{background:var(--line);color:var(--ink)}
+  .client-action-btn.danger{background:#C0392B;color:#fff}
+  .client-action-btn.go{background:var(--sage);color:#fff}
   .rowitem{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
   .rowitem:last-child{border-bottom:0}
   .rowitem .dot{width:10px;height:10px;border-radius:50%;flex:none}
@@ -1671,8 +1675,9 @@ async function renderClientsList(){
     return `<div class="bpanel">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span class="nm" style="font-weight:700;font-size:15px">${escapeHtml(c.first_name+' '+c.last_name)}</span>
-        <button class="removebtn" style="margin-left:auto" onclick="openEditClient('${c.id}')">Edit</button>
-        <button class="btn-bill" style="padding:6px 10px;font-size:12px" onclick="openMatterWizard('${c.id}')">+ Add matter</button>
+        <button class="client-action-btn neutral" style="margin-left:auto" onclick="openEditClient('${c.id}')">Edit</button>
+        <button class="client-action-btn go" onclick="openMatterWizard('${c.id}')">+ Add matter</button>
+        <button class="client-action-btn danger" onclick="deleteClient('${c.id}','${escapeHtml(c.first_name)}')">Delete</button>
       </div>
       <div class="hint" style="margin-top:4px">${escapeHtml(c.phone||'—')} · ${escapeHtml(c.email||'—')}</div>
       <div class="tagchips" style="margin-top:8px">
@@ -1680,6 +1685,14 @@ async function renderClientsList(){
       </div>
     </div>`;
   }).join('');
+}
+
+async function deleteClient(clientId, label){
+  const { error } = await supa.from('clients').delete().eq('id', clientId);
+  if(error) return toast(errText(error));
+  logHist(`Removed client ${label}`);
+  toast(`${label} removed — their logged hours are untouched`);
+  await renderClientsList();
 }
 
 let matterWizardRows = [];
@@ -2315,6 +2328,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.5</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.6</div>
 </body>
 </html>
