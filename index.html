@@ -90,6 +90,13 @@
   .work-row-ro .wro-desc{color:var(--ink)}
   .work-row-ro .row-del{background:#fff;border:0}
   .wro-empty{padding:10px 4px;color:var(--ink-dim);font-size:12.5px;font-style:italic}
+  .expense-row{display:grid;grid-template-columns:100px 90px 1fr 90px 32px 32px;gap:1px;background:var(--line);border-bottom:1px solid var(--line);align-items:stretch}
+  .expense-row > span{background:#fff;padding:10px 9px;font-size:12.5px;display:flex;align-items:center}
+  .expense-row:nth-of-type(even) > span{background:#FAFAF6}
+  .expense-row .exp-tag{text-transform:uppercase;font-weight:600;color:var(--case);font-family:var(--mono);background:var(--case-soft) !important}
+  .expense-row .exp-amount{justify-content:flex-end;font-family:var(--mono);font-weight:600;color:var(--pine)}
+  .expense-row .row-del{background:#fff;border:0}
+  .expense-empty{padding:24px 18px;text-align:center;color:var(--ink-dim);font-size:13px}
   .addbtn{border:1px dashed var(--line);background:transparent;border-radius:6px;font-size:10px;font-weight:600;padding:3px 8px;color:var(--ink-dim);text-transform:uppercase;align-self:flex-start}
   /* kill native number spinners everywhere — clicking or scroll-wheeling over them
      was silently incrementing/decrementing hours and rate values */
@@ -250,6 +257,7 @@
       <button id="tabTeam" onclick="setView('team')">My Team</button>
       <button id="tabMatters" onclick="setView('matters')">Client/Matter</button>
       <button id="tabBilling" onclick="setView('billing')">Billing</button>
+      <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
     </div>
     <div class="sp"><button class="btn-add-hours" onclick="openAddHours()">Add hours</button></div>
     <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
@@ -348,6 +356,21 @@
         </div>
         <div id="invPreview"></div>
         <button class="btn-stub" onclick="generateClientInvoice()">Generate PDF invoice</button>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="card" id="expensesView" style="display:none">
+      <div class="card-head">
+        <div class="card-title" style="font-size:18px">Expenses</div>
+        <button class="btn-add-hours" style="margin-left:auto" onclick="openAddExpense()">+ Add expense</button>
+      </div>
+      <div class="day-row head" style="grid-template-columns:100px 90px 1fr 90px 32px 32px">
+        <div>Date</div><div>Tag</div><div>Description</div><div>Amount</div><div></div><div></div>
+      </div>
+      <div id="expensesBody"><div class="loading">Loading…</div></div>
+      <div class="foot">
+        <span class="total">Total: $<span id="expensesTotal">0.00</span></span>
       </div>
     </div>
 
@@ -511,6 +534,9 @@
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2>Add hours</h2><button class="close" onclick="closeAddHours()">✕</button></div>
     <div class="modal-body">
+      <button type="button" class="btn-add-hours" id="voiceAddBtn" onclick="toggleVoiceCapture()" style="width:100%;margin-bottom:6px">🎤 Speak your entry</button>
+      <p class="hint" id="voiceStatus" style="min-height:16px;margin-top:0;margin-bottom:14px"></p>
+
       <div class="field"><label>Date</label><input type="date" id="addHrsDate"></div>
 
       <div class="field"><label>Who is this for</label>
@@ -544,6 +570,40 @@
       </div>
 
       <button class="btn btn-primary" onclick="saveAddHours()">Save hours</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EXPENSE -->
+<div class="overlay" id="addExpenseOverlay" onclick="if(event.target===this)closeAddExpense()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h2 id="addExpenseTitle">Add expense</h2><button class="close" onclick="closeAddExpense()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Date</label><input type="date" id="addExpDate"></div>
+
+      <div class="field"><label>Client <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <select id="addExpClient" onchange="onAddExpenseClientChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+          <option value="">No client / general expense</option>
+        </select>
+      </div>
+      <div class="field"><label>Matter / tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <select id="addExpMatter" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+          <option value="">No matter</option>
+        </select>
+      </div>
+
+      <div class="field"><label>Amount ($)</label><input type="number" min="0" step="0.01" id="addExpAmount" placeholder="0.00"></div>
+
+      <div class="field"><label>Description</label>
+        <textarea id="addExpDesc" rows="2" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" placeholder="What was this for?"></textarea>
+      </div>
+
+      <div class="field"><label>Receipt <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional — PDF or photo)</span></label>
+        <input type="file" id="addExpReceipt" accept=".pdf,image/*" onchange="onExpenseReceiptSelected(this.files)">
+        <p class="hint" id="addExpReceiptStatus" style="margin-top:5px"></p>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveExpense()">Save expense</button>
     </div>
   </div>
 </div>
@@ -813,18 +873,21 @@ async function setView(v){
   $('tabTeam').classList.toggle('active', v==='team');
   $('tabMatters').classList.toggle('active', v==='matters');
   $('tabBilling').classList.toggle('active', v==='billing');
+  $('tabExpenses').classList.toggle('active', v==='expenses');
   $('weekView').style.display = v==='week' ? '' : 'none';
   $('monthView').style.display = v==='month' ? '' : 'none';
   $('payView').style.display = v==='pay' ? '' : 'none';
   $('teamView').style.display = v==='team' ? '' : 'none';
   $('mattersView').style.display = v==='matters' ? '' : 'none';
   $('billingView').style.display = v==='billing' ? '' : 'none';
+  $('expensesView').style.display = v==='expenses' ? '' : 'none';
   if(v==='week') await loadWeek();
   if(v==='month') await loadMonth();
   if(v==='pay') await loadPay();
   if(v==='team') await loadTeamTab();
   if(v==='matters') await loadMattersTab();
   if(v==='billing') await loadBilling();
+  if(v==='expenses') await loadExpenses();
 }
 
 /* ================= week data ================= */
@@ -1111,6 +1174,7 @@ function todayKeyLocal(){
 }
 
 async function openAddHours(){
+  $('voiceStatus').textContent = '';
   $('addHrsDate').value = todayKeyLocal();
   $('addHrsHours').value = '';
   $('addHrsRate').value = '';
@@ -1205,6 +1269,250 @@ async function saveAddHours(){
     else if(view==='month') await loadMonth();
     else if(view==='pay') await loadPay();
   }
+}
+
+/* ================= voice entry ================= */
+let voiceRecognition = null;
+let voiceListening = false;
+
+function toggleVoiceCapture(){
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognitionCtor){
+    $('voiceStatus').textContent = 'Voice input isn\'t supported in this browser — try Chrome or Safari.';
+    return;
+  }
+  if(voiceListening){
+    voiceRecognition.stop();
+    return;
+  }
+  voiceRecognition = new SpeechRecognitionCtor();
+  voiceRecognition.lang = 'en-US';
+  voiceRecognition.interimResults = false;
+  voiceRecognition.maxAlternatives = 1;
+
+  voiceRecognition.onstart = () => {
+    voiceListening = true;
+    $('voiceStatus').textContent = 'Listening… tap again to stop.';
+    $('voiceAddBtn').textContent = '⏹ Stop listening';
+  };
+  voiceRecognition.onerror = () => {
+    voiceListening = false;
+    $('voiceAddBtn').textContent = '🎤 Speak your entry';
+    $('voiceStatus').textContent = 'Could not hear that clearly — try again.';
+  };
+  voiceRecognition.onend = () => {
+    voiceListening = false;
+    $('voiceAddBtn').textContent = '🎤 Speak your entry';
+  };
+  voiceRecognition.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    $('voiceStatus').textContent = `Heard: "${transcript}" — figuring out the details…`;
+    await parseVoiceTranscript(transcript);
+  };
+  voiceRecognition.start();
+}
+
+async function parseVoiceTranscript(transcript){
+  try {
+    const knownTags = await myTags();
+    const resp = await fetch('/api/parse-hours', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags })
+    });
+    const data = await resp.json();
+    if(!resp.ok || !data.entries || !data.entries.length){
+      $('voiceStatus').textContent = `Heard: "${transcript}" — couldn't pull out hours or a description, fill in below.`;
+      return;
+    }
+    const entry = data.entries[0];
+    if(entry.date) $('addHrsDate').value = entry.date;
+    if(entry.hours) $('addHrsHours').value = entry.hours;
+    if(entry.description) $('addHrsDesc').value = entry.description;
+
+    if(entry.tag){
+      const ownerIds = invAllMembers.map(m=>m.id);
+      const { data: matchMatters } = ownerIds.length
+        ? await supa.from('matters').select('*').in('owner_id', ownerIds).eq('tag', entry.tag)
+        : { data: [] };
+      if(matchMatters && matchMatters.length){
+        $('addHrsClient').value = matchMatters[0].client_id;
+        await onAddHoursClientChange();
+        $('addHrsMatter').value = entry.tag;
+        await onAddHoursMatterChange();
+      }
+    }
+    $('voiceStatus').textContent = `Heard: "${transcript}" — review the fields below, then Save.`;
+  } catch(e){
+    $('voiceStatus').textContent = 'Could not process that — check your connection and try again.';
+  }
+}
+
+/* ================= expenses ================= */
+let expensesCache = [];
+let addExpenseClientsCache = [];
+let addExpenseMattersCache = [];
+let pendingReceiptFile = null;
+let editingExpenseId = null;
+
+async function loadExpenses(){
+  $('expensesBody').innerHTML = '<div class="loading">Loading…</div>';
+  const { data, error } = await supa.from('expenses').select('*').eq('user_id', me.id).order('expense_date', { ascending: false });
+  if(error){ toast('Could not load expenses'); expensesCache = []; }
+  else expensesCache = data || [];
+  renderExpenses();
+}
+
+function fmtExpDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function renderExpenses(){
+  const box = $('expensesBody');
+  if(!expensesCache.length){
+    box.innerHTML = '<div class="expense-empty">No expenses logged yet.</div>';
+    $('expensesTotal').textContent = '0.00';
+    return;
+  }
+  box.innerHTML = expensesCache.map(e => `
+    <div class="expense-row">
+      <span>${fmtExpDate(e.expense_date)}</span>
+      <span class="exp-tag">${e.tag ? escapeHtml(e.tag) : '—'}</span>
+      <span>${escapeHtml(e.description||'')}${e.receipt_path ? ' 📎' : ''}</span>
+      <span class="exp-amount">$${Number(e.amount||0).toFixed(2)}</span>
+      <button type="button" class="row-del" title="Edit" onclick="openEditExpense('${e.id}')">✎</button>
+      <button type="button" class="row-del" title="Delete" onclick="deleteExpense('${e.id}')">✕</button>
+    </div>`).join('');
+  const total = expensesCache.reduce((s,e)=>s+Number(e.amount||0),0);
+  $('expensesTotal').textContent = total.toFixed(2);
+}
+
+async function openAddExpense(){
+  editingExpenseId = null;
+  pendingReceiptFile = null;
+  $('addExpenseTitle').textContent = 'Add expense';
+  $('addExpDate').value = todayKeyLocal();
+  $('addExpAmount').value = '';
+  $('addExpDesc').value = '';
+  $('addExpClient').innerHTML = '<option value="">No client / general expense</option>';
+  $('addExpClient').value = '';
+  $('addExpMatter').innerHTML = '<option value="">No matter</option>';
+  $('addExpMatter').value = '';
+  $('addExpReceiptStatus').textContent = '';
+  $('addExpReceipt').value = '';
+  addExpenseMattersCache = [];
+
+  invAllMembers = await teamMembers();
+  const ownerIds = invAllMembers.map(m=>m.id);
+  const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
+  addExpenseClientsCache = clients || [];
+  $('addExpClient').innerHTML += addExpenseClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+
+  $('addExpenseOverlay').classList.add('on');
+}
+function closeAddExpense(){ $('addExpenseOverlay').classList.remove('on'); }
+
+async function onAddExpenseClientChange(){
+  const clientId = $('addExpClient').value;
+  $('addExpMatter').innerHTML = '<option value="">No matter</option>';
+  $('addExpMatter').value = '';
+  addExpenseMattersCache = [];
+  if(!clientId) return;
+  const { data: matters } = await supa.from('matters').select('*').eq('client_id', clientId);
+  addExpenseMattersCache = matters || [];
+  $('addExpMatter').innerHTML += addExpenseMattersCache.map(m=>`<option value="${m.tag}">${escapeHtml(m.tag)}</option>`).join('');
+}
+
+function onExpenseReceiptSelected(files){
+  const file = files[0];
+  if(!file){ pendingReceiptFile = null; $('addExpReceiptStatus').textContent = ''; return; }
+  pendingReceiptFile = file;
+  $('addExpReceiptStatus').textContent = `Attached: ${file.name}`;
+}
+
+async function saveExpense(){
+  const date = $('addExpDate').value;
+  const tag = $('addExpMatter').value;
+  const amountVal = parseFloat($('addExpAmount').value);
+  const desc = $('addExpDesc').value.trim();
+
+  if(!date) return toast('Pick a date');
+  if(isNaN(amountVal) || amountVal <= 0) return toast('Enter an amount');
+
+  let receiptPath, receiptType;
+  if(pendingReceiptFile){
+    const ext = (pendingReceiptFile.name.split('.').pop() || 'dat').toLowerCase();
+    const path = `${me.id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error: upErr } = await supa.storage.from('receipts').upload(path, pendingReceiptFile);
+    if(upErr) return toast('Could not upload receipt: ' + (upErr.message||''));
+    receiptPath = path;
+    receiptType = pendingReceiptFile.type === 'application/pdf' ? 'pdf' : 'image';
+  }
+
+  if(editingExpenseId){
+    const patch = { expense_date: date, tag, description: desc, amount: amountVal };
+    if(receiptPath !== undefined){ patch.receipt_path = receiptPath; patch.receipt_type = receiptType; }
+    const { error } = await supa.from('expenses').update(patch).eq('id', editingExpenseId);
+    if(error) return toast(errText(error));
+    logHist('Edited an expense');
+  } else {
+    const { error } = await supa.from('expenses').insert({
+      user_id: me.id, expense_date: date, tag, description: desc, amount: amountVal,
+      receipt_path: receiptPath||'', receipt_type: receiptType||''
+    });
+    if(error) return toast(errText(error));
+    logHist(`Logged a $${amountVal.toFixed(2)} expense${tag?` to ${tag}`:''}`);
+  }
+
+  toast('Expense saved');
+  closeAddExpense();
+  if(view==='expenses') await loadExpenses();
+}
+
+async function openEditExpense(id){
+  const exp = expensesCache.find(e=>e.id===id);
+  if(!exp) return;
+  editingExpenseId = id;
+  pendingReceiptFile = null;
+  $('addExpenseTitle').textContent = 'Edit expense';
+  $('addExpDate').value = exp.expense_date;
+  $('addExpAmount').value = exp.amount;
+  $('addExpDesc').value = exp.description || '';
+  $('addExpReceiptStatus').textContent = exp.receipt_path ? 'A receipt is already attached — choose a new file to replace it' : '';
+  $('addExpReceipt').value = '';
+
+  invAllMembers = await teamMembers();
+  const ownerIds = invAllMembers.map(m=>m.id);
+  const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
+  addExpenseClientsCache = clients || [];
+  $('addExpClient').innerHTML = '<option value="">No client / general expense</option>' + addExpenseClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+  $('addExpClient').value = '';
+  $('addExpMatter').innerHTML = '<option value="">No matter</option>';
+  addExpenseMattersCache = [];
+
+  if(exp.tag && ownerIds.length){
+    const { data: matchMatters } = await supa.from('matters').select('*').in('owner_id', ownerIds).eq('tag', exp.tag);
+    if(matchMatters && matchMatters.length){
+      $('addExpClient').value = matchMatters[0].client_id;
+      await onAddExpenseClientChange();
+    }
+  }
+  $('addExpMatter').value = exp.tag || '';
+
+  $('addExpenseOverlay').classList.add('on');
+}
+
+async function deleteExpense(id){
+  const exp = expensesCache.find(e=>e.id===id);
+  if(!exp) return;
+  if(exp.receipt_path){
+    await supa.storage.from('receipts').remove([exp.receipt_path]);
+  }
+  const { error } = await supa.from('expenses').delete().eq('id', id);
+  if(error) return toast(errText(error));
+  logHist('Removed an expense');
+  toast('Expense removed');
+  await loadExpenses();
 }
 
 /* ================= import hours (AI-assisted) ================= */
@@ -2359,6 +2667,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.7</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.9</div>
 </body>
 </html>
