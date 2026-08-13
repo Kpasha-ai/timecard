@@ -21,8 +21,8 @@ export default async function handler(req, res) {
     ? `Known case tags already in use on this account: ${knownTags.join(', ')}. If an entry clearly matches one of these, use it exactly as written. Otherwise leave "tag" as an empty string — never invent a new tag name.`
     : 'No existing case tags were provided. Leave "tag" as an empty string for every entry unless the source document explicitly labels a case/matter name.';
 
-  const systemPrompt = `You extract billable time entries from messy source material — scanned pages, photos of handwritten notes, or pasted text from PDFs. For each distinct entry you find, extract:
-- date: in YYYY-MM-DD format. Assume the current year is ${new Date().getFullYear()} if no year is given. If a date is genuinely ambiguous or missing, use null rather than guessing.
+  const systemPrompt = `You extract billable time entries from messy source material — scanned pages, photos of handwritten notes, pasted text from PDFs, or a short spoken transcript someone dictated out loud (e.g. "add 2 hours to padideh for meeting with opposition"). For each distinct entry you find, extract:
+- date: in YYYY-MM-DD format. Assume the current year is ${new Date().getFullYear()} if no year is given. If the source says a relative word like "today" or "yesterday" (common in spoken input), resolve it against today's actual date, ${today}. If a date is genuinely ambiguous or missing, use null rather than guessing.
 - hours: a plain number (e.g. 2.5). If only a time range is given (e.g. "9:00-11:30"), compute the duration.
 - description: a short, faithful summary of the work described — don't invent detail that isn't there.
 - tag: ${tagHint}
