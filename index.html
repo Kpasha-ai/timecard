@@ -1323,22 +1323,39 @@ function highlightMissingFields(kind){
   amountEl.classList.toggle('missing-field', !amountEl.value);
 }
 
-async function fillMatterFromTag(kind, tag){
-  if(!tag) return;
+async function fillClientAndMatter(kind, tag, clientName){
   const ownerIds = invAllMembers.map(m=>m.id);
-  const { data: matchMatters } = ownerIds.length
-    ? await supa.from('matters').select('*').in('owner_id', ownerIds).eq('tag', tag)
-    : { data: [] };
-  if(!matchMatters || !matchMatters.length) return;
-  if(kind === 'expense'){
-    $('addExpClient').value = matchMatters[0].client_id;
-    await onAddExpenseClientChange();
-    $('addExpMatter').value = tag;
-  } else {
-    $('addHrsClient').value = matchMatters[0].client_id;
-    await onAddHoursClientChange();
-    $('addHrsMatter').value = tag;
-    await onAddHoursMatterChange();
+  if(!ownerIds.length) return;
+  const clientEl = kind === 'expense' ? $('addExpClient') : $('addHrsClient');
+  const matterEl = kind === 'expense' ? $('addExpMatter') : $('addHrsMatter');
+  const onClientChange = kind === 'expense' ? onAddExpenseClientChange : onAddHoursClientChange;
+
+  // an exact tag match tells us both the matter and its client directly
+  if(tag){
+    const { data: matchMatters } = await supa.from('matters').select('*').in('owner_id', ownerIds).eq('tag', tag);
+    if(matchMatters && matchMatters.length){
+      clientEl.value = matchMatters[0].client_id;
+      await onClientChange();
+      matterEl.value = tag;
+      if(kind === 'hours') await onAddHoursMatterChange();
+      return;
+    }
+  }
+
+  // no tag match — fall back to a client-name match on its own
+  if(clientName){
+    const { data: clients } = await supa.from('clients').select('*').in('owner_id', ownerIds);
+    const match = (clients||[]).find(c => `${c.first_name} ${c.last_name}`.trim().toLowerCase() === clientName.trim().toLowerCase());
+    if(match){
+      clientEl.value = match.id;
+      await onClientChange();
+      // if they have exactly one matter, that's an unambiguous pick — select it too
+      const { data: theirMatters } = await supa.from('matters').select('*').eq('client_id', match.id);
+      if(theirMatters && theirMatters.length === 1){
+        matterEl.value = theirMatters[0].tag;
+        if(kind === 'hours') await onAddHoursMatterChange();
+      }
+    }
   }
 }
 
@@ -1353,6 +1370,13 @@ const VOICE_NUMBER_WORDS = { zero:0, one:1, two:2, three:3, four:4, five:5, six:
 function tryQuickParseVoice(transcript){
   const t = transcript.trim().replace(/\.$/, '');
   const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+  // "to client X" or the word "matter" signal a richer phrase naming client
+  // and matter as separate things — that needs the AI's judgment. Checking
+  // for the bare word "client" anywhere would be too broad — "client call"
+  // is a completely normal, simple description that should still hit the
+  // fast path, not fall through unnecessarily.
+  if(/\bto\s+client\b/i.test(t) || /\bmatter\b/i.test(t)) return null;
 
   const hoursMatch = t.match(/^add\s+(\d+(?:\.\d+)?|[a-z]+)(?:\s+and\s+a\s+half)?\s+hours?\b(?:\s+to\s+(.+?))?(?:\s+(?:for|regarding|re|about)\s+(.+))?$/i);
   if(hoursMatch){
@@ -1398,7 +1422,7 @@ async function routeVoiceEntry(transcript){
       await openAddExpense();
       $('addExpAmount').value = quick.amount;
       $('addExpDesc').value = quick.description;
-      await fillMatterFromTag('expense', quick.tag);
+      await fillClientAndMatter('expense', quick.tag, '');
       highlightMissingFields('expense');
       $('expVoiceStatus').textContent = `Heard: "${transcript}" — extracted $${quick.amount}. Review below, then Save.`;
       toast(`Heard: "${transcript}" — review the expense, then Save`);
@@ -1406,7 +1430,7 @@ async function routeVoiceEntry(transcript){
       await openAddHours();
       $('addHrsHours').value = quick.hours;
       $('addHrsDesc').value = quick.description;
-      await fillMatterFromTag('hours', quick.tag);
+      await fillClientAndMatter('hours', quick.tag, '');
       highlightMissingFields('hours');
       $('voiceStatus').textContent = `Heard: "${transcript}" — extracted ${quick.hours}h. Review below, then Save.`;
       toast(`Heard: "${transcript}" — review the hours, then Save`);
@@ -1419,9 +1443,12 @@ async function routeVoiceEntry(transcript){
 
 async function routeVoiceEntryViaAI(transcript, knownTags){
   try {
+    const ownerIds = invAllMembers.map(m=>m.id);
+    const { data: clientRows } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
+    const knownClients = (clientRows||[]).map(c => `${c.first_name} ${c.last_name}`.trim());
     const resp = await fetch('/api/parse-hours', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags })
+      body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags, knownClients })
     });
     const data = await resp.json();
 
@@ -1439,7 +1466,7 @@ async function routeVoiceEntryViaAI(transcript, knownTags){
       if(entry.date) $('addExpDate').value = entry.date;
       if(entry.amount) $('addExpAmount').value = entry.amount;
       if(entry.description) $('addExpDesc').value = entry.description;
-      await fillMatterFromTag('expense', entry.tag);
+      await fillClientAndMatter('expense', entry.tag, entry.clientName);
       highlightMissingFields('expense');
       $('expVoiceStatus').textContent = `Heard: "${transcript}" — extracted ${entry.amount ? '$'+entry.amount : 'no amount'}. Review below, then Save.`;
       toast(`Heard: "${transcript}" — review the expense, then Save`);
@@ -1448,7 +1475,7 @@ async function routeVoiceEntryViaAI(transcript, knownTags){
       if(entry.date) $('addHrsDate').value = entry.date;
       if(entry.hours) $('addHrsHours').value = entry.hours;
       if(entry.description) $('addHrsDesc').value = entry.description;
-      await fillMatterFromTag('hours', entry.tag);
+      await fillClientAndMatter('hours', entry.tag, entry.clientName);
       highlightMissingFields('hours');
       $('voiceStatus').textContent = `Heard: "${transcript}" — extracted ${entry.hours ? entry.hours+'h' : 'no hours'}. Review below, then Save.`;
       toast(`Heard: "${transcript}" — review the hours, then Save`);
@@ -1504,9 +1531,12 @@ function toggleVoiceCapture(){
 async function parseVoiceTranscript(transcript){
   try {
     const knownTags = await myTags();
+    const ownerIds = invAllMembers.map(m=>m.id);
+    const { data: clientRows } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
+    const knownClients = (clientRows||[]).map(c => `${c.first_name} ${c.last_name}`.trim());
     const resp = await fetch('/api/parse-hours', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags })
+      body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags, knownClients })
     });
     const data = await resp.json();
     if(!resp.ok || !data.entries || !data.entries.length){
@@ -1517,19 +1547,7 @@ async function parseVoiceTranscript(transcript){
     if(entry.date) $('addHrsDate').value = entry.date;
     if(entry.hours) $('addHrsHours').value = entry.hours;
     if(entry.description) $('addHrsDesc').value = entry.description;
-
-    if(entry.tag){
-      const ownerIds = invAllMembers.map(m=>m.id);
-      const { data: matchMatters } = ownerIds.length
-        ? await supa.from('matters').select('*').in('owner_id', ownerIds).eq('tag', entry.tag)
-        : { data: [] };
-      if(matchMatters && matchMatters.length){
-        $('addHrsClient').value = matchMatters[0].client_id;
-        await onAddHoursClientChange();
-        $('addHrsMatter').value = entry.tag;
-        await onAddHoursMatterChange();
-      }
-    }
+    await fillClientAndMatter('hours', entry.tag, entry.clientName);
     $('voiceStatus').textContent = `Heard: "${transcript}" — review the fields below, then Save.`;
   } catch(e){
     $('voiceStatus').textContent = 'Could not process that — check your connection and try again.';
@@ -2859,6 +2877,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-14.1</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-14.2</div>
 </body>
 </html>
