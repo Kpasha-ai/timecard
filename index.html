@@ -1342,9 +1342,83 @@ async function fillMatterFromTag(kind, tag){
   }
 }
 
+const VOICE_NUMBER_WORDS = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10,
+  eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, a:1, an:1 };
+
+// Deterministic fast-path for common, simple phrasing — "add 2 hours for deposition",
+// "add two hours to padideh", "add an expense of 45 dollars for paper". This never
+// depends on the AI backend, so it can't fail the way AI extraction has been failing
+// for exactly these simple, common commands. Falls back to null (letting the AI
+// handle it) for anything that doesn't match one of these clear patterns.
+function tryQuickParseVoice(transcript){
+  const t = transcript.trim().replace(/\.$/, '');
+  const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+  const hoursMatch = t.match(/^add\s+(\d+(?:\.\d+)?|[a-z]+)(?:\s+and\s+a\s+half)?\s+hours?\b(?:\s+to\s+(.+?))?(?:\s+(?:for|regarding|re|about)\s+(.+))?$/i);
+  if(hoursMatch){
+    let hours;
+    const raw = hoursMatch[1].toLowerCase();
+    if(/^\d+(\.\d+)?$/.test(raw)) hours = parseFloat(raw);
+    else if(raw in VOICE_NUMBER_WORDS) hours = VOICE_NUMBER_WORDS[raw];
+    if(hours !== undefined){
+      if(/and a half/i.test(t)) hours += 0.5;
+      if(hours > 0){
+        return { entryType:'hours', hours, amount:0, description: cap(hoursMatch[3] ? hoursMatch[3].trim() : ''), tagHint: hoursMatch[2] ? hoursMatch[2].trim() : '' };
+      }
+    }
+  }
+
+  const expMatch = t.match(/^add\s+an?\s+expense\s+of\s+\$?(\d+(?:\.\d+)?)\s*(?:dollars?)?(?:\s+to\s+(.+?))?(?:\s+(?:for|regarding|re|about)\s+(.+))?$/i);
+  if(expMatch){
+    const amount = parseFloat(expMatch[1]);
+    if(amount > 0){
+      return { entryType:'expense', hours:0, amount, description: cap(expMatch[3] ? expMatch[3].trim() : ''), tagHint: expMatch[2] ? expMatch[2].trim() : '' };
+    }
+  }
+
+  return null;
+}
+
+// tries to match a spoken description against the team's known tags without
+// needing the AI at all — if the description literally contains a known tag
+// name, that's a confident match
+function matchKnownTag(description, knownTags){
+  if(!description || !knownTags || !knownTags.length) return '';
+  const upper = description.toUpperCase();
+  const found = knownTags.find(tag => upper.includes(tag.toUpperCase()));
+  return found || '';
+}
+
 async function routeVoiceEntry(transcript){
+  const knownTags = await myTags();
+  const quick = tryQuickParseVoice(transcript);
+  if(quick){
+    quick.tag = matchKnownTag(quick.tagHint, knownTags) || matchKnownTag(quick.description, knownTags);
+    if(quick.entryType === 'expense'){
+      await openAddExpense();
+      $('addExpAmount').value = quick.amount;
+      $('addExpDesc').value = quick.description;
+      await fillMatterFromTag('expense', quick.tag);
+      highlightMissingFields('expense');
+      $('expVoiceStatus').textContent = `Heard: "${transcript}" — extracted $${quick.amount}. Review below, then Save.`;
+      toast(`Heard: "${transcript}" — review the expense, then Save`);
+    } else {
+      await openAddHours();
+      $('addHrsHours').value = quick.hours;
+      $('addHrsDesc').value = quick.description;
+      await fillMatterFromTag('hours', quick.tag);
+      highlightMissingFields('hours');
+      $('voiceStatus').textContent = `Heard: "${transcript}" — extracted ${quick.hours}h. Review below, then Save.`;
+      toast(`Heard: "${transcript}" — review the hours, then Save`);
+    }
+    return;
+  }
+
+  await routeVoiceEntryViaAI(transcript, knownTags);
+}
+
+async function routeVoiceEntryViaAI(transcript, knownTags){
   try {
-    const knownTags = await myTags();
     const resp = await fetch('/api/parse-hours', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags })
@@ -2785,6 +2859,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-13.3</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-14.1</div>
 </body>
 </html>
