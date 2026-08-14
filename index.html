@@ -588,6 +588,7 @@
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2 id="addExpenseTitle">Add expense</h2><button class="close" onclick="closeAddExpense()">✕</button></div>
     <div class="modal-body">
+      <p class="hint" id="expVoiceStatus" style="min-height:16px;margin-top:0"></p>
       <div class="field"><label>Date</label><input type="date" id="addExpDate" oninput="this.classList.remove('missing-field')"></div>
 
       <div class="field"><label>Client <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
@@ -1353,6 +1354,7 @@ async function routeVoiceEntry(transcript){
     if(!resp.ok || !data.entries || !data.entries.length){
       await openAddHours();
       highlightMissingFields('hours');
+      $('voiceStatus').textContent = `Heard: "${transcript}" — couldn't make out the details, fill in manually.`;
       toast(`Heard: "${transcript}" — couldn't make out the details, fill in manually`);
       return;
     }
@@ -1365,6 +1367,7 @@ async function routeVoiceEntry(transcript){
       if(entry.description) $('addExpDesc').value = entry.description;
       await fillMatterFromTag('expense', entry.tag);
       highlightMissingFields('expense');
+      $('expVoiceStatus').textContent = `Heard: "${transcript}" — extracted ${entry.amount ? '$'+entry.amount : 'no amount'}. Review below, then Save.`;
       toast(`Heard: "${transcript}" — review the expense, then Save`);
     } else {
       await openAddHours();
@@ -1373,6 +1376,7 @@ async function routeVoiceEntry(transcript){
       if(entry.description) $('addHrsDesc').value = entry.description;
       await fillMatterFromTag('hours', entry.tag);
       highlightMissingFields('hours');
+      $('voiceStatus').textContent = `Heard: "${transcript}" — extracted ${entry.hours ? entry.hours+'h' : 'no hours'}. Review below, then Save.`;
       toast(`Heard: "${transcript}" — review the hours, then Save`);
     }
   } catch(e){
@@ -1501,6 +1505,7 @@ function renderExpenses(){
 async function openAddExpense(){
   editingExpenseId = null;
   pendingReceiptFile = null;
+  $('expVoiceStatus').textContent = '';
   $('addExpDate').classList.remove('missing-field');
   $('addExpAmount').classList.remove('missing-field');
   $('addExpenseTitle').textContent = 'Add expense';
@@ -2780,6 +2785,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-13.2</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-13.3</div>
 </body>
 </html>
