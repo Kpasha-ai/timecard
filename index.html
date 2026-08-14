@@ -53,11 +53,17 @@
   header{background:var(--pine);color:var(--bone);padding:0 22px;height:58px;display:flex;align-items:center;gap:16px}
   header .brand{font-size:19px}
   .sp{flex:1;display:flex;justify-content:center;align-items:center}
-  .btn-add-hours{background:var(--stamp);color:#3A2708;border:0;border-radius:9px;font-size:14px;font-weight:700;padding:10px 22px;white-space:nowrap}
+  .quick-add-btn{background:var(--stamp);color:#3A2708;border:0;border-radius:50%;width:44px;height:44px;font-size:24px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center}
+  .quick-add-btn.listening{background:#C0392B;color:#fff;animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+  input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
   .btn-ghost-dark{background:transparent;border:1.5px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600}
   main{max-width:900px;margin:0 auto;padding:22px;width:100%}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+  .sub-toggle{display:flex;gap:4px;background:var(--sage-mist);border-radius:9px;padding:4px;width:fit-content;margin-bottom:14px}
+  .sub-toggle-btn{border:0;background:transparent;color:var(--pine);font-weight:600;font-size:13px;padding:7px 16px;border-radius:7px}
+  .sub-toggle-btn.active{background:#fff;box-shadow:0 1px 3px rgba(18,40,32,.12)}
   .card-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
   .card-title{font-family:var(--display);font-weight:700;font-size:20px}
   .nav-btns{display:flex;gap:6px;margin-left:auto}
@@ -251,15 +257,14 @@
   <header>
     <div class="brand">Timecard</div>
     <div class="tabnav">
-      <button id="tabWeek" class="active" onclick="setView('week')">Week</button>
-      <button id="tabMonth" onclick="setView('month')">Month</button>
+      <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
       <button id="tabPay" onclick="setView('pay')">Pay</button>
       <button id="tabTeam" onclick="setView('team')">My Team</button>
       <button id="tabMatters" onclick="setView('matters')">Client/Matter</button>
       <button id="tabBilling" onclick="setView('billing')">Billing</button>
       <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
     </div>
-    <div class="sp"><button class="btn-add-hours" onclick="openAddHours()">Add hours</button></div>
+    <div class="sp"><button class="quick-add-btn" id="quickAddBtn" onclick="quickAddViaVoice()" title="Speak an entry — hours or expense">+</button></div>
     <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
     <button class="btn-ghost" onclick="openImportHours()">Import hours</button>
     <button class="btn-ghost" onclick="openSearch()">Search</button>
@@ -267,6 +272,10 @@
     <button class="btn-ghost" onclick="signOut()">Sign out</button>
   </header>
   <main>
+    <div class="sub-toggle" id="timesheetSubToggle">
+      <button class="sub-toggle-btn active" id="subTabWeek" onclick="setView('week')">Week</button>
+      <button class="sub-toggle-btn" id="subTabMonth" onclick="setView('month')">Month</button>
+    </div>
     <!-- WEEK -->
     <div class="card" id="weekView">
       <div class="card-head">
@@ -537,7 +546,7 @@
       <button type="button" class="btn-add-hours" id="voiceAddBtn" onclick="toggleVoiceCapture()" style="width:100%;margin-bottom:6px">🎤 Speak your entry</button>
       <p class="hint" id="voiceStatus" style="min-height:16px;margin-top:0;margin-bottom:14px"></p>
 
-      <div class="field"><label>Date</label><input type="date" id="addHrsDate"></div>
+      <div class="field"><label>Date</label><input type="date" id="addHrsDate" oninput="this.classList.remove('missing-field')"></div>
 
       <div class="field"><label>Who is this for</label>
         <select id="addHrsPerson" onchange="onAddHoursPersonChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
@@ -556,7 +565,7 @@
       </div>
 
       <div class="row2">
-        <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="addHrsHours" placeholder="0"></div>
+        <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="addHrsHours" placeholder="0" oninput="this.classList.remove('missing-field')"></div>
         <div class="field"><label>Rate ($/h)</label><input type="number" min="0" step="5" id="addHrsRate" placeholder="0"></div>
       </div>
       <p class="hint" style="margin-top:-6px;margin-bottom:14px">Rate fills in automatically for whoever's selected above — change it here and it becomes their new standing rate for this matter.</p>
@@ -579,7 +588,7 @@
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2 id="addExpenseTitle">Add expense</h2><button class="close" onclick="closeAddExpense()">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Date</label><input type="date" id="addExpDate"></div>
+      <div class="field"><label>Date</label><input type="date" id="addExpDate" oninput="this.classList.remove('missing-field')"></div>
 
       <div class="field"><label>Client <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
         <select id="addExpClient" onchange="onAddExpenseClientChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
@@ -592,7 +601,7 @@
         </select>
       </div>
 
-      <div class="field"><label>Amount ($)</label><input type="number" min="0" step="0.01" id="addExpAmount" placeholder="0.00"></div>
+      <div class="field"><label>Amount ($)</label><input type="number" min="0" step="0.01" id="addExpAmount" placeholder="0.00" oninput="this.classList.remove('missing-field')"></div>
 
       <div class="field"><label>Description</label>
         <textarea id="addExpDesc" rows="2" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" placeholder="What was this for?"></textarea>
@@ -865,15 +874,22 @@ async function checkInviteLink(){
   if(view === 'team') await loadTeamTab();
 }
 
+let lastTimesheetView = 'week';
+function goToTimesheet(){
+  setView(lastTimesheetView);
+}
 async function setView(v){
   view = v;
-  $('tabWeek').classList.toggle('active', v==='week');
-  $('tabMonth').classList.toggle('active', v==='month');
+  if(v==='week'||v==='month') lastTimesheetView = v;
+  $('tabTimesheet').classList.toggle('active', v==='week'||v==='month');
   $('tabPay').classList.toggle('active', v==='pay');
   $('tabTeam').classList.toggle('active', v==='team');
   $('tabMatters').classList.toggle('active', v==='matters');
   $('tabBilling').classList.toggle('active', v==='billing');
   $('tabExpenses').classList.toggle('active', v==='expenses');
+  $('timesheetSubToggle').style.display = (v==='week'||v==='month') ? '' : 'none';
+  $('subTabWeek').classList.toggle('active', v==='week');
+  $('subTabMonth').classList.toggle('active', v==='month');
   $('weekView').style.display = v==='week' ? '' : 'none';
   $('monthView').style.display = v==='month' ? '' : 'none';
   $('payView').style.display = v==='pay' ? '' : 'none';
@@ -1175,6 +1191,8 @@ function todayKeyLocal(){
 
 async function openAddHours(){
   $('voiceStatus').textContent = '';
+  $('addHrsDate').classList.remove('missing-field');
+  $('addHrsHours').classList.remove('missing-field');
   $('addHrsDate').value = todayKeyLocal();
   $('addHrsHours').value = '';
   $('addHrsRate').value = '';
@@ -1268,6 +1286,99 @@ async function saveAddHours(){
     if(view==='week') await loadWeek();
     else if(view==='month') await loadMonth();
     else if(view==='pay') await loadPay();
+  }
+}
+
+/* ================= quick add (voice-first, routes to hours or expense) ================= */
+async function quickAddViaVoice(){
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognitionCtor){
+    await openAddHours();   // no voice support in this browser — just open the normal form
+    return;
+  }
+  const rec = new SpeechRecognitionCtor();
+  rec.lang = 'en-US';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+
+  rec.onstart = () => { $('quickAddBtn').classList.add('listening'); };
+  rec.onerror = () => {
+    $('quickAddBtn').classList.remove('listening');
+    toast('Could not hear that clearly — try again');
+  };
+  rec.onend = () => { $('quickAddBtn').classList.remove('listening'); };
+  rec.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    toast(`Heard: "${transcript}" — figuring out the details…`);
+    await routeVoiceEntry(transcript);
+  };
+  rec.start();
+}
+
+function highlightMissingFields(kind){
+  const dateEl = kind === 'expense' ? $('addExpDate') : $('addHrsDate');
+  const amountEl = kind === 'expense' ? $('addExpAmount') : $('addHrsHours');
+  dateEl.classList.toggle('missing-field', !dateEl.value);
+  amountEl.classList.toggle('missing-field', !amountEl.value);
+}
+
+async function fillMatterFromTag(kind, tag){
+  if(!tag) return;
+  const ownerIds = invAllMembers.map(m=>m.id);
+  const { data: matchMatters } = ownerIds.length
+    ? await supa.from('matters').select('*').in('owner_id', ownerIds).eq('tag', tag)
+    : { data: [] };
+  if(!matchMatters || !matchMatters.length) return;
+  if(kind === 'expense'){
+    $('addExpClient').value = matchMatters[0].client_id;
+    await onAddExpenseClientChange();
+    $('addExpMatter').value = tag;
+  } else {
+    $('addHrsClient').value = matchMatters[0].client_id;
+    await onAddHoursClientChange();
+    $('addHrsMatter').value = tag;
+    await onAddHoursMatterChange();
+  }
+}
+
+async function routeVoiceEntry(transcript){
+  try {
+    const knownTags = await myTags();
+    const resp = await fetch('/api/parse-hours', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags })
+    });
+    const data = await resp.json();
+
+    if(!resp.ok || !data.entries || !data.entries.length){
+      await openAddHours();
+      highlightMissingFields('hours');
+      toast(`Heard: "${transcript}" — couldn't make out the details, fill in manually`);
+      return;
+    }
+
+    const entry = data.entries[0];
+    if(entry.entryType === 'expense'){
+      await openAddExpense();
+      if(entry.date) $('addExpDate').value = entry.date;
+      if(entry.amount) $('addExpAmount').value = entry.amount;
+      if(entry.description) $('addExpDesc').value = entry.description;
+      await fillMatterFromTag('expense', entry.tag);
+      highlightMissingFields('expense');
+      toast(`Heard: "${transcript}" — review the expense, then Save`);
+    } else {
+      await openAddHours();
+      if(entry.date) $('addHrsDate').value = entry.date;
+      if(entry.hours) $('addHrsHours').value = entry.hours;
+      if(entry.description) $('addHrsDesc').value = entry.description;
+      await fillMatterFromTag('hours', entry.tag);
+      highlightMissingFields('hours');
+      toast(`Heard: "${transcript}" — review the hours, then Save`);
+    }
+  } catch(e){
+    await openAddHours();
+    highlightMissingFields('hours');
+    toast('Could not process that — check your connection and try again');
   }
 }
 
@@ -1390,6 +1501,8 @@ function renderExpenses(){
 async function openAddExpense(){
   editingExpenseId = null;
   pendingReceiptFile = null;
+  $('addExpDate').classList.remove('missing-field');
+  $('addExpAmount').classList.remove('missing-field');
   $('addExpenseTitle').textContent = 'Add expense';
   $('addExpDate').value = todayKeyLocal();
   $('addExpAmount').value = '';
@@ -2667,6 +2780,6 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-12.9</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-13.2</div>
 </body>
 </html>
