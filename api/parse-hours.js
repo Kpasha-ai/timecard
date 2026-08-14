@@ -29,7 +29,9 @@ export default async function handler(req, res) {
 - description: a short, faithful summary of the work or expense described — don't invent detail that isn't there.
 - tag: ${tagHint}
 
-Respond with ONLY a JSON array of objects with exactly these six keys: entryType, date, hours, amount, description, tag. No prose, no markdown fences, no explanation — just the raw JSON array. If you can't confidently extract any entries at all, respond with an empty array [].`;
+IMPORTANT: a clear number is a clear number regardless of whether anything else in the entry is uncertain. If you can confidently identify hours or an amount, extract the entry — never discard it just because the case/client name is unclear, misheard, or doesn't match anything you recognize. In that situation, extract everything else you're confident about and leave tag as an empty string; do not drop the whole entry over one uncertain field. Only return an empty array if truly nothing usable — no number, no clear time worked or spent — was said at all.
+
+Respond with ONLY a JSON array of objects with exactly these six keys: entryType, date, hours, amount, description, tag. No prose, no markdown fences, no explanation — just the raw JSON array.`;
 
   const content = items.map(item => {
     if (item.type === 'image') {
