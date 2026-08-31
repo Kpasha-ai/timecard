@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Timecard — Supabase</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#122820">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Timecard">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -53,7 +59,11 @@
   header{background:var(--pine);color:var(--bone);padding:0 22px;height:58px;display:flex;align-items:center;gap:16px}
   header .brand{font-size:19px}
   .sp{flex:1;display:flex;justify-content:center;align-items:center}
+  .quick-add-wrap{position:relative}
   .quick-add-btn{background:var(--stamp);color:#3A2708;border:0;border-radius:50%;width:44px;height:44px;font-size:24px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center}
+  .log-manual-btn{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;
+    background:#fff;color:var(--pine);border:1.5px solid var(--line);border-radius:7px;
+    font-size:11px;font-weight:700;padding:4px 12px;white-space:nowrap;box-shadow:0 2px 6px rgba(18,40,32,.15);z-index:6}
   .quick-add-btn.listening{background:#C0392B;color:#fff;animation:pulse 1.2s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
   input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
@@ -258,13 +268,18 @@
     <div class="brand">Timecard</div>
     <div class="tabnav">
       <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
-      <button id="tabPay" onclick="setView('pay')">Pay</button>
+      <button id="tabPay" onclick="setView('pay')">Paystub</button>
       <button id="tabTeam" onclick="setView('team')">My Team</button>
       <button id="tabMatters" onclick="setView('matters')">Client/Matter</button>
       <button id="tabBilling" onclick="setView('billing')">Billing</button>
       <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
     </div>
-    <div class="sp"><button class="quick-add-btn" id="quickAddBtn" onclick="quickAddViaVoice()" title="Speak an entry — hours or expense">+</button></div>
+    <div class="sp">
+      <div class="quick-add-wrap">
+        <button class="quick-add-btn" id="quickAddBtn" onclick="quickAddViaVoice()" title="Speak an entry — hours or expense">+</button>
+        <button class="log-manual-btn" onclick="openAddHours()">Log</button>
+      </div>
+    </div>
     <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
     <button class="btn-ghost" onclick="openImportHours()">Import hours</button>
     <button class="btn-ghost" onclick="openSearch()">Search</button>
@@ -272,9 +287,12 @@
     <button class="btn-ghost" onclick="signOut()">Sign out</button>
   </header>
   <main>
-    <div class="sub-toggle" id="timesheetSubToggle">
-      <button class="sub-toggle-btn active" id="subTabWeek" onclick="setView('week')">Week</button>
-      <button class="sub-toggle-btn" id="subTabMonth" onclick="setView('month')">Month</button>
+    <div id="timesheetHeaderRow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="sub-toggle" id="timesheetSubToggle" style="margin-bottom:0">
+        <button class="sub-toggle-btn active" id="subTabWeek" onclick="setView('week')">Week</button>
+        <button class="sub-toggle-btn" id="subTabMonth" onclick="setView('month')">Month</button>
+      </div>
+      <button class="btn-bill" onclick="openAddHours()">+ Add hours</button>
     </div>
     <!-- WEEK -->
     <div class="card" id="weekView">
@@ -825,6 +843,7 @@ async function enterApp(user){
   anchor = new Date();
   await setView('week');
   await checkInviteLink();
+  await checkVoiceLogLink();
 }
 
 /* ================= profile ================= */
@@ -875,6 +894,17 @@ async function checkInviteLink(){
   if(view === 'team') await loadTeamTab();
 }
 
+// entry point for the Siri Shortcut: a shortcut that dictates speech and opens
+// this app with ?voicelog=<what was said> runs it through the exact same
+// hours/expense parsing pipeline the in-app mic button uses
+async function checkVoiceLogLink(){
+  const params = new URLSearchParams(window.location.search);
+  const spoken = params.get('voicelog');
+  window.history.replaceState({}, '', window.location.pathname);   // don't re-trigger on refresh
+  if(!spoken || !spoken.trim()) return;
+  await routeVoiceEntry(spoken.trim());
+}
+
 let lastTimesheetView = 'week';
 function goToTimesheet(){
   setView(lastTimesheetView);
@@ -888,7 +918,7 @@ async function setView(v){
   $('tabMatters').classList.toggle('active', v==='matters');
   $('tabBilling').classList.toggle('active', v==='billing');
   $('tabExpenses').classList.toggle('active', v==='expenses');
-  $('timesheetSubToggle').style.display = (v==='week'||v==='month') ? '' : 'none';
+  $('timesheetHeaderRow').style.display = (v==='week'||v==='month') ? '' : 'none';
   $('subTabWeek').classList.toggle('active', v==='week');
   $('subTabMonth').classList.toggle('active', v==='month');
   $('weekView').style.display = v==='week' ? '' : 'none';
@@ -2876,7 +2906,13 @@ document.addEventListener('wheel', e => {
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-14.2</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-15.4</div>
 </body>
 </html>
