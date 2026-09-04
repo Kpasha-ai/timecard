@@ -65,6 +65,8 @@
     background:#fff;color:var(--pine);border:1.5px solid var(--line);border-radius:7px;
     font-size:11px;font-weight:700;padding:4px 12px;white-space:nowrap;box-shadow:0 2px 6px rgba(18,40,32,.15);z-index:6}
   .quick-add-btn.listening{background:#C0392B;color:#fff;animation:pulse 1.2s ease-in-out infinite}
+  .voice-log-btn{background:#C0392B;color:#fff;border:0;border-radius:9px;font-size:14px;font-weight:700;padding:10px 18px;white-space:nowrap;box-shadow:0 2px 8px rgba(192,57,43,.35)}
+  .voice-log-btn.listening{animation:pulse 1.2s ease-in-out infinite;background:#922B21}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
   input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
@@ -226,6 +228,49 @@
   .hist-row .when{font-family:var(--mono);color:var(--ink-dim);white-space:nowrap;font-size:11px}
   .edit-matter-block{border:1.5px solid var(--case-line);border-radius:9px;margin-top:14px;padding:12px}
   .edit-matter-block h4{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--case);text-transform:uppercase;margin-bottom:10px}
+/* ================= mobile (phone-width) layout ================= */
+@media (max-width: 640px){
+  main{padding:12px}
+
+  /* Week: stack day-label/hours-total above the entries instead of squeezing
+     a 130px + nested-grid + 90px layout into a ~380px screen */
+  .day-row{grid-template-columns:1fr auto !important;grid-template-areas:"label hrs" "work work";row-gap:6px;padding:10px 8px}
+  .day-row .day-label{grid-area:label}
+  .day-row .hrs-cell{grid-area:hrs;text-align:right;align-self:start}
+  .day-row .work-cell{grid-area:work}
+  .day-row.head{display:none}   /* column labels don't translate to a stacked layout — position/styling carries the meaning instead */
+
+  .work-row-ro,.head-sub{grid-template-columns:52px 40px 1fr 26px 26px !important}
+  .work-row-ro>span,.work-row-ro>button{padding:7px 4px;font-size:11.5px}
+  .wro-tag{font-size:10.5px}
+
+  /* Expenses: date/tag/amount on one line, description below, actions on their own line */
+  .expense-row{grid-template-columns:1fr auto auto !important;grid-template-areas:"date tag amt" "desc desc desc" ". edit del";row-gap:4px;padding:9px 8px}
+  .expense-row>span:nth-child(1){grid-area:date;font-size:11.5px}
+  .expense-row>span:nth-child(2){grid-area:tag;font-size:10.5px}
+  .expense-row>span:nth-child(3){grid-area:desc;font-size:12px}
+  .expense-row>span:nth-child(4){grid-area:amt;text-align:right}
+  .expense-row>button:nth-child(5){grid-area:edit}
+  .expense-row>button:nth-child(6){grid-area:del}
+
+  /* Pay: period on its own line (it's already long — date range + badges),
+     hours/rate/pay compact below, then the checkbox+paystub button */
+  .pay-row{grid-template-columns:1fr 1fr 1fr !important;grid-template-areas:"period period period" "hrs rate pay" "actions actions actions";row-gap:6px;padding:12px 8px}
+  .pay-row.head{display:none}
+  .pay-row .pr-period{grid-area:period;font-size:12.5px}
+  .pay-row>span:nth-child(2){grid-area:hrs;text-align:center;font-size:12.5px}
+  .pay-row>span:nth-child(3){grid-area:rate;text-align:center;font-size:12.5px}
+  .pay-row>span:nth-child(4){grid-area:pay;text-align:center;font-size:12.5px}
+  .pay-row .pr-actions{grid-area:actions;display:flex;justify-content:space-between;align-items:center}
+
+  /* calendar cells are already width-safe (percentage columns) — just tighten text */
+  .cal-day{font-size:11px;padding:4px}
+
+  header{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px}
+  .sp{flex:0 0 auto;order:5}
+  .tabnav{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;flex-shrink:0}
+  .tabnav::-webkit-scrollbar{display:none}
+}
 </style>
 </head>
 <body>
@@ -276,8 +321,7 @@
     </div>
     <div class="sp">
       <div class="quick-add-wrap">
-        <button class="quick-add-btn" id="quickAddBtn" onclick="quickAddViaVoice()" title="Speak an entry — hours or expense">+</button>
-        <button class="log-manual-btn" onclick="openAddHours()">Log</button>
+        <button class="quick-add-btn" id="quickAddBtn" onclick="openAddHours()" title="Add hours">+</button>
       </div>
     </div>
     <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
@@ -292,7 +336,10 @@
         <button class="sub-toggle-btn active" id="subTabWeek" onclick="setView('week')">Week</button>
         <button class="sub-toggle-btn" id="subTabMonth" onclick="setView('month')">Month</button>
       </div>
-      <button class="btn-bill" onclick="openAddHours()">+ Add hours</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="voice-log-btn" id="voiceLogBtn" onclick="quickAddViaVoice()">🎤 Voice log</button>
+        <button class="btn-bill" onclick="openAddHours()">+ Add hours</button>
+      </div>
     </div>
     <!-- WEEK -->
     <div class="card" id="weekView">
@@ -1332,12 +1379,12 @@ async function quickAddViaVoice(){
   rec.interimResults = false;
   rec.maxAlternatives = 1;
 
-  rec.onstart = () => { $('quickAddBtn').classList.add('listening'); };
+  rec.onstart = () => { $('voiceLogBtn').classList.add('listening'); };
   rec.onerror = () => {
-    $('quickAddBtn').classList.remove('listening');
+    $('voiceLogBtn').classList.remove('listening');
     toast('Could not hear that clearly — try again');
   };
-  rec.onend = () => { $('quickAddBtn').classList.remove('listening'); };
+  rec.onend = () => { $('voiceLogBtn').classList.remove('listening'); };
   rec.onresult = async (event) => {
     const transcript = event.results[0][0].transcript;
     toast(`Heard: "${transcript}" — figuring out the details…`);
@@ -2913,6 +2960,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-15.4</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-15.6</div>
 </body>
 </html>
