@@ -65,11 +65,19 @@
     background:#fff;color:var(--pine);border:1.5px solid var(--line);border-radius:7px;
     font-size:11px;font-weight:700;padding:4px 12px;white-space:nowrap;box-shadow:0 2px 6px rgba(18,40,32,.15);z-index:6}
   .quick-add-btn.listening{background:#C0392B;color:#fff;animation:pulse 1.2s ease-in-out infinite}
-  .voice-log-btn{background:#C0392B;color:#fff;border:0;border-radius:9px;font-size:14px;font-weight:700;padding:10px 18px;white-space:nowrap;box-shadow:0 2px 8px rgba(192,57,43,.35)}
-  .voice-log-btn.listening{animation:pulse 1.2s ease-in-out infinite;background:#922B21}
+  .voice-log-btn{background:var(--sage);color:#fff;border:0;border-radius:9px;font-size:14px;font-weight:700;padding:10px 18px;white-space:nowrap;box-shadow:0 2px 8px rgba(78,122,104,.35)}
+  .voice-log-btn.listening{animation:pulse 1.2s ease-in-out infinite;background:var(--pine)}
+  .voice-modal-btn{font-size:16px;padding:15px 18px;white-space:normal;letter-spacing:.2px}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
   input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
+  .account-menu-wrap{position:relative}
+  .account-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 6px 20px rgba(18,40,32,.2);min-width:160px;overflow:hidden;z-index:20}
+  .account-dropdown button{display:block;width:100%;text-align:left;background:transparent;border:0;color:var(--ink);
+    padding:10px 14px;font-size:13.5px;font-weight:500}
+  .account-dropdown button:hover{background:var(--sage-mist)}
+  .dropdown-divider{height:1px;background:var(--line);margin:2px 0}
   .btn-ghost-dark{background:transparent;border:1.5px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600}
   main{max-width:900px;margin:0 auto;padding:22px;width:100%}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
@@ -82,6 +90,7 @@
   .nav-btns button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-size:15px}
   .nav-btns .today{width:auto;padding:0 12px;font-size:13px;font-weight:600}
   .day-row{display:grid;grid-template-columns:130px 1fr 90px;border-bottom:1px solid var(--line)}
+  .day-row + .day-row{border-top:4px solid var(--bone)}
   .day-row.head{background:var(--sage-mist);font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--pine)}
   .day-row.head > div{padding:9px 12px}
   .head-sub{display:grid;grid-template-columns:90px 64px 1fr 32px 32px;padding:0 !important}
@@ -89,7 +98,7 @@
     display:flex;align-items:center;justify-content:center}
   .row-del:hover{background:#F9E4DE;color:var(--danger)}
   .head-sub span{padding:9px 9px}
-  .day-label{padding:12px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+  .day-label{padding:18px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
   .day-label .dname{font-weight:600;font-size:13.5px}
   .day-label .ddate{font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
   .day-label button{margin-top:6px;border:1px dashed var(--line);background:transparent;border-radius:6px;font-size:10px;font-weight:600;padding:2px 6px;color:var(--ink-dim);text-transform:uppercase;align-self:flex-start}
@@ -98,16 +107,16 @@
   .pair .pg{display:flex;flex-direction:column;gap:3px;flex:1;max-width:170px}
   .pair .pg span{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sage)}
   .pair input[type=time]{width:100%;border:1.5px solid var(--line);border-radius:7px;padding:7px;font-family:var(--mono);font-size:12.5px}
-  .work-cell{padding:10px 12px;background:#fff;display:flex;flex-direction:column;gap:8px}
+  .work-cell{padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:12px}
   .work-row-ro{display:grid;grid-template-columns:90px 64px 1fr 32px 32px;gap:1px;background:var(--line);
     border:1px solid var(--line);border-radius:8px;overflow:hidden;align-items:stretch}
-  .work-row-ro > span{background:#fff;padding:8px 9px;font-size:12px;display:flex;align-items:center}
+  .work-row-ro > span{background:#fff;padding:11px 12px;font-size:12.5px;display:flex;align-items:center}
   .work-row-ro:nth-of-type(even) > span{background:#FAFAF6}
   .work-row-ro .wro-tag{text-transform:uppercase;font-weight:600;color:var(--case);font-family:var(--mono);background:var(--case-soft) !important}
   .work-row-ro .wro-hrs{justify-content:center;font-family:var(--mono);font-weight:600}
   .work-row-ro .wro-desc{color:var(--ink)}
   .work-row-ro .row-del{background:#fff;border:0}
-  .wro-empty{padding:10px 4px;color:var(--ink-dim);font-size:12.5px;font-style:italic}
+  .wro-empty{padding:14px 4px;color:var(--ink-dim);font-size:12.5px;font-style:italic}
   .expense-row{display:grid;grid-template-columns:100px 90px 1fr 90px 32px 32px;gap:1px;background:var(--line);border-bottom:1px solid var(--line);align-items:stretch}
   .expense-row > span{background:#fff;padding:10px 9px;font-size:12.5px;display:flex;align-items:center}
   .expense-row:nth-of-type(even) > span{background:#FAFAF6}
@@ -141,6 +150,7 @@
   .cal-cell .dnum{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink-dim)}
   .cal-cell.today .dnum{background:var(--stamp);color:#3A2708;border-radius:5px;padding:0 5px;align-self:flex-start}
   .cal-chip{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--pine);background:var(--bone);border-radius:4px;padding:1px 5px}
+  .cal-chip-flat{color:#8A5A17;background:#FBEFDD;margin-left:3px}
   .pay-settings{display:flex;gap:14px;padding:14px 18px;background:var(--bone);border-bottom:1px solid var(--line);flex-wrap:wrap}
   .pay-settings .field{flex:1;min-width:150px;margin:0}
   .pay-settings input{padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;width:100%}
@@ -156,6 +166,7 @@
   .pr-paid{background:var(--sage-mist);color:var(--pine);border-radius:5px;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 6px;margin-left:6px}
   .pr-num{font-family:var(--mono);text-align:right;font-weight:600;color:var(--pine)}
   .pr-money{color:var(--sage)}
+  .pr-flat-note{color:var(--stamp);font-size:10.5px;font-weight:600}
   .pr-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end}
   .paidcheck{display:flex;align-items:center;gap:6px;font-weight:600;font-size:12px;border:1.5px solid var(--line);border-radius:7px;padding:6px 9px;cursor:pointer;white-space:nowrap}
   .paidcheck input{width:14px;height:14px;accent-color:var(--sage)}
@@ -292,7 +303,7 @@
         <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567"></div>
         <div class="field"><label>Your rate of pay ($/h) <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
           <input id="signupRate" type="number" min="0" step="5" placeholder="0">
-          <p class="hint" style="margin-top:5px">Your standard rate — shows up on Pay, and is the default when adding hours or setting up a matter. You can change it anytime.</p>
+          <p class="hint" style="margin-top:5px">Your standard rate — shows up on Pay, and is the default when adding hours or setting up a job. You can change it anytime.</p>
         </div>
       </div>
       <div class="field"><label>Email <span class="req">*</span></label><input id="email" type="email" autocomplete="email"></div>
@@ -315,7 +326,7 @@
       <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
       <button id="tabPay" onclick="setView('pay')">Paystub</button>
       <button id="tabTeam" onclick="setView('team')">My Team</button>
-      <button id="tabMatters" onclick="setView('matters')">Client/Matter</button>
+      <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
       <button id="tabBilling" onclick="setView('billing')">Billing</button>
       <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
     </div>
@@ -324,11 +335,18 @@
         <button class="quick-add-btn" id="quickAddBtn" onclick="openAddHours()" title="Add hours">+</button>
       </div>
     </div>
-    <button class="btn-ghost" id="whoami" onclick="openProfile()" style="font-weight:600"></button>
-    <button class="btn-ghost" onclick="openImportHours()">Import hours</button>
-    <button class="btn-ghost" onclick="openSearch()">Search</button>
-    <button class="btn-ghost" onclick="openHistory()">History</button>
-    <button class="btn-ghost" onclick="signOut()">Sign out</button>
+    <div class="account-menu-wrap">
+      <button class="btn-ghost" id="whoami" onclick="toggleAccountMenu(event)" style="font-weight:600"></button>
+      <div class="account-dropdown" id="accountDropdown" style="display:none">
+        <button onclick="closeAccountMenu();openProfile()">Edit profile</button>
+        <div class="dropdown-divider"></div>
+        <button onclick="closeAccountMenu();openImportHours()">Import hours</button>
+        <button onclick="closeAccountMenu();openSearch()">Search</button>
+        <button onclick="closeAccountMenu();openHistory()">History</button>
+        <div class="dropdown-divider"></div>
+        <button onclick="closeAccountMenu();signOut()">Sign out</button>
+      </div>
+    </div>
   </header>
   <main>
     <div id="timesheetHeaderRow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
@@ -379,6 +397,7 @@
       <div class="pay-settings">
         <div class="field"><label>Hourly rate ($) <span style="text-transform:none;letter-spacing:0;font-weight:500">— what you're paid</span></label><input id="rateInput" type="number" min="0" step="0.5" onchange="onRateChange(this.value)"></div>
         <div class="field"><label>Pay period starts on</label><input id="anchorInput" type="date" onchange="onAnchorChange(this.value)"></div>
+        <div class="field"><label>Mileage rate ($/mile) <span style="text-transform:none;letter-spacing:0;font-weight:500">— for expense tracking</span></label><input id="mileageRateInput" type="number" min="0" step="0.01" onchange="onMileageRateChange(this.value)"></div>
       </div>
       <div id="periodList"><div class="loading">Loading…</div></div>
     </div>
@@ -387,8 +406,8 @@
     <!-- CLIENT / MATTER -->
     <div class="card" id="mattersView" style="display:none">
       <div class="card-head">
-        <div class="card-title" style="font-size:18px">Clients & Matters</div>
-        <button class="btn-bill" style="margin-left:auto" onclick="openMatterWizard()">+ Create Matter</button>
+        <div class="card-title" style="font-size:18px">Clients & Jobs</div>
+        <button class="btn-bill" style="margin-left:auto" onclick="openMatterWizard()">+ Create Job</button>
       </div>
       <div id="clientsList" style="padding:0 18px 18px"><div class="loading">Loading…</div></div>
     </div>
@@ -539,12 +558,13 @@
 <!-- MATTER WIZARD -->
 <div class="overlay" id="matterWizardOverlay" onclick="if(event.target===this)closeMatterWizard()">
   <div class="modal" style="max-width:520px">
-    <div class="modal-head"><h2 id="matterWizardTitle">Create Matter — Step 1</h2><button class="close" onclick="closeMatterWizard()">✕</button></div>
+    <div class="modal-head"><h2 id="matterWizardTitle">Create Job — Step 1</h2><button class="close" onclick="closeMatterWizard()">✕</button></div>
     <div class="modal-body">
       <div id="matterStep1">
+        <div class="field"><label>Business name <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional — leave blank for an individual client)</span></label><input id="matClientBusiness"></div>
         <div class="row2">
-          <div class="field"><label>Client first name <span class="req">*</span></label><input id="matClientFirst"></div>
-          <div class="field"><label>Client last name <span class="req">*</span></label><input id="matClientLast"></div>
+          <div class="field"><label>Client first name <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="matClientFirst"></div>
+          <div class="field"><label>Client last name <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="matClientLast"></div>
         </div>
         <div class="field"><label>Client phone</label><input id="matClientPhone" type="tel"></div>
         <div class="field"><label>Client email</label><input id="matClientEmail" type="email"></div>
@@ -555,13 +575,13 @@
           <input id="matTag" placeholder="e.g. SMITH" style="text-transform:uppercase">
           <p class="hint" style="margin-top:5px">Added to your team's shared tag list.</p>
         </div>
-        <p class="hint" style="margin-top:0">Add whoever will bill hours to this matter, and set what each person's time is charged at. You can still change rates later from Billing.</p>
+        <p class="hint" style="margin-top:0">Add whoever will bill hours to this job, and set what each person's time is charged at. You can still change rates later from Billing.</p>
         <div id="matterMemberBubbles" class="tagchips" style="margin-bottom:10px"></div>
         <button class="addbtn" onclick="addAllMatterMembers()" style="margin-bottom:12px">+ Add everyone</button>
         <div id="matterMemberPicks"></div>
         <div style="display:flex;gap:8px;margin-top:16px">
           <button class="btn-ghost-dark" id="matterBackBtn" onclick="matterWizardBack()">‹ Back</button>
-          <button class="btn btn-primary" onclick="finishMatterWizard()">Create Matter</button>
+          <button class="btn btn-primary" onclick="finishMatterWizard()">Create Job</button>
         </div>
       </div>
     </div>
@@ -573,9 +593,10 @@
   <div class="modal" style="max-width:520px">
     <div class="modal-head"><h2>Edit client</h2><button class="close" onclick="closeEditClient()">✕</button></div>
     <div class="modal-body">
+      <div class="field"><label>Business name <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional — leave blank for an individual client)</span></label><input id="editClientBusiness"></div>
       <div class="row2">
-        <div class="field"><label>First name</label><input id="editClientFirst"></div>
-        <div class="field"><label>Last name</label><input id="editClientLast"></div>
+        <div class="field"><label>First name <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="editClientFirst"></div>
+        <div class="field"><label>Last name <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="editClientLast"></div>
       </div>
       <div class="field"><label>Phone</label><input id="editClientPhone"></div>
       <div class="field"><label>Email</label><input id="editClientEmail"></div>
@@ -594,7 +615,16 @@
       <div class="field"><label>Tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
         <input id="editEntryTag" list="tagOptions" style="text-transform:uppercase">
       </div>
-      <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="editEntryHours"></div>
+      <div class="field">
+        <label>Entry type</label>
+        <div class="sub-toggle" id="editEntryTypeToggle" style="margin-bottom:0">
+          <button type="button" class="sub-toggle-btn active" data-type="hourly" onclick="setEditEntryType('hourly')">Hourly</button>
+          <button type="button" class="sub-toggle-btn" data-type="flat" onclick="setEditEntryType('flat')">Flat rate</button>
+          <button type="button" class="sub-toggle-btn" data-type="per_diem" onclick="setEditEntryType('per_diem')">Per diem</button>
+        </div>
+      </div>
+      <div class="field" id="editHourlyFieldsWrap"><label>Hours</label><input type="number" min="0" step="0.25" id="editEntryHours"></div>
+      <div class="field" id="editFlatFieldsWrap" style="display:none"><label>Amount ($)</label><input type="number" min="0" step="0.01" id="editEntryFlatAmount"></div>
       <div class="field"><label>Description</label>
         <textarea id="editEntryDesc" rows="3" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px"></textarea>
       </div>
@@ -608,7 +638,7 @@
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2>Add hours</h2><button class="close" onclick="closeAddHours()">✕</button></div>
     <div class="modal-body">
-      <button type="button" class="btn-add-hours" id="voiceAddBtn" onclick="toggleVoiceCapture()" style="width:100%;margin-bottom:6px">🎤 Speak your entry</button>
+      <button type="button" class="voice-log-btn voice-modal-btn" id="voiceAddBtn" onclick="toggleVoiceCapture()" style="width:100%;margin-bottom:6px">🎤 Speak your entry</button>
       <p class="hint" id="voiceStatus" style="min-height:16px;margin-top:0;margin-bottom:14px"></p>
 
       <div class="field"><label>Date</label><input type="date" id="addHrsDate" oninput="this.classList.remove('missing-field')"></div>
@@ -623,17 +653,32 @@
           <option value="">No client / general hours</option>
         </select>
       </div>
-      <div class="field"><label>Matter / tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+      <div class="field"><label>Job / tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
         <select id="addHrsMatter" onchange="onAddHoursMatterChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
-          <option value="">No matter — just log hours</option>
+          <option value="">No job — just log hours</option>
         </select>
       </div>
 
-      <div class="row2">
-        <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="addHrsHours" placeholder="0" oninput="this.classList.remove('missing-field')"></div>
-        <div class="field"><label>Rate ($/h)</label><input type="number" min="0" step="5" id="addHrsRate" placeholder="0"></div>
+      <div class="field">
+        <label>Entry type</label>
+        <div class="sub-toggle" id="entryTypeToggle" style="margin-bottom:0">
+          <button type="button" class="sub-toggle-btn active" data-type="hourly" onclick="setEntryType('hourly')">Hourly</button>
+          <button type="button" class="sub-toggle-btn" data-type="flat" onclick="setEntryType('flat')">Flat rate</button>
+          <button type="button" class="sub-toggle-btn" data-type="per_diem" onclick="setEntryType('per_diem')">Per diem</button>
+        </div>
       </div>
-      <p class="hint" style="margin-top:-6px;margin-bottom:14px">Rate fills in automatically for whoever's selected above — change it here and it becomes their new standing rate for this matter.</p>
+
+      <div id="hourlyFieldsWrap">
+        <div class="row2">
+          <div class="field"><label>Hours</label><input type="number" min="0" step="0.25" id="addHrsHours" placeholder="0" oninput="this.classList.remove('missing-field')"></div>
+          <div class="field"><label>Rate ($/h)</label><input type="number" min="0" step="5" id="addHrsRate" placeholder="0"></div>
+        </div>
+        <p class="hint" style="margin-top:-6px;margin-bottom:14px">Rate fills in automatically for whoever's selected above — change it here and it becomes their new standing rate for this job.</p>
+      </div>
+      <div class="field" id="flatFieldsWrap" style="display:none">
+        <label>Amount ($)</label>
+        <input type="number" min="0" step="0.01" id="addHrsFlatAmount" placeholder="0.00" oninput="this.classList.remove('missing-field')">
+      </div>
 
       <div class="field">
         <div style="display:flex;align-items:center;justify-content:space-between">
@@ -661,12 +706,15 @@
           <option value="">No client / general expense</option>
         </select>
       </div>
-      <div class="field"><label>Matter / tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+      <div class="field"><label>Job / tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
         <select id="addExpMatter" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
-          <option value="">No matter</option>
+          <option value="">No job</option>
         </select>
       </div>
 
+      <div class="field"><label>Miles driven <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional — auto-fills the amount below)</span></label>
+        <input type="number" min="0" step="0.1" id="addExpMiles" placeholder="0" oninput="onExpMilesInput()">
+      </div>
       <div class="field"><label>Amount ($)</label><input type="number" min="0" step="0.01" id="addExpAmount" placeholder="0.00" oninput="this.classList.remove('missing-field')"></div>
 
       <div class="field"><label>Description</label>
@@ -783,6 +831,11 @@ function fmtDate(d){ return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
 function fmtDateY(d){ return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.getFullYear()}`; }
 function fmtT(t){ if(!t) return '—'; let [h,mm]=t.split(':').map(Number); const ap=h>=12?'pm':'am'; h=h%12||12; return `${h}:${pad(mm)}${ap}`; }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function clientDisplayName(c){
+  if(!c) return '';
+  if(c.business_name && c.business_name.trim()) return c.business_name.trim();
+  return `${c.first_name||''} ${c.last_name||''}`.trim();
+}
 function caseKey(c){ return (c||'').trim().toUpperCase(); }
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('on'),2000); }
 function segHours(i,o){ if(!i||!o) return 0; const m=t=>{const[h,mm]=t.split(':').map(Number);return h*60+mm}; let d=m(o)-m(i); if(d<0)d+=1440; return d/60; }
@@ -894,6 +947,17 @@ async function enterApp(user){
 }
 
 /* ================= profile ================= */
+function toggleAccountMenu(e){
+  if(e) e.stopPropagation();
+  const dd = $('accountDropdown');
+  dd.style.display = dd.style.display === 'none' ? '' : 'none';
+}
+function closeAccountMenu(){ $('accountDropdown').style.display = 'none'; }
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.account-menu-wrap');
+  if(wrap && !wrap.contains(e.target)) closeAccountMenu();
+});
+
 async function openProfile(){
   $('profFirst').value = me.first_name || '';
   $('profLast').value = me.last_name || '';
@@ -1009,6 +1073,11 @@ function dayTotal(dk){
   const rec = weekCache[dk]; if(!rec) return 0;
   return rec.work.reduce((s,x)=>s+Number(x.hours||0),0);
 }
+function dayFlatTotal(dk){
+  const rec = weekCache[dk]; if(!rec) return 0;
+  return rec.work.reduce((s,x)=>s+(x.entry_type&&x.entry_type!=='hourly' ? Number(x.flat_amount||0) : 0),0);
+}
+const ENTRY_TYPE_LABEL = { flat:'Flat', per_diem:'Per diem' };
 
 function renderWeek(dates){
   let html = '', total = 0;
@@ -1017,10 +1086,11 @@ function renderWeek(dates){
     const dk = keyOf(d);
     const rec = weekCache[dk];
     const t = dayTotal(dk); total += t;
+    const flatT = dayFlatTotal(dk);
     const workHtml = rec.work.length ? rec.work.map((w,wi) => `
       <div class="work-row-ro">
         <span class="wro-tag">${w.tag ? escapeHtml(w.tag) : '—'}</span>
-        <span class="wro-hrs">${fmtH(w.hours||0)}h</span>
+        <span class="wro-hrs">${(w.entry_type && w.entry_type!=='hourly') ? `${ENTRY_TYPE_LABEL[w.entry_type]||'Flat'}: $${Number(w.flat_amount||0).toFixed(2)}` : fmtH(w.hours||0)+'h'}</span>
         <span class="wro-desc">${escapeHtml(w.description||'')}</span>
         <button type="button" class="row-del" title="Edit this entry" onclick="openEditEntry('${dk}',${wi})">✎</button>
         <button type="button" class="row-del" title="Remove this entry" onclick="deleteWorkRow('${dk}',${wi})">✕</button>
@@ -1031,7 +1101,7 @@ function renderWeek(dates){
         <span class="ddate">${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}${dk===todayK?' · Today':''}</span>
       </div>
       <div class="work-cell">${workHtml}</div>
-      <div class="hrs-cell" id="hrs-${dk}">${t?fmtH(t)+'h':'—'}</div>
+      <div class="hrs-cell" id="hrs-${dk}">${t?fmtH(t)+'h':(flatT?'':'—')}${flatT?`<br><span class="pr-flat-note">$${flatT.toFixed(2)}</span>`:''}</div>
     </div>`;
   });
   $('weekBody').innerHTML = html;
@@ -1054,6 +1124,14 @@ async function deleteWorkRow(dk, idx){
 }
 
 let editingEntry = null;   // {dk, idx, id} of the row currently open in the Edit modal
+let currentEditEntryType = 'hourly';
+function setEditEntryType(type){
+  currentEditEntryType = type;
+  document.querySelectorAll('#editEntryTypeToggle .sub-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+  $('editHourlyFieldsWrap').style.display = type === 'hourly' ? '' : 'none';
+  $('editFlatFieldsWrap').style.display = type === 'hourly' ? 'none' : '';
+}
+
 function openEditEntry(dk, idx){
   const rec = weekCache[dk];
   const row = rec.work[idx];
@@ -1061,7 +1139,9 @@ function openEditEntry(dk, idx){
   editingEntry = { dk, idx, id: row.id };
   $('editEntryDate').value = dk;
   $('editEntryTag').value = row.tag || '';
+  setEditEntryType(row.entry_type && row.entry_type !== 'hourly' ? row.entry_type : 'hourly');
   $('editEntryHours').value = row.hours || '';
+  $('editEntryFlatAmount').value = row.flat_amount || '';
   $('editEntryDesc').value = row.description || '';
   $('editEntryOverlay').classList.add('on');
 }
@@ -1071,14 +1151,22 @@ async function saveEditEntry(){
   if(!editingEntry) return;
   const newDate = $('editEntryDate').value;
   const tag = caseKey($('editEntryTag').value);
-  const hours = parseFloat($('editEntryHours').value);
   const desc = $('editEntryDesc').value.trim();
 
   if(!newDate) return toast('Pick a date');
-  if(isNaN(hours) || hours <= 0) return toast('Enter hours worked');
+
+  let patch;
+  if(currentEditEntryType === 'hourly'){
+    const hours = parseFloat($('editEntryHours').value);
+    if(isNaN(hours) || hours <= 0) return toast('Enter hours worked');
+    patch = { work_date: newDate, tag, hours, description: desc, entry_type: 'hourly', flat_amount: 0 };
+  } else {
+    const amount = parseFloat($('editEntryFlatAmount').value);
+    if(isNaN(amount) || amount <= 0) return toast('Enter an amount');
+    patch = { work_date: newDate, tag, hours: 0, description: desc, entry_type: currentEditEntryType, flat_amount: amount };
+  }
 
   const { id, dk, idx } = editingEntry;
-  const patch = { work_date: newDate, tag, hours, description: desc };
   if(id){
     const { error } = await supa.from('work_entries').update(patch).eq('id', id);
     if(error) return toast(errText(error));
@@ -1111,6 +1199,10 @@ function monthDayTotal(dk){
   const rec = monthDayCache[dk]; if(!rec) return 0;
   return rec.work.reduce((s,x)=>s+Number(x.hours||0),0);
 }
+function monthDayFlatTotal(dk){
+  const rec = monthDayCache[dk]; if(!rec) return 0;
+  return rec.work.reduce((s,x)=>s+(x.entry_type&&x.entry_type!=='hourly' ? Number(x.flat_amount||0) : 0),0);
+}
 function renderMonth(y,m){
   const firstDow = (new Date(y,m,1).getDay()+1)%7;   // Saturday-start
   const days = new Date(y,m+1,0).getDate();
@@ -1120,9 +1212,11 @@ function renderMonth(y,m){
   for(let d=1; d<=days; d++){
     const dk = `${y}-${pad(m+1)}-${pad(d)}`;
     const t = monthDayTotal(dk); total += t;
+    const flatT = monthDayFlatTotal(dk);
     html += `<button class="cal-cell${dk===todayK?' today':''}" onclick="openDay('${dk}')">
       <span class="dnum">${d}</span>
       ${t?`<span class="cal-chip">${fmtH(t)}h</span>`:''}
+      ${flatT?`<span class="cal-chip cal-chip-flat">$${flatT.toFixed(0)}</span>`:''}
     </button>`;
   }
   $('monthGrid').innerHTML = html;
@@ -1137,8 +1231,10 @@ function openDay(dk){
   $('dayTitle').textContent = `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   let html = '';
   for(const w of rec.work){
-    if(!w.hours) continue;
-    html += `<div class="entry"><span class="hrs">${fmtH(w.hours)}h</span><span class="who">${w.tag||'—'}</span>${w.description?' — '+w.description:''}</div>`;
+    const isFlat = w.entry_type && w.entry_type !== 'hourly';
+    if(!isFlat && !w.hours) continue;
+    const amountLabel = isFlat ? `${ENTRY_TYPE_LABEL[w.entry_type]||'Flat'}: $${Number(w.flat_amount||0).toFixed(2)}` : `${fmtH(w.hours)}h`;
+    html += `<div class="entry"><span class="hrs">${amountLabel}</span><span class="who">${w.tag||'—'}</span>${w.description?' — '+w.description:''}</div>`;
   }
   $('dayBody').innerHTML = html || '<div class="entry">Nothing logged this day.</div>';
   $('dayOverlay').classList.add('on');
@@ -1164,6 +1260,7 @@ function payPeriods(count){
 
 async function loadPay(){
   $('rateInput').value = me.rate || 0;
+  $('mileageRateInput').value = me.mileage_rate || 0;
   if(!me.pay_anchor){
     const wk = keyOf(weekStart(new Date()));
     const { error } = await supa.from('profiles').update({pay_anchor:wk}).eq('id', me.id);
@@ -1188,25 +1285,35 @@ async function loadPay(){
 }
 function payDayTotal(dk){
   const rec = payDayCache[dk]; if(!rec) return 0;
-  return rec.work.reduce((s,x)=>s+Number(x.hours||0),0);
+  return rec.work.reduce((s,x)=>s+(x.entry_type&&x.entry_type!=='hourly' ? 0 : Number(x.hours||0)),0);
+}
+function payDayFlatTotal(dk){
+  const rec = payDayCache[dk]; if(!rec) return 0;
+  return rec.work.reduce((s,x)=>s+(x.entry_type&&x.entry_type!=='hourly' ? Number(x.flat_amount||0) : 0),0);
 }
 function periodTotal(p){
   let t=0;
   for(let i=0;i<14;i++) t += payDayTotal(keyOf(addDays(p.start,i)));
   return t;
 }
+function periodFlatTotal(p){
+  let t=0;
+  for(let i=0;i<14;i++) t += payDayFlatTotal(keyOf(addDays(p.start,i)));
+  return t;
+}
 function renderPay(periods){
   let rows = '', any = false;
   for(const p of periods){
     const hours = periodTotal(p);
+    const flatTotal = periodFlatTotal(p);
     const paid = !!paidMap[p.key]?.paid;
-    if(!hours && !p.current) continue;
+    if(!hours && !flatTotal && !p.current) continue;
     any = true;
     const rate = Number(me.rate)||0;
-    const pay = hours*rate;
+    const pay = hours*rate + flatTotal;
     rows += `<div class="pay-row${p.current?' current':''}">
       <span class="pr-period">${fmtDate(p.start)} – ${fmtDateY(p.end)}${p.current?' <b class="pr-tag">CURRENT</b>':''}${paid?' <b class="pr-paid">✓ PAID</b>':''}</span>
-      <span class="pr-num">${fmtH(hours)}h</span>
+      <span class="pr-num">${fmtH(hours)}h${flatTotal?` <span class="pr-flat-note">+$${flatTotal.toFixed(2)} flat</span>`:''}</span>
       <span class="pr-num">$${rate.toFixed(2)}</span>
       <span class="pr-num pr-money">$${pay.toFixed(2)}</span>
       <span class="pr-actions">
@@ -1228,6 +1335,14 @@ async function onRateChange(v){
   logHist(`Pay rate changed to $${rate.toFixed(2)}/h`);
   renderPay(payPeriods(8));
   toast(`Rate set to $${rate.toFixed(2)}/h`);
+}
+async function onMileageRateChange(v){
+  const r = parseFloat(v); const rate = (!isNaN(r) && r>=0) ? r : 0;
+  me.mileage_rate = rate;
+  const { error } = await supa.from('profiles').update({mileage_rate:rate}).eq('id', me.id);
+  if(error) return toast('Could not save mileage rate');
+  logHist(`Mileage rate changed to $${rate.toFixed(2)}/mile`);
+  toast(`Mileage rate set to $${rate.toFixed(2)}/mile`);
 }
 async function onAnchorChange(v){
   if(!v) return;
@@ -1271,13 +1386,16 @@ async function openAddHours(){
   $('voiceStatus').textContent = '';
   $('addHrsDate').classList.remove('missing-field');
   $('addHrsHours').classList.remove('missing-field');
+  $('addHrsFlatAmount').classList.remove('missing-field');
+  $('addHrsFlatAmount').value = '';
+  setEntryType('hourly');
   $('addHrsDate').value = todayKeyLocal();
   $('addHrsHours').value = '';
   $('addHrsRate').value = '';
   $('addHrsDesc').value = '';
   $('addHrsClient').innerHTML = '<option value="">No client / general hours</option>';
   $('addHrsClient').value = '';
-  $('addHrsMatter').innerHTML = '<option value="">No matter — just log hours</option>';
+  $('addHrsMatter').innerHTML = '<option value="">No job — just log hours</option>';
   $('addHrsMatter').value = '';
   addHoursMattersCache = [];
 
@@ -1289,7 +1407,7 @@ async function openAddHours(){
   const ownerIds = invAllMembers.map(m=>m.id);
   const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
   addHoursClientsCache = clients || [];
-  $('addHrsClient').innerHTML += addHoursClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+  $('addHrsClient').innerHTML += addHoursClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(clientDisplayName(c))}</option>`).join('');
 
   $('addHoursOverlay').classList.add('on');
 }
@@ -1313,7 +1431,7 @@ async function onAddHoursPersonChange(){
 
 async function onAddHoursClientChange(){
   const clientId = $('addHrsClient').value;
-  $('addHrsMatter').innerHTML = '<option value="">No matter — just log hours</option>';
+  $('addHrsMatter').innerHTML = '<option value="">No job — just log hours</option>';
   $('addHrsMatter').value = '';
   $('addHrsRate').value = personalRateFor($('addHrsPerson').value) || '';
   addHoursMattersCache = [];
@@ -1331,34 +1449,54 @@ async function onAddHoursMatterChange(){
   $('addHrsRate').value = rateForLine(personId, tag) || '';
 }
 
+let currentEntryType = 'hourly';
+function setEntryType(type){
+  currentEntryType = type;
+  document.querySelectorAll('#entryTypeToggle .sub-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+  $('hourlyFieldsWrap').style.display = type === 'hourly' ? '' : 'none';
+  $('flatFieldsWrap').style.display = type === 'hourly' ? 'none' : '';
+}
+
 async function saveAddHours(){
   const date = $('addHrsDate').value;
   const personId = $('addHrsPerson').value || me.id;
-  const hours = parseFloat($('addHrsHours').value);
   const tag = $('addHrsMatter').value;
-  const rateVal = parseFloat($('addHrsRate').value);
   const desc = $('addHrsDesc').value.trim();
 
   if(!date) return toast('Pick a date');
-  if(isNaN(hours) || hours <= 0) return toast('Enter hours worked');
 
-  const { error } = await supa.from('work_entries').insert({ user_id: personId, work_date: date, tag: tag||'', hours, description: desc });
+  let payload;
+  if(currentEntryType === 'hourly'){
+    const hours = parseFloat($('addHrsHours').value);
+    if(isNaN(hours) || hours <= 0) return toast('Enter hours worked');
+    payload = { user_id: personId, work_date: date, tag: tag||'', hours, description: desc, entry_type: 'hourly', flat_amount: 0 };
+  } else {
+    const amount = parseFloat($('addHrsFlatAmount').value);
+    if(isNaN(amount) || amount <= 0) return toast('Enter an amount');
+    payload = { user_id: personId, work_date: date, tag: tag||'', hours: 0, description: desc, entry_type: currentEntryType, flat_amount: amount };
+  }
+
+  const { error } = await supa.from('work_entries').insert(payload);
   if(error) return toast(errText(error));
   lastUsedDescription = desc;
 
   // saving a rate here actually persists it as this matter's standing rate for
-  // whoever these hours are for — that's what makes "override" mean something,
-  // not just a one-time preview
-  if(tag && !isNaN(rateVal) && rateVal >= 0){
-    const matter = addHoursMattersCache.find(m => m.tag === tag);
-    if(matter){
-      await supa.from('matter_rates').upsert({ matter_id: matter.id, member_id: personId, rate: rateVal }, { onConflict: 'matter_id,member_id' });
+  // whoever these hours are for — only applies to hourly entries, since a
+  // flat-rate or per-diem amount is a one-off, not a standing rate
+  if(currentEntryType === 'hourly' && tag){
+    const rateVal = parseFloat($('addHrsRate').value);
+    if(!isNaN(rateVal) && rateVal >= 0){
+      const matter = addHoursMattersCache.find(m => m.tag === tag);
+      if(matter){
+        await supa.from('matter_rates').upsert({ matter_id: matter.id, member_id: personId, rate: rateVal }, { onConflict: 'matter_id,member_id' });
+      }
     }
   }
 
   const personLabel = invAllMembers.find(m=>m.id===personId);
-  logHist(`Logged ${fmtH(hours)}h${tag?` to ${tag}`:''}${personLabel && !personLabel.self ? ` for ${personLabel.name}` : ''} via Add Hours`);
-  toast('Hours saved');
+  const logDesc = currentEntryType === 'hourly' ? `${fmtH(payload.hours)}h` : `$${payload.flat_amount.toFixed(2)} (${ENTRY_TYPE_LABEL[currentEntryType]||currentEntryType})`;
+  logHist(`Logged ${logDesc}${tag?` to ${tag}`:''}${personLabel && !personLabel.self ? ` for ${personLabel.name}` : ''} via Add Hours`);
+  toast(currentEntryType === 'hourly' ? 'Hours saved' : 'Entry saved');
   closeAddHours();
   if(personId === me.id){
     if(view==='week') await loadWeek();
@@ -1422,7 +1560,7 @@ async function fillClientAndMatter(kind, tag, clientName){
   // no tag match — fall back to a client-name match on its own
   if(clientName){
     const { data: clients } = await supa.from('clients').select('*').in('owner_id', ownerIds);
-    const match = (clients||[]).find(c => `${c.first_name} ${c.last_name}`.trim().toLowerCase() === clientName.trim().toLowerCase());
+    const match = (clients||[]).find(c => clientDisplayName(c).toLowerCase() === clientName.trim().toLowerCase());
     if(match){
       clientEl.value = match.id;
       await onClientChange();
@@ -1522,7 +1660,7 @@ async function routeVoiceEntryViaAI(transcript, knownTags){
   try {
     const ownerIds = invAllMembers.map(m=>m.id);
     const { data: clientRows } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
-    const knownClients = (clientRows||[]).map(c => `${c.first_name} ${c.last_name}`.trim());
+    const knownClients = (clientRows||[]).map(c => clientDisplayName(c));
     const resp = await fetch('/api/parse-hours', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags, knownClients })
@@ -1587,15 +1725,18 @@ function toggleVoiceCapture(){
     voiceListening = true;
     $('voiceStatus').textContent = 'Listening… tap again to stop.';
     $('voiceAddBtn').textContent = '⏹ Stop listening';
+    $('voiceAddBtn').classList.add('listening');
   };
   voiceRecognition.onerror = () => {
     voiceListening = false;
     $('voiceAddBtn').textContent = '🎤 Speak your entry';
+    $('voiceAddBtn').classList.remove('listening');
     $('voiceStatus').textContent = 'Could not hear that clearly — try again.';
   };
   voiceRecognition.onend = () => {
     voiceListening = false;
     $('voiceAddBtn').textContent = '🎤 Speak your entry';
+    $('voiceAddBtn').classList.remove('listening');
   };
   voiceRecognition.onresult = async (event) => {
     const transcript = event.results[0][0].transcript;
@@ -1610,7 +1751,7 @@ async function parseVoiceTranscript(transcript){
     const knownTags = await myTags();
     const ownerIds = invAllMembers.map(m=>m.id);
     const { data: clientRows } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
-    const knownClients = (clientRows||[]).map(c => `${c.first_name} ${c.last_name}`.trim());
+    const knownClients = (clientRows||[]).map(c => clientDisplayName(c));
     const resp = await fetch('/api/parse-hours', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: [{ type:'text', content: transcript }], knownTags, knownClients })
@@ -1662,7 +1803,7 @@ function renderExpenses(){
     <div class="expense-row">
       <span>${fmtExpDate(e.expense_date)}</span>
       <span class="exp-tag">${e.tag ? escapeHtml(e.tag) : '—'}</span>
-      <span>${escapeHtml(e.description||'')}${e.receipt_path ? ' 📎' : ''}</span>
+      <span>${escapeHtml(e.description||'')}${e.miles>0?` 🚗 ${e.miles}mi`:''}${e.receipt_path ? ' 📎' : ''}</span>
       <span class="exp-amount">$${Number(e.amount||0).toFixed(2)}</span>
       <button type="button" class="row-del" title="Edit" onclick="openEditExpense('${e.id}')">✎</button>
       <button type="button" class="row-del" title="Delete" onclick="deleteExpense('${e.id}')">✕</button>
@@ -1680,10 +1821,11 @@ async function openAddExpense(){
   $('addExpenseTitle').textContent = 'Add expense';
   $('addExpDate').value = todayKeyLocal();
   $('addExpAmount').value = '';
+  $('addExpMiles').value = '';
   $('addExpDesc').value = '';
   $('addExpClient').innerHTML = '<option value="">No client / general expense</option>';
   $('addExpClient').value = '';
-  $('addExpMatter').innerHTML = '<option value="">No matter</option>';
+  $('addExpMatter').innerHTML = '<option value="">No job</option>';
   $('addExpMatter').value = '';
   $('addExpReceiptStatus').textContent = '';
   $('addExpReceipt').value = '';
@@ -1693,7 +1835,7 @@ async function openAddExpense(){
   const ownerIds = invAllMembers.map(m=>m.id);
   const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
   addExpenseClientsCache = clients || [];
-  $('addExpClient').innerHTML += addExpenseClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+  $('addExpClient').innerHTML += addExpenseClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(clientDisplayName(c))}</option>`).join('');
 
   $('addExpenseOverlay').classList.add('on');
 }
@@ -1701,13 +1843,21 @@ function closeAddExpense(){ $('addExpenseOverlay').classList.remove('on'); }
 
 async function onAddExpenseClientChange(){
   const clientId = $('addExpClient').value;
-  $('addExpMatter').innerHTML = '<option value="">No matter</option>';
+  $('addExpMatter').innerHTML = '<option value="">No job</option>';
   $('addExpMatter').value = '';
   addExpenseMattersCache = [];
   if(!clientId) return;
   const { data: matters } = await supa.from('matters').select('*').eq('client_id', clientId);
   addExpenseMattersCache = matters || [];
   $('addExpMatter').innerHTML += addExpenseMattersCache.map(m=>`<option value="${m.tag}">${escapeHtml(m.tag)}</option>`).join('');
+}
+
+function onExpMilesInput(){
+  const miles = parseFloat($('addExpMiles').value);
+  if(isNaN(miles) || miles < 0) return;
+  const rate = Number(me.mileage_rate)||0;
+  $('addExpAmount').value = (miles*rate).toFixed(2);
+  $('addExpAmount').classList.remove('missing-field');
 }
 
 function onExpenseReceiptSelected(files){
@@ -1721,6 +1871,8 @@ async function saveExpense(){
   const date = $('addExpDate').value;
   const tag = $('addExpMatter').value;
   const amountVal = parseFloat($('addExpAmount').value);
+  const milesVal = parseFloat($('addExpMiles').value);
+  const miles = (!isNaN(milesVal) && milesVal > 0) ? milesVal : 0;
   const desc = $('addExpDesc').value.trim();
 
   if(!date) return toast('Pick a date');
@@ -1737,18 +1889,18 @@ async function saveExpense(){
   }
 
   if(editingExpenseId){
-    const patch = { expense_date: date, tag, description: desc, amount: amountVal };
+    const patch = { expense_date: date, tag, description: desc, amount: amountVal, miles };
     if(receiptPath !== undefined){ patch.receipt_path = receiptPath; patch.receipt_type = receiptType; }
     const { error } = await supa.from('expenses').update(patch).eq('id', editingExpenseId);
     if(error) return toast(errText(error));
     logHist('Edited an expense');
   } else {
     const { error } = await supa.from('expenses').insert({
-      user_id: me.id, expense_date: date, tag, description: desc, amount: amountVal,
+      user_id: me.id, expense_date: date, tag, description: desc, amount: amountVal, miles,
       receipt_path: receiptPath||'', receipt_type: receiptType||''
     });
     if(error) return toast(errText(error));
-    logHist(`Logged a $${amountVal.toFixed(2)} expense${tag?` to ${tag}`:''}`);
+    logHist(`Logged a $${amountVal.toFixed(2)} expense${miles?` (${miles} miles)`:''}${tag?` to ${tag}`:''}`);
   }
 
   toast('Expense saved');
@@ -1764,6 +1916,7 @@ async function openEditExpense(id){
   $('addExpenseTitle').textContent = 'Edit expense';
   $('addExpDate').value = exp.expense_date;
   $('addExpAmount').value = exp.amount;
+  $('addExpMiles').value = exp.miles || '';
   $('addExpDesc').value = exp.description || '';
   $('addExpReceiptStatus').textContent = exp.receipt_path ? 'A receipt is already attached — choose a new file to replace it' : '';
   $('addExpReceipt').value = '';
@@ -1772,9 +1925,9 @@ async function openEditExpense(id){
   const ownerIds = invAllMembers.map(m=>m.id);
   const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
   addExpenseClientsCache = clients || [];
-  $('addExpClient').innerHTML = '<option value="">No client / general expense</option>' + addExpenseClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+  $('addExpClient').innerHTML = '<option value="">No client / general expense</option>' + addExpenseClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(clientDisplayName(c))}</option>`).join('');
   $('addExpClient').value = '';
-  $('addExpMatter').innerHTML = '<option value="">No matter</option>';
+  $('addExpMatter').innerHTML = '<option value="">No job</option>';
   addExpenseMattersCache = [];
 
   if(exp.tag && ownerIds.length){
@@ -1972,18 +2125,22 @@ async function makeStub(periodKey){
     const d = addDays(p.start, i), dk = keyOf(d);
     const rec = byDay[dk] || {work:[]};
     const hrs = rec.work.reduce((s,x)=>s+Number(x.hours||0),0);
-    const untaggedHrs = rec.work.filter(x=>!x.tag).reduce((s,x)=>s+Number(x.hours||0),0);
+    const untaggedHrs = rec.work.filter(x=>!x.tag && (!x.entry_type||x.entry_type==='hourly')).reduce((s,x)=>s+Number(x.hours||0),0);
     const tagTotals = {};
-    rec.work.filter(x=>x.tag && x.hours>0).forEach(x => { tagTotals[x.tag] = (tagTotals[x.tag]||0) + Number(x.hours); });
+    rec.work.filter(x=>x.tag && x.hours>0 && (!x.entry_type||x.entry_type==='hourly')).forEach(x => { tagTotals[x.tag] = (tagTotals[x.tag]||0) + Number(x.hours); });
     const taggedParts = Object.entries(tagTotals).map(([tag,hrs]) => ({ tag, hrs }));
+    const flatEntries = rec.work.filter(x=>x.entry_type && x.entry_type!=='hourly' && x.flat_amount>0);
+    const flatParts = flatEntries.map(x => ({ tag:x.tag, amount:Number(x.flat_amount), label:ENTRY_TYPE_LABEL[x.entry_type]||'Flat' }));
+    const flatTotal = flatEntries.reduce((s,x)=>s+Number(x.flat_amount||0),0);
     const descriptions = rec.work.filter(x=>x.description).map(x =>
       x.description.length>50 ? x.description.slice(0,49)+'…' : x.description);
     const cases = [...new Set(descriptions)].join('; ');
-    rows.push({ date:d, hours:hrs, cases, untaggedHrs, taggedParts });
+    rows.push({ date:d, hours:hrs, cases, untaggedHrs, taggedParts, flatParts, flatTotal });
   }
   const totalHours = rows.reduce((s,r)=>s+r.hours, 0);
+  const totalFlat = rows.reduce((s,r)=>s+r.flatTotal, 0);
   const rate = Number(me.rate)||0;
-  const gross = totalHours*rate;
+  const gross = totalHours*rate + totalFlat;
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'pt', format:'letter' });
@@ -2018,6 +2175,7 @@ async function makeStub(periodKey){
       const parts = [];
       if(r.untaggedHrs) parts.push({ text: fmtH(r.untaggedHrs)+'h', color:[18,40,32] });
       r.taggedParts.forEach(tp => parts.push({ text: `${fmtH(tp.hrs)}h ${tp.tag}`, color:[184,111,17] }));
+      r.flatParts.forEach(fp => parts.push({ text: `$${fp.amount.toFixed(2)} ${fp.label}${fp.tag?' '+fp.tag:''}`, color:[138,90,23] }));
       const cx = data.cell.x + data.cell.width - 6, cy = data.cell.y + data.cell.height/2;
       if(!parts.length){
         doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(150);
@@ -2038,6 +2196,13 @@ async function makeStub(periodKey){
   doc.setFont('helvetica','bold'); doc.setFontSize(13);
   doc.text('TOTAL HOURS', 48, y);
   doc.text(fmtH(totalHours), pageW-48, y, {align:'right'});
+  if(totalFlat > 0){
+    y += 20;
+    doc.setFontSize(12); doc.setTextColor(138,90,23);
+    doc.text('FLAT / PER DIEM', 48, y);
+    doc.text('$'+totalFlat.toFixed(2), pageW-48, y, {align:'right'});
+    doc.setTextColor(0); doc.setFontSize(13);
+  }
   y += 24;
   doc.setFontSize(16); doc.setTextColor(78,122,104);
   doc.text('GROSS PAY', 48, y);
@@ -2265,15 +2430,15 @@ async function renderClientsList(){
     : [{data:[]},{data:[]}];
   clientsCache = clients || [];
   const box = $('clientsList');
-  if(!clients || !clients.length){ box.innerHTML = '<div class="hint">No clients yet — create your first matter above.</div>'; return; }
+  if(!clients || !clients.length){ box.innerHTML = '<div class="hint">No clients yet — create your first job above.</div>'; return; }
   box.innerHTML = clients.map(c => {
     const theirMatters = (matters||[]).filter(m=>m.client_id===c.id);
     return `<div class="bpanel">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span class="nm" style="font-weight:700;font-size:15px">${escapeHtml(c.first_name+' '+c.last_name)}</span>
+        <span class="nm" style="font-weight:700;font-size:15px">${escapeHtml(clientDisplayName(c))}</span>
         <button class="client-action-btn neutral" style="margin-left:auto" onclick="openEditClient('${c.id}')">Edit</button>
-        <button class="client-action-btn go" onclick="openMatterWizard('${c.id}')">+ Add matter</button>
-        <button class="client-action-btn danger" onclick="deleteClient('${c.id}','${escapeHtml(c.first_name)}')">Delete</button>
+        <button class="client-action-btn go" onclick="openMatterWizard('${c.id}')">+ Add job</button>
+        <button class="client-action-btn danger" onclick="deleteClient('${c.id}','${escapeHtml(clientDisplayName(c))}')">Delete</button>
       </div>
       <div class="hint" style="margin-top:4px">${escapeHtml(c.phone||'—')} · ${escapeHtml(c.email||'—')}</div>
       <div class="tagchips" style="margin-top:8px">
@@ -2297,12 +2462,12 @@ let matterWizardClientId = null;
 function openMatterWizard(existingClientId){
   matterWizardRows = [];
   matterWizardClientId = existingClientId || null;
-  $('matClientFirst').value = ''; $('matClientLast').value = '';
+  $('matClientBusiness').value = ''; $('matClientFirst').value = ''; $('matClientLast').value = '';
   $('matClientPhone').value = ''; $('matClientEmail').value = '';
   $('matTag').value = '';
   if(existingClientId){
     const client = clientsCache.find(c => c.id === existingClientId);
-    const label = client ? `${client.first_name} ${client.last_name}` : 'this client';
+    const label = client ? clientDisplayName(client) : 'this client';
     $('matterStep1').style.display = 'none';
     $('matterStep2').style.display = '';
     $('matterBackBtn').style.display = 'none';   // nothing to go back to
@@ -2312,25 +2477,26 @@ function openMatterWizard(existingClientId){
     $('matterStep1').style.display = '';
     $('matterStep2').style.display = 'none';
     $('matterBackBtn').style.display = '';
-    $('matterWizardTitle').textContent = 'Create Matter — Step 1';
+    $('matterWizardTitle').textContent = 'Create Job — Step 1';
   }
   $('matterWizardOverlay').classList.add('on');
 }
 function closeMatterWizard(){ $('matterWizardOverlay').classList.remove('on'); }
 
 function matterWizardNext(){
+  const business = $('matClientBusiness').value.trim();
   const first = $('matClientFirst').value.trim();
   const last = $('matClientLast').value.trim();
-  if(!first || !last) return toast("Enter the client's first and last name");
+  if(!business && !first && !last) return toast("Enter a business name or the client's name");
   $('matterStep1').style.display = 'none';
   $('matterStep2').style.display = '';
-  $('matterWizardTitle').textContent = 'Create Matter — Step 2';
+  $('matterWizardTitle').textContent = 'Create Job — Step 2';
   renderMatterMemberRows();
 }
 function matterWizardBack(){
   $('matterStep1').style.display = '';
   $('matterStep2').style.display = 'none';
-  $('matterWizardTitle').textContent = 'Create Matter — Step 1';
+  $('matterWizardTitle').textContent = 'Create Job — Step 1';
 }
 
 function addMatterMemberBubble(memberId){
@@ -2374,9 +2540,10 @@ async function finishMatterWizard(){
 
   let clientId = matterWizardClientId;
   if(!clientId){
+    const business = $('matClientBusiness').value.trim();
     const first = $('matClientFirst').value.trim(), last = $('matClientLast').value.trim();
     const phone = $('matClientPhone').value.trim(), email = $('matClientEmail').value.trim();
-    const { data, error } = await supa.from('clients').insert({ owner_id: me.id, first_name:first, last_name:last, phone, email }).select().single();
+    const { data, error } = await supa.from('clients').insert({ owner_id: me.id, business_name:business, first_name:first, last_name:last, phone, email }).select().single();
     if(error) return toast(errText(error));
     clientId = data.id;
   }
@@ -2389,8 +2556,8 @@ async function finishMatterWizard(){
     await supa.from('matter_rates').upsert({ matter_id: matter.id, member_id: row.memberId, rate: row.rate }, { onConflict: 'matter_id,member_id' });
   }
 
-  logHist(`Created matter ${tag}`);
-  toast('Matter created');
+  logHist(`Created job ${tag}`);
+  toast('Job created');
   closeMatterWizard();
   await renderClientsList();
 }
@@ -2403,6 +2570,7 @@ async function openEditClient(clientId){
   const { data: c, error } = await supa.from('clients').select('*').eq('id', clientId).single();
   if(error || !c) return toast('Could not load client');
   editingClientId = clientId;
+  $('editClientBusiness').value = c.business_name || '';
   $('editClientFirst').value = c.first_name || '';
   $('editClientLast').value = c.last_name || '';
   $('editClientPhone').value = c.phone || '';
@@ -2427,9 +2595,9 @@ function renderEditClientMatters(){
       <div id="editMatterBubbles-${m.id}" class="tagchips" style="margin-bottom:8px"></div>
       <button type="button" class="addbtn" onclick="addAllEditMatterMembers('${m.id}')" style="margin-bottom:10px">+ Add everyone</button>
       <div id="editMatterPicks-${m.id}">${renderEditMatterRowsHtml(m.id)}</div>
-      <button type="button" class="removebtn" style="margin-top:10px" onclick="removeMatterEntirely('${m.id}','${escapeHtml(m.tag)}')">Remove matter</button>
+      <button type="button" class="removebtn" style="margin-top:10px" onclick="removeMatterEntirely('${m.id}','${escapeHtml(m.tag)}')">Remove job</button>
     </div>
-  `).join('') : '<p class="hint" style="margin-top:14px">No matters yet for this client — use "+ Add matter" first.</p>';
+  `).join('') : '<p class="hint" style="margin-top:14px">No jobs yet for this client — use "+ Add job" first.</p>';
   editingClientMatters.forEach(m => renderEditMatterBubbles(m.id));
 }
 async function removeMatterEntirely(matterId, tag){
@@ -2437,7 +2605,7 @@ async function removeMatterEntirely(matterId, tag){
   if(error) return toast(errText(error));
   editingClientMatters = editingClientMatters.filter(m => m.id !== matterId);
   delete editingMatterRows[matterId];
-  logHist(`Removed matter ${tag}`);
+  logHist(`Removed job ${tag}`);
   toast(`${tag} removed — logged hours under that tag are untouched`);
   renderEditClientMatters();
 }
@@ -2488,10 +2656,11 @@ function removeEditMatterRow(matterId, i){
 function setEditMatterRate(matterId, i, val){ const r=parseFloat(val); editingMatterRows[matterId][i].rate = (!isNaN(r)&&r>=0)?r:0; }
 
 async function saveEditClient(){
+  const business = $('editClientBusiness').value.trim();
   const first = $('editClientFirst').value.trim(), last = $('editClientLast').value.trim();
   const phone = $('editClientPhone').value.trim(), email = $('editClientEmail').value.trim();
-  if(!first || !last) return toast('First and last name are required');
-  const { error } = await supa.from('clients').update({ first_name:first, last_name:last, phone, email }).eq('id', editingClientId);
+  if(!business && !first && !last) return toast("Enter a business name or the client's name");
+  const { error } = await supa.from('clients').update({ business_name:business, first_name:first, last_name:last, phone, email }).eq('id', editingClientId);
   if(error) return toast(errText(error));
 
   for(const m of editingClientMatters){
@@ -2508,7 +2677,7 @@ async function saveEditClient(){
     }
   }
 
-  logHist('Client and matter details updated');
+  logHist('Client and job details updated');
   toast('Client updated');
   closeEditClient();
   await renderClientsList();
@@ -2626,10 +2795,10 @@ async function renderInvClientFilter(){
   const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
   const sel = $('invClientFilter');
   const prev = sel.value;
-  sel.innerHTML = '<option value="">All clients / cases</option>' + (clients||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.first_name+' '+c.last_name)}</option>`).join('');
+  sel.innerHTML = '<option value="">All clients / cases</option>' + (clients||[]).map(c=>`<option value="${c.id}">${escapeHtml(clientDisplayName(c))}</option>`).join('');
   if((clients||[]).some(c=>c.id===prev)) sel.value = prev;
   const chosen = (clients||[]).find(c=>c.id===sel.value);
-  if(chosen && !$('clientName').value.trim()) $('clientName').value = `${chosen.first_name} ${chosen.last_name}`;
+  if(chosen && !$('clientName').value.trim()) $('clientName').value = clientDisplayName(chosen);
 }
 
 async function renderClientInvPanel(){
@@ -2693,11 +2862,16 @@ async function renderInvoicePreview(){
   const items = [];
   (work||[]).forEach(w => {
     const tag = caseKey(w.tag);
-    if(!w.hours || !tags.includes(tag)) return;
+    if(!tags.includes(tag)) return;
+    const isFlat = w.entry_type && w.entry_type !== 'hourly';
+    if(isFlat && !(w.flat_amount>0)) return;
+    if(!isFlat && !w.hours) return;
     const mm = memberMap[w.user_id];
     items.push({ id:w.id, dk:w.work_date, date:w.work_date.slice(5,7)+'/'+w.work_date.slice(8,10)+'/'+w.work_date.slice(0,4),
-      tag, personId: w.user_id, ee: initialsOf(mm?.name||'??'), name: mm?.name||'—', desc: w.description||'Hours worked',
-      loggedHrs: Number(w.hours), billedHrs: Number(w.hours), rate: rateForLine(w.user_id, tag) });
+      tag, personId: w.user_id, ee: initialsOf(mm?.name||'??'), name: mm?.name||'—',
+      desc: w.description || (isFlat ? (ENTRY_TYPE_LABEL[w.entry_type]||'Flat rate') : 'Hours worked'),
+      isFlat, loggedHrs: Number(w.hours||0), billedHrs: Number(w.hours||0),
+      rate: isFlat ? 0 : rateForLine(w.user_id, tag), flatAmount: isFlat ? Number(w.flat_amount) : 0 });
   });
   items.sort((a,b)=>a.dk.localeCompare(b.dk));
   invoicePreview = items;
@@ -2712,16 +2886,27 @@ function renderPreviewTable(){
   const { tags } = activeInvFilters();
   const showTag = tags.length>1;
   if(!invoicePreview.length){ $('invPreview').innerHTML = '<div class="hint">No hours for this selection.</div>'; return; }
-  const rows = invoicePreview.map((it,i) => `<div class="prev-row">
+  const rows = invoicePreview.map((it,i) => it.isFlat ? `<div class="prev-row">
+      <span>${it.date.slice(0,5)}</span>
+      <span>${it.ee}${showTag?` [${escapeHtml(it.tag)}]`:''} — ${escapeHtml(it.desc)}</span>
+      <span class="hint" style="text-align:center;align-self:center">flat</span>
+      <input class="rateinp" type="number" min="0" step="0.01" value="${it.flatAmount}" title="Flat / per diem amount" onchange="onFlatAmount(${i},this.value)">
+    </div>` : `<div class="prev-row">
       <span>${it.date.slice(0,5)}</span>
       <span>${it.ee}${showTag?` [${escapeHtml(it.tag)}]`:''} — ${escapeHtml(it.desc)}</span>
       <input class="rateinp" type="number" min="0" step="5" value="${it.rate}" title="Billing rate ($/h) for this line" onchange="onRowRate(${i},this.value)">
       <input class="rateinp" type="number" min="0" step="0.25" value="${it.billedHrs}" title="Hours billed" onchange="onBilledHours(${i},this.value)">
     </div>`).join('');
-  const total = invoicePreview.reduce((s,x)=>s+x.billedHrs,0);
-  const amt = invoicePreview.reduce((s,x)=>s+x.billedHrs*x.rate,0);
+  const totalHrs = invoicePreview.filter(x=>!x.isFlat).reduce((s,x)=>s+x.billedHrs,0);
+  const totalFlat = invoicePreview.filter(x=>x.isFlat).reduce((s,x)=>s+x.flatAmount,0);
+  const amt = invoicePreview.reduce((s,x)=>s+(x.isFlat?x.flatAmount:x.billedHrs*x.rate),0);
   $('invPreview').innerHTML = `<div class="prev-row head"><span>Date</span><span>Who / What</span><span>$/h</span><span>Hrs</span></div>${rows}
-    <div class="prev-foot"><span>${fmtH(total)}h total</span><span class="amt">$${amt.toFixed(2)}</span></div>`;
+    <div class="prev-foot"><span>${fmtH(totalHrs)}h${totalFlat?` + $${totalFlat.toFixed(2)} flat`:''}</span><span class="amt">$${amt.toFixed(2)}</span></div>`;
+}
+function onFlatAmount(idx, v){
+  const n = parseFloat(v);
+  invoicePreview[idx].flatAmount = (!isNaN(n)&&n>=0) ? n : invoicePreview[idx].flatAmount;
+  renderPreviewTable();
 }
 function onRowRate(idx, v){
   const n = parseFloat(v);
@@ -2750,9 +2935,10 @@ async function generateClientInvoice(){
   const client = $('clientName').value.trim() || tags.join(', ');
   const [y,m] = $('invMonth').value.split('-').map(Number);
 
-  const items = invoicePreview.map(it => ({...it, total: it.billedHrs*it.rate}));
+  const items = invoicePreview.map(it => ({...it, total: it.isFlat ? it.flatAmount : it.billedHrs*it.rate}));
   const showTag = tags.length>1;
-  const totalHours = items.reduce((s,x)=>s+x.billedHrs,0);
+  const totalHours = items.filter(x=>!x.isFlat).reduce((s,x)=>s+x.billedHrs,0);
+  const totalFlat = items.filter(x=>x.isFlat).reduce((s,x)=>s+x.flatAmount,0);
   const totalAmt = items.reduce((s,x)=>s+x.total,0);
   const invNum = await nextInvoiceNumber();
   const monthName = MONTHS[m-1];
@@ -2771,8 +2957,8 @@ async function generateClientInvoice(){
 
   const head = showTag ? [['DATE','EE','CASE','DESCRIPTION','RATE','HOURS','TOTAL']] : [['DATE','EE','DESCRIPTION','RATE','HOURS','TOTAL']];
   const body = items.map(x => showTag
-    ? [x.date, x.ee, x.tag, x.desc, '$'+x.rate.toFixed(2), fmtH(x.billedHrs), '$'+x.total.toFixed(2)]
-    : [x.date, x.ee, x.desc, '$'+x.rate.toFixed(2), fmtH(x.billedHrs), '$'+x.total.toFixed(2)]);
+    ? [x.date, x.ee, x.tag, x.desc, x.isFlat?'—':'$'+x.rate.toFixed(2), x.isFlat?'flat':fmtH(x.billedHrs), '$'+x.total.toFixed(2)]
+    : [x.date, x.ee, x.desc, x.isFlat?'—':'$'+x.rate.toFixed(2), x.isFlat?'flat':fmtH(x.billedHrs), '$'+x.total.toFixed(2)]);
   const colorMap = Object.fromEntries(invAllMembers.map(m => [m.id, hexToRgb(m.color)]));
   const eeColIdx = showTag ? 1 : 1;   // EE is always the second column
 
@@ -2791,6 +2977,11 @@ async function generateClientInvoice(){
   let yy = doc.lastAutoTable.finalY + 30;
   doc.setFont('helvetica','bold'); doc.setFontSize(13);
   doc.text('TOTAL HOURS', 48, yy); doc.text(fmtH(totalHours), pageW-48, yy, {align:'right'});
+  if(totalFlat > 0){
+    yy += 20; doc.setFontSize(12); doc.setTextColor(138,90,23);
+    doc.text('FLAT / PER DIEM', 48, yy); doc.text('$'+totalFlat.toFixed(2), pageW-48, yy, {align:'right'});
+    doc.setTextColor(0); doc.setFontSize(13);
+  }
   yy += 24; doc.setFontSize(16); doc.setTextColor(78,122,104);
   doc.text('AMOUNT DUE', 48, yy); doc.text('$'+totalAmt.toFixed(2), pageW-48, yy, {align:'right'});
 
@@ -2960,6 +3151,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-08-15.6</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-14.1</div>
 </body>
 </html>
