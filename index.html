@@ -28,6 +28,62 @@
   button{font-family:inherit;cursor:pointer}
   input{font-family:inherit;font-size:15px}
   .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--pine)}
+
+  /* ============ login animation ============ */
+  .login-anim-overlay{position:fixed;inset:0;background:var(--pine);display:none;align-items:center;justify-content:center;z-index:200;pointer-events:none}
+  .login-anim-overlay.on{display:flex;animation:loginOverlayFadeOut 4s ease forwards}
+  .login-anim-stage{position:relative;width:560px;height:280px}
+  .anim-hand-svg{position:absolute;left:480px;top:60px;width:140px;height:90px;opacity:0;
+    animation:loginHandFadeIn 4s ease forwards, loginHandMove 4s ease forwards}
+  .anim-machine-svg{position:absolute;left:380px;top:60px;width:140px;height:160px}
+  .anim-light{fill:#C0392B;animation:loginLightChange 4s step-end forwards}
+  .anim-card{
+    position:absolute;left:190px;top:60px;width:160px;height:100px;
+    background:var(--card);border:2px solid var(--pine);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-weight:700;font-size:20px;color:var(--pine);letter-spacing:.03em;
+    box-shadow:0 8px 24px rgba(0,0,0,.3);
+    animation:loginCardMove 4s ease forwards;
+  }
+
+  /* hand reaches in from off-stage (0-18%), holds the card while carrying
+     it above the machine (18-48%), then releases and retracts back off
+     to the side once the card starts its own descent into the slot */
+  @keyframes loginHandFadeIn{
+    0%,8%{opacity:0}
+    16%{opacity:1}
+    54%{opacity:1}
+    66%,100%{opacity:0}
+  }
+  @keyframes loginHandMove{
+    0%,10%{transform:translate(0,0)}
+    18%{transform:translate(-270px,0)}
+    48%{transform:translate(-45px,-75px)}
+    58%{transform:translate(-20px,-100px)}
+    100%{transform:translate(50px,-130px)}
+  }
+  @keyframes loginLightChange{
+    0%,66%{fill:#C0392B}
+    67%,100%{fill:#4E7A68}
+  }
+  /* card sits full-size while the hand reaches in (0-12%), shrinks into
+     the hand's grip (12-28%), travels with the hand to a spot directly
+     above the machine (28-48%), then rotates onto its side — long edge
+     down, like a real time clock — and slides down into the vertical
+     slot on its own once the hand releases it (48-72%) */
+  @keyframes loginCardMove{
+    0%,12%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}
+    28%{transform:translate(-25px,-20px) rotate(0deg) scale(.32);opacity:1}
+    48%{transform:translate(180px,-90px) rotate(0deg) scale(.32);opacity:1}
+    56%{transform:translate(180px,-35px) rotate(90deg) scale(.28);opacity:1}
+    64%{transform:translate(180px,0px) rotate(90deg) scale(.2);opacity:1}
+    72%{transform:translate(180px,30px) rotate(90deg) scale(.05);opacity:0}
+    100%{transform:translate(180px,30px) rotate(90deg) scale(.05);opacity:0}
+  }
+  @keyframes loginOverlayFadeOut{
+    0%,74%{opacity:1}
+    100%{opacity:0}
+  }
   .auth-card{width:100%;max-width:400px;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35)}
   .auth-head{background:var(--pine);color:var(--bone);padding:24px 28px}
   .brand{font-family:var(--display);font-weight:700;font-size:28px}
@@ -56,18 +112,23 @@
 
   .app{display:none;min-height:100vh;flex-direction:column}
   .app.on{display:flex}
-  .app-shell{display:flex; min-height:100vh}
+  .app-shell{display:flex; min-height:100vh; position:relative}
   .sidebar{width:220px; flex-shrink:0; background:var(--pine); color:var(--bone); display:flex; flex-direction:column; padding:24px 0}
   .sidebar .brand{padding:0 22px; margin-bottom:26px}
   .side-tabs{display:flex; flex-direction:column; gap:2px}
   .side-tabs button{border:0; background:transparent; color:rgba(244,241,232,.75); padding:11px 22px; text-align:left; font-weight:600; font-size:14px; border-left:3px solid transparent}
   .side-tabs button.active{background:rgba(255,255,255,.08); color:var(--bone); border-left:3px solid var(--stamp)}
-  .sidebar-footer{margin-top:auto; padding:16px 22px 0}
+  .sidebar-account{padding:0 22px 20px}
   .app-main-col{flex:1; min-width:0; display:flex; flex-direction:column}
-  .topbar{background:var(--pine); padding:14px 0; display:flex; justify-content:center; align-items:center}
+  .topbar{background:var(--pine); padding:14px 22px; display:flex; align-items:center; position:relative; min-height:44px}
+  .topbar-profile{position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:15; display:flex; align-items:center; gap:12px}
+  .topbar-name{color:var(--bone); font-weight:600; font-size:14px; white-space:nowrap}
+  .topbar-code{color:rgba(244,241,232,.75); font-size:11.5px; font-family:var(--mono); white-space:nowrap}
+  .avatar-wrap{width:42px; height:42px; border-radius:50%; cursor:pointer; overflow:hidden; flex-shrink:0; border:2px solid var(--stamp); background:var(--sage)}
+  .avatar-img{width:100%; height:100%; object-fit:cover; display:block}
+  .avatar-initials{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:15px}
   header .brand{font-size:19px}
   .sp{flex:1;display:flex;justify-content:center;align-items:center}
-  .quick-add-wrap{position:relative}
   .quick-add-btn{background:var(--stamp);color:#3A2708;border:0;border-radius:50%;width:44px;height:44px;font-size:24px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center}
   .log-manual-btn{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;
     background:#fff;color:var(--pine);border:1.5px solid var(--line);border-radius:7px;
@@ -80,7 +141,7 @@
   input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
   .account-menu-wrap{position:relative}
-  .account-dropdown{position:absolute;bottom:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--line);border-radius:10px;
+  .account-dropdown{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--line);border-radius:10px;
     box-shadow:0 6px 20px rgba(18,40,32,.2);min-width:160px;overflow:hidden;z-index:20}
   .account-dropdown button{display:block;width:100%;text-align:left;background:transparent;border:0;color:var(--ink);
     padding:10px 14px;font-size:13.5px;font-weight:500}
@@ -106,7 +167,8 @@
     display:flex;align-items:center;justify-content:center}
   .row-del:hover{background:#F9E4DE;color:var(--danger)}
   .head-sub span{padding:9px 9px}
-  .day-label{padding:18px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+  .day-label{padding:18px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;cursor:pointer;transition:background .12s}
+  .day-label:hover{background:var(--sage-mist)}
   .day-label .dname{font-weight:600;font-size:13.5px}
   .day-label .ddate{font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
   .day-label button{margin-top:6px;border:1px dashed var(--line);background:transparent;border-radius:6px;font-size:10px;font-weight:600;padding:2px 6px;color:var(--ink-dim);text-transform:uppercase;align-self:flex-start}
@@ -124,7 +186,10 @@
   .work-row-ro .wro-hrs{justify-content:center;font-family:var(--mono);font-weight:600}
   .work-row-ro .wro-desc{color:var(--ink)}
   .work-row-ro .row-del{background:#fff;border:0}
-  .wro-empty{padding:14px 4px;color:var(--ink-dim);font-size:12.5px;font-style:italic}
+  .wro-empty{padding:14px 4px;color:var(--ink-dim);font-size:12.5px;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .12s}
+  .wro-empty:hover{background:var(--sage-mist);color:var(--ink)}
+  .wro-empty-plus{color:var(--sage);font-weight:700;font-size:18px;font-style:normal;opacity:0;transition:opacity .12s;margin-right:10px}
+  .wro-empty:hover .wro-empty-plus{opacity:1}
   .expense-row{display:grid;grid-template-columns:100px 90px 1fr 90px 32px 32px;gap:1px;background:var(--line);border-bottom:1px solid var(--line);align-items:stretch}
   .expense-row > span{background:#fff;padding:10px 9px;font-size:12.5px;display:flex;align-items:center}
   .expense-row:nth-of-type(even) > span{background:#FAFAF6}
@@ -248,6 +313,8 @@
 @media (max-width: 640px){
   main{padding:12px}
 
+  .login-anim-stage{transform:scale(.72)}
+
   /* Week: stack day-label/hours-total above the entries instead of squeezing
      a 130px + nested-grid + 90px layout into a ~380px screen */
   .day-row{grid-template-columns:1fr auto !important;grid-template-areas:"label hrs" "work work";row-gap:6px;padding:10px 8px}
@@ -289,8 +356,9 @@
   .side-tabs::-webkit-scrollbar{display:none}
   .side-tabs button{border-left:0;border-radius:6px;padding:6px 12px;white-space:nowrap;background:rgba(255,255,255,.08)}
   .side-tabs button.active{background:var(--bone);color:var(--pine)}
-  .sidebar-footer{margin-top:0;padding:0;flex:0 0 auto;order:2}
-  .topbar{padding:8px 0}
+  .sidebar-account{margin-top:0;padding:0;flex:0 0 auto;order:2}
+  .topbar{padding:10px 12px;flex-wrap:wrap;justify-content:center;gap:10px}
+  .topbar-profile{position:static;transform:none;top:auto;left:auto}
 }
 </style>
 </head>
@@ -329,19 +397,34 @@
   </div>
 </div>
 
+<!-- LOGIN ANIMATION -->
+<div class="login-anim-overlay" id="loginAnimOverlay">
+  <div class="login-anim-stage">
+    <svg class="anim-hand-svg" viewBox="0 0 140 90">
+      <rect x="85" y="28" width="55" height="30" rx="6" fill="#fff"/>
+      <ellipse cx="65" cy="42" rx="28" ry="20" fill="#fff"/>
+      <rect x="14" y="22" width="15" height="30" rx="7" fill="#fff"/>
+      <rect x="30" y="14" width="15" height="36" rx="7" fill="#fff"/>
+      <rect x="46" y="16" width="15" height="34" rx="7" fill="#fff"/>
+    </svg>
+    <svg class="anim-machine-svg" viewBox="0 0 140 160">
+      <rect x="15" y="25" width="110" height="125" rx="8" fill="none" stroke="#fff" stroke-width="5"/>
+      <rect x="65" y="35" width="10" height="30" rx="2" fill="#fff"/>
+      <circle class="anim-light" cx="70" cy="15" r="10"/>
+      <line x1="70" y1="25" x2="70" y2="10" stroke="#fff" stroke-width="4"/>
+      <circle cx="70" cy="105" r="32" fill="none" stroke="#fff" stroke-width="4"/>
+      <line x1="70" y1="105" x2="70" y2="86" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <line x1="70" y1="105" x2="86" y2="105" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="anim-card" id="animCard">TIMEX</div>
+  </div>
+</div>
+
 <div class="app" id="app">
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">Timecard</div>
-      <nav class="side-tabs">
-        <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
-        <button id="tabPay" onclick="setView('pay')">Paystub</button>
-        <button id="tabTeam" onclick="setView('team')">My Team</button>
-        <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
-        <button id="tabBilling" onclick="setView('billing')">Billing</button>
-        <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
-      </nav>
-      <div class="sidebar-footer">
+      <div class="sidebar-account">
         <div class="account-menu-wrap">
           <button class="btn-ghost" id="whoami" onclick="toggleAccountMenu(event)" style="font-weight:600"></button>
           <div class="account-dropdown" id="accountDropdown" style="display:none">
@@ -355,23 +438,38 @@
           </div>
         </div>
       </div>
+      <nav class="side-tabs">
+        <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
+        <button id="tabPay" onclick="setView('pay')">Paystub</button>
+        <button id="tabTeam" onclick="setView('team')">My Team</button>
+        <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
+        <button id="tabBilling" onclick="setView('billing')">Billing</button>
+        <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
+      </nav>
     </aside>
     <div class="app-main-col">
       <div class="topbar">
-        <div class="quick-add-wrap">
-          <button class="quick-add-btn" id="quickAddBtn" onclick="openAddHours()" title="Add hours">+</button>
+        <button class="voice-log-btn" id="voiceLogBtn" onclick="quickAddViaVoice()">🎤 Voice log</button>
+        <div class="topbar-profile" id="topbarProfile">
+          <span class="topbar-name" id="topbarName"></span>
+          <div class="avatar-wrap" onclick="document.getElementById('avatarFileInput').click()" title="Click to change your profile picture">
+            <img id="avatarImg" class="avatar-img" style="display:none">
+            <div id="avatarInitials" class="avatar-initials"></div>
+          </div>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="onAvatarFileSelected(this.files)">
+          <span class="topbar-code" id="topbarCode"></span>
         </div>
+        <button class="btn-ghost" id="topbarSignOut" onclick="signOut()" style="margin-left:auto">Sign out</button>
       </div>
       <main>
-    <div id="timesheetHeaderRow" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+    <div id="timesheetHeaderRow" style="display:flex;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:10px">
       <div class="sub-toggle" id="timesheetSubToggle" style="margin-bottom:0">
         <button class="sub-toggle-btn active" id="subTabWeek" onclick="setView('week')">Week</button>
         <button class="sub-toggle-btn" id="subTabMonth" onclick="setView('month')">Month</button>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="voice-log-btn" id="voiceLogBtn" onclick="quickAddViaVoice()">🎤 Voice log</button>
-        <button class="btn-bill" onclick="openAddHours()">+ Add hours</button>
-      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:26px">
+      <button class="btn-bill" onclick="openAddHours()">+ Add hours</button>
     </div>
     <!-- WEEK -->
     <div class="card" id="weekView">
@@ -534,7 +632,7 @@
 <datalist id="tagOptions"></datalist>
 
 <!-- PROFILE MODAL -->
-<div class="overlay" id="profileOverlay" onclick="if(event.target===this)closeProfile()">
+<div class="overlay" id="profileOverlay" onclick="overlayClick(event, closeProfile)">
   <div class="modal" style="max-width:480px">
     <div class="modal-head"><h2>Profile</h2><button class="close" onclick="closeProfile()">✕</button></div>
     <div class="modal-body">
@@ -564,7 +662,7 @@
 </div>
 
 <!-- DAY DETAIL MODAL -->
-<div class="overlay" id="dayOverlay" onclick="if(event.target===this)closeDay()">
+<div class="overlay" id="dayOverlay" onclick="overlayClick(event, closeDay)">
   <div class="modal">
     <div class="modal-head"><h2 id="dayTitle">Day</h2><button class="close" onclick="closeDay()">✕</button></div>
     <div class="modal-body" id="dayBody"></div>
@@ -572,7 +670,7 @@
 </div>
 
 <!-- MATTER WIZARD -->
-<div class="overlay" id="matterWizardOverlay" onclick="if(event.target===this)closeMatterWizard()">
+<div class="overlay" id="matterWizardOverlay" onclick="overlayClick(event, closeMatterWizard)">
   <div class="modal" style="max-width:520px">
     <div class="modal-head"><h2 id="matterWizardTitle">Create Job — Step 1</h2><button class="close" onclick="closeMatterWizard()">✕</button></div>
     <div class="modal-body">
@@ -605,7 +703,7 @@
 </div>
 
 <!-- EDIT CLIENT -->
-<div class="overlay" id="editClientOverlay" onclick="if(event.target===this)closeEditClient()">
+<div class="overlay" id="editClientOverlay" onclick="overlayClick(event, closeEditClient)">
   <div class="modal" style="max-width:520px">
     <div class="modal-head"><h2>Edit client</h2><button class="close" onclick="closeEditClient()">✕</button></div>
     <div class="modal-body">
@@ -623,7 +721,7 @@
 </div>
 
 <!-- EDIT ENTRY -->
-<div class="overlay" id="editEntryOverlay" onclick="if(event.target===this)closeEditEntry()">
+<div class="overlay" id="editEntryOverlay" onclick="overlayClick(event, closeEditEntry)">
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2>Edit entry</h2><button class="close" onclick="closeEditEntry()">✕</button></div>
     <div class="modal-body">
@@ -650,7 +748,7 @@
 </div>
 
 <!-- ADD HOURS -->
-<div class="overlay" id="addHoursOverlay" onclick="if(event.target===this)closeAddHours()">
+<div class="overlay" id="addHoursOverlay" onclick="overlayClick(event, closeAddHours)">
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2>Add hours</h2><button class="close" onclick="closeAddHours()">✕</button></div>
     <div class="modal-body">
@@ -710,7 +808,7 @@
 </div>
 
 <!-- ADD EXPENSE -->
-<div class="overlay" id="addExpenseOverlay" onclick="if(event.target===this)closeAddExpense()">
+<div class="overlay" id="addExpenseOverlay" onclick="overlayClick(event, closeAddExpense)">
   <div class="modal" style="max-width:460px">
     <div class="modal-head"><h2 id="addExpenseTitle">Add expense</h2><button class="close" onclick="closeAddExpense()">✕</button></div>
     <div class="modal-body">
@@ -748,7 +846,7 @@
 </div>
 
 <!-- IMPORT HOURS -->
-<div class="overlay" id="importOverlay" onclick="if(event.target===this)closeImportHours()">
+<div class="overlay" id="importOverlay" onclick="overlayClick(event, closeImportHours)">
   <div class="modal" style="max-width:640px">
     <div class="modal-head"><h2>Import hours</h2><button class="close" onclick="closeImportHours()">✕</button></div>
     <div class="modal-body">
@@ -777,7 +875,7 @@
 </div>
 
 <!-- SEARCH MODAL -->
-<div class="overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+<div class="overlay" id="searchOverlay" onclick="overlayClick(event, closeSearch)">
   <div class="modal" style="max-width:520px">
     <div class="modal-head"><h2>Search hours</h2><button class="close" onclick="closeSearch()">✕</button></div>
     <div class="modal-body">
@@ -797,7 +895,7 @@
 </div>
 
 <!-- HISTORY MODAL -->
-<div class="overlay" id="historyOverlay" onclick="if(event.target===this)closeHistory()">
+<div class="overlay" id="historyOverlay" onclick="overlayClick(event, closeHistory)">
   <div class="modal" style="max-width:480px">
     <div class="modal-head"><h2>Edit history</h2><button class="close" onclick="closeHistory()">✕</button></div>
     <div class="modal-body" id="historyBody"><div class="hint">Loading…</div></div>
@@ -936,7 +1034,7 @@ async function submitAuth(){
     } else {
       const { data, error } = await supa.auth.signInWithPassword({ email, password });
       if(error) return msg(errText(error));
-      await enterApp(data.user);
+      await enterApp(data.user, { showLoginAnimation: true });
     }
   } finally { $('goBtn').disabled = false; }
 }
@@ -949,20 +1047,65 @@ async function signOut(){
 }
 
 /* ================= app entry ================= */
-async function enterApp(user){
+async function enterApp(user, opts={}){
   const { data: profile, error } = await supa.from('profiles').select('*').eq('id', user.id).single();
   if(error || !profile){ msg('Signed in, but your profile could not be loaded. Try refreshing.'); return; }
   me = profile;
   $('authScreen').style.display = 'none';
   $('app').classList.add('on');
   $('whoami').textContent = `${me.first_name} ${me.last_name} (${me.account_id})`;
+  $('topbarName').textContent = `${me.first_name} ${(me.last_name||'').charAt(0).toUpperCase()}`.trim();
+  $('topbarCode').textContent = me.account_id || '';
+  renderAvatar();
   anchor = new Date();
   await setView('week');
   await checkInviteLink();
   await checkVoiceLogLink();
+  if(opts.showLoginAnimation) playLoginAnimation();
+}
+
+function playLoginAnimation(){
+  const overlay = $('loginAnimOverlay');
+  overlay.classList.add('on');
+  // matches the CSS animation's own 4s duration — cleanup after it finishes
+  // so the (now invisible) overlay doesn't linger and block clicks
+  setTimeout(() => { overlay.classList.remove('on'); }, 4000);
 }
 
 /* ================= profile ================= */
+function avatarInitialsOf(first, last){
+  return `${(first||'?').charAt(0)}${(last||'').charAt(0)}`.toUpperCase();
+}
+function renderAvatar(){
+  const img = $('avatarImg'), initialsEl = $('avatarInitials');
+  const wrap = document.querySelector('.avatar-wrap');
+  if(me.avatar_path){
+    const { data } = supa.storage.from('avatars').getPublicUrl(me.avatar_path);
+    img.src = (data && data.publicUrl) ? data.publicUrl : '';
+    img.style.display = '';
+    initialsEl.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    initialsEl.style.display = '';
+    initialsEl.textContent = avatarInitialsOf(me.first_name, me.last_name);
+    if(wrap && me.color) wrap.style.background = me.color;
+  }
+}
+async function onAvatarFileSelected(files){
+  const file = files[0];
+  if(!file) return;
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${me.id}/avatar.${ext}`;
+  const { error: upErr } = await supa.storage.from('avatars').upload(path, file, { upsert: true });
+  if(upErr) return toast('Could not upload picture: ' + (upErr.message||''));
+  const { error: saveErr } = await supa.from('profiles').update({ avatar_path: path }).eq('id', me.id);
+  if(saveErr) return toast('Could not save picture');
+  me.avatar_path = path;
+  renderAvatar();
+  logHist('Updated profile picture');
+  toast('Profile picture updated');
+}
+
 function toggleAccountMenu(e){
   if(e) e.stopPropagation();
   const dd = $('accountDropdown');
@@ -1110,9 +1253,12 @@ function renderWeek(dates){
         <span class="wro-desc">${escapeHtml(w.description||'')}</span>
         <button type="button" class="row-del" title="Edit this entry" onclick="openEditEntry('${dk}',${wi})">✎</button>
         <button type="button" class="row-del" title="Remove this entry" onclick="deleteWorkRow('${dk}',${wi})">✕</button>
-      </div>`).join('') : '<div class="wro-empty">No hours logged</div>';
+      </div>`).join('') : `<div class="wro-empty" onclick="openAddHoursForDate('${dk}')" title="Click to add hours">
+        <span class="wro-empty-text">No hours logged</span>
+        <span class="wro-empty-plus">+</span>
+      </div>`;
     html += `<div class="day-row">
-      <div class="day-label">
+      <div class="day-label" onclick="openAddHoursForDate('${dk}')" title="Click to add hours for this day">
         <span class="dname">${DAYS[i]}</span>
         <span class="ddate">${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}${dk===todayK?' · Today':''}</span>
       </div>
@@ -1122,6 +1268,11 @@ function renderWeek(dates){
   });
   $('weekBody').innerHTML = html;
   $('weekTotal').textContent = fmtH(total);
+}
+
+async function openAddHoursForDate(dk){
+  await openAddHours();
+  $('addHrsDate').value = dk;
 }
 
 /* ================= writes ================= */
@@ -3157,6 +3308,17 @@ document.addEventListener('wheel', e => {
   if(document.activeElement && document.activeElement.type === 'number') document.activeElement.blur();
 }, { passive: true });
 
+// tracks where a mousedown started, so overlayClick can tell a genuine
+// "clicked the background to close" from a text selection that started
+// inside the modal and was dragged out before releasing the mouse —
+// without this, selecting text near a modal's edge could silently close
+// it and lose whatever you'd typed
+let __overlayMouseDownTarget = null;
+document.addEventListener('mousedown', e => { __overlayMouseDownTarget = e.target; });
+function overlayClick(e, closeFn){
+  if(e.target === e.currentTarget && __overlayMouseDownTarget === e.currentTarget) closeFn();
+}
+
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
 });
@@ -3167,6 +3329,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-14.2</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-16.1</div>
 </body>
 </html>
