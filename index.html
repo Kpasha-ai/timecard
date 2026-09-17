@@ -31,57 +31,59 @@
 
   /* ============ login animation ============ */
   .login-anim-overlay{position:fixed;inset:0;background:var(--pine);display:none;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-  .login-anim-overlay.on{display:flex;animation:loginOverlayFadeOut 4s ease forwards}
-  .login-anim-stage{position:relative;width:560px;height:280px}
-  .anim-hand-svg{position:absolute;left:480px;top:60px;width:140px;height:90px;opacity:0;
-    animation:loginHandFadeIn 4s ease forwards, loginHandMove 4s ease forwards}
-  .anim-machine-svg{position:absolute;left:380px;top:60px;width:140px;height:160px}
-  .anim-light{fill:#C0392B;animation:loginLightChange 4s step-end forwards}
+  .login-anim-overlay.on{display:flex;animation:loginOverlayFadeOut 2.75s ease forwards}
+  .login-anim-stage{position:relative;width:340px;height:280px;perspective:800px}
+  .anim-machine-svg{position:absolute;left:100px;top:60px;width:140px;height:160px}
+  .anim-light{fill:#C0392B;animation:loginLightChange 2.75s step-end forwards}
   .anim-card{
-    position:absolute;left:190px;top:60px;width:160px;height:100px;
-    background:var(--card);border:2px solid var(--pine);border-radius:10px;
+    position:absolute;left:90px;top:60px;width:160px;height:100px;
+    transform-style:preserve-3d;
+    animation:loginCardMove 2.75s ease forwards;
+  }
+  .anim-card-face{
+    position:absolute;inset:0;border-radius:10px;
     display:flex;align-items:center;justify-content:center;
-    font-family:var(--display);font-weight:700;font-size:20px;color:var(--pine);letter-spacing:.03em;
+    font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.03em;
     box-shadow:0 8px 24px rgba(0,0,0,.3);
-    animation:loginCardMove 4s ease forwards;
+  }
+  .anim-card-front{background:var(--card);border:2px solid var(--pine);color:var(--pine);
+    animation:loginCardFrontSwap 2.75s step-end forwards}
+  .anim-card-back{background:var(--sage-mist);border:2px solid var(--pine);color:var(--pine);transform:rotateY(180deg);
+    animation:loginCardBackSwap 2.75s step-end forwards}
+
+  /* explicit opacity swap at the halfway point of the flip (parent hits
+     90°) rather than relying only on backface-visibility, so the front
+     face's text never renders mirrored mid-flip */
+  @keyframes loginCardFrontSwap{
+    0%,22.5%{opacity:1}
+    22.6%,100%{opacity:0}
+  }
+  @keyframes loginCardBackSwap{
+    0%,22.5%{opacity:0}
+    22.6%,100%{opacity:1}
   }
 
-  /* hand reaches in from off-stage (0-18%), holds the card while carrying
-     it above the machine (18-48%), then releases and retracts back off
-     to the side once the card starts its own descent into the slot */
-  @keyframes loginHandFadeIn{
-    0%,8%{opacity:0}
-    16%{opacity:1}
-    54%{opacity:1}
-    66%,100%{opacity:0}
-  }
-  @keyframes loginHandMove{
-    0%,10%{transform:translate(0,0)}
-    18%{transform:translate(-270px,0)}
-    48%{transform:translate(-45px,-75px)}
-    58%{transform:translate(-20px,-100px)}
-    100%{transform:translate(50px,-130px)}
-  }
   @keyframes loginLightChange{
-    0%,66%{fill:#C0392B}
-    67%,100%{fill:#4E7A68}
+    0%,75%{fill:#C0392B}
+    76%,100%{fill:#4E7A68}
   }
-  /* card sits full-size while the hand reaches in (0-12%), shrinks into
-     the hand's grip (12-28%), travels with the hand to a spot directly
-     above the machine (28-48%), then rotates onto its side — long edge
-     down, like a real time clock — and slides down into the vertical
-     slot on its own once the hand releases it (48-72%) */
+  /* card sits full-size showing TIMEX (0-13%), flips over to reveal the
+     light-green Tx backside — held to a strictly linear rotation so the
+     90° crossing point above is exactly predictable (13-32%) — then spins
+     90° clockwise in place, turning it vertical for a long-edge insertion
+     (32-50%), then zooms out, shrinking and floating up (50-68%), before
+     dropping straight down into the slot from the top to activate the
+     machine and staying visibly inserted there for the rest of the
+     animation, rather than vanishing (68-100%) */
   @keyframes loginCardMove{
-    0%,12%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}
-    28%{transform:translate(-25px,-20px) rotate(0deg) scale(.32);opacity:1}
-    48%{transform:translate(180px,-90px) rotate(0deg) scale(.32);opacity:1}
-    56%{transform:translate(180px,-35px) rotate(90deg) scale(.28);opacity:1}
-    64%{transform:translate(180px,0px) rotate(90deg) scale(.2);opacity:1}
-    72%{transform:translate(180px,30px) rotate(90deg) scale(.05);opacity:0}
-    100%{transform:translate(180px,30px) rotate(90deg) scale(.05);opacity:0}
+    0%,13%{transform:translateY(0) rotateY(0deg) rotate(0deg) scale(1);opacity:1;animation-timing-function:linear}
+    32%{transform:translateY(0) rotateY(180deg) rotate(0deg) scale(1);opacity:1;animation-timing-function:ease}
+    50%{transform:translateY(0) rotateY(180deg) rotate(90deg) scale(1);opacity:1}
+    68%{transform:translateY(-70px) rotateY(180deg) rotate(90deg) scale(.28);opacity:1}
+    78%,100%{transform:translateY(0px) rotateY(180deg) rotate(90deg) scale(.15);opacity:1}
   }
   @keyframes loginOverlayFadeOut{
-    0%,74%{opacity:1}
+    0%,88%{opacity:1}
     100%{opacity:0}
   }
   .auth-card{width:100%;max-width:400px;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35)}
@@ -259,6 +261,7 @@
   .inviterow{display:flex;gap:8px}
   .inviterow input{flex:1;max-width:220px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px}
   .btn-bill{background:var(--sage);color:#fff;border:0;border-radius:8px;font-size:13px;font-weight:600;padding:9px 14px;white-space:nowrap}
+  .btn-bill-lg{background:var(--sage);color:#fff;border:0;border-radius:9px;font-size:14.5px;font-weight:700;padding:11px 18px;white-space:nowrap;box-shadow:0 2px 8px rgba(78,122,104,.3)}
   .client-action-btn{border:0;border-radius:8px;font-size:12px;font-weight:600;padding:6px 10px;white-space:nowrap}
   .client-action-btn.neutral{background:var(--line);color:var(--ink)}
   .client-action-btn.danger{background:#C0392B;color:#fff}
@@ -400,13 +403,6 @@
 <!-- LOGIN ANIMATION -->
 <div class="login-anim-overlay" id="loginAnimOverlay">
   <div class="login-anim-stage">
-    <svg class="anim-hand-svg" viewBox="0 0 140 90">
-      <rect x="85" y="28" width="55" height="30" rx="6" fill="#fff"/>
-      <ellipse cx="65" cy="42" rx="28" ry="20" fill="#fff"/>
-      <rect x="14" y="22" width="15" height="30" rx="7" fill="#fff"/>
-      <rect x="30" y="14" width="15" height="36" rx="7" fill="#fff"/>
-      <rect x="46" y="16" width="15" height="34" rx="7" fill="#fff"/>
-    </svg>
     <svg class="anim-machine-svg" viewBox="0 0 140 160">
       <rect x="15" y="25" width="110" height="125" rx="8" fill="none" stroke="#fff" stroke-width="5"/>
       <rect x="65" y="35" width="10" height="30" rx="2" fill="#fff"/>
@@ -416,7 +412,10 @@
       <line x1="70" y1="105" x2="70" y2="86" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
       <line x1="70" y1="105" x2="86" y2="105" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
     </svg>
-    <div class="anim-card" id="animCard">TIMEX</div>
+    <div class="anim-card" id="animCard">
+      <div class="anim-card-face anim-card-front">TIMEX</div>
+      <div class="anim-card-face anim-card-back">Tx</div>
+    </div>
   </div>
 </div>
 
@@ -509,7 +508,6 @@
       <div class="pay-settings">
         <div class="field"><label>Hourly rate ($) <span style="text-transform:none;letter-spacing:0;font-weight:500">— what you're paid</span></label><input id="rateInput" type="number" min="0" step="0.5" onchange="onRateChange(this.value)"></div>
         <div class="field"><label>Pay period starts on</label><input id="anchorInput" type="date" onchange="onAnchorChange(this.value)"></div>
-        <div class="field"><label>Mileage rate ($/mile) <span style="text-transform:none;letter-spacing:0;font-weight:500">— for expense tracking</span></label><input id="mileageRateInput" type="number" min="0" step="0.01" onchange="onMileageRateChange(this.value)"></div>
       </div>
       <div id="periodList"><div class="loading">Loading…</div></div>
     </div>
@@ -568,7 +566,7 @@
     <div class="card" id="expensesView" style="display:none">
       <div class="card-head">
         <div class="card-title" style="font-size:18px">Expenses</div>
-        <button class="btn-add-hours" style="margin-left:auto" onclick="openAddExpense()">+ Add expense</button>
+        <button class="btn-bill-lg" style="margin-left:auto" onclick="openAddExpense()">+ Add expense</button>
       </div>
       <div class="day-row head" style="grid-template-columns:100px 90px 1fr 90px 32px 32px">
         <div>Date</div><div>Tag</div><div>Description</div><div>Amount</div><div></div><div></div>
@@ -826,10 +824,15 @@
         </select>
       </div>
 
-      <div class="field"><label>Miles driven <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional — auto-fills the amount below)</span></label>
-        <input type="number" min="0" step="0.1" id="addExpMiles" placeholder="0" oninput="onExpMilesInput()">
+      <div class="row2">
+        <div class="field" style="flex:2"><label>Miles driven <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+          <input type="number" min="0" step="0.1" id="addExpMiles" placeholder="0" oninput="onExpMilesInput()">
+        </div>
+        <div class="field" style="flex:1"><label>Rate ($/mi)</label>
+          <input type="number" min="0" step="0.01" id="addExpMileageRate" placeholder="0.00" oninput="onExpMilesInput()">
+        </div>
       </div>
-      <div class="field"><label>Amount ($)</label><input type="number" min="0" step="0.01" id="addExpAmount" placeholder="0.00" oninput="this.classList.remove('missing-field')"></div>
+      <div class="field"><label>Amount ($) <span id="addExpAmountAutoNote" style="display:none;text-transform:none;letter-spacing:0;font-weight:500">— miles × rate</span></label><input type="number" min="0" step="0.01" id="addExpAmount" placeholder="0.00" oninput="this.classList.remove('missing-field')"></div>
 
       <div class="field"><label>Description</label>
         <textarea id="addExpDesc" rows="2" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px" placeholder="What was this for?"></textarea>
@@ -1067,9 +1070,9 @@ async function enterApp(user, opts={}){
 function playLoginAnimation(){
   const overlay = $('loginAnimOverlay');
   overlay.classList.add('on');
-  // matches the CSS animation's own 4s duration — cleanup after it finishes
-  // so the (now invisible) overlay doesn't linger and block clicks
-  setTimeout(() => { overlay.classList.remove('on'); }, 4000);
+  // matches the CSS animation's own 2.75s duration — cleanup after it
+  // finishes so the (now invisible) overlay doesn't linger and block clicks
+  setTimeout(() => { overlay.classList.remove('on'); }, 2750);
 }
 
 /* ================= profile ================= */
@@ -1427,7 +1430,6 @@ function payPeriods(count){
 
 async function loadPay(){
   $('rateInput').value = me.rate || 0;
-  $('mileageRateInput').value = me.mileage_rate || 0;
   if(!me.pay_anchor){
     const wk = keyOf(weekStart(new Date()));
     const { error } = await supa.from('profiles').update({pay_anchor:wk}).eq('id', me.id);
@@ -1502,14 +1504,6 @@ async function onRateChange(v){
   logHist(`Pay rate changed to $${rate.toFixed(2)}/h`);
   renderPay(payPeriods(8));
   toast(`Rate set to $${rate.toFixed(2)}/h`);
-}
-async function onMileageRateChange(v){
-  const r = parseFloat(v); const rate = (!isNaN(r) && r>=0) ? r : 0;
-  me.mileage_rate = rate;
-  const { error } = await supa.from('profiles').update({mileage_rate:rate}).eq('id', me.id);
-  if(error) return toast('Could not save mileage rate');
-  logHist(`Mileage rate changed to $${rate.toFixed(2)}/mile`);
-  toast(`Mileage rate set to $${rate.toFixed(2)}/mile`);
 }
 async function onAnchorChange(v){
   if(!v) return;
@@ -1945,6 +1939,7 @@ let addExpenseClientsCache = [];
 let addExpenseMattersCache = [];
 let pendingReceiptFile = null;
 let editingExpenseId = null;
+let lastMileageRate = 0;   // remembered only for this session, not saved to the profile
 
 async function loadExpenses(){
   $('expensesBody').innerHTML = '<div class="loading">Loading…</div>';
@@ -1989,6 +1984,8 @@ async function openAddExpense(){
   $('addExpDate').value = todayKeyLocal();
   $('addExpAmount').value = '';
   $('addExpMiles').value = '';
+  $('addExpMileageRate').value = '';
+  $('addExpAmountAutoNote').style.display = 'none';
   $('addExpDesc').value = '';
   $('addExpClient').innerHTML = '<option value="">No client / general expense</option>';
   $('addExpClient').value = '';
@@ -2021,8 +2018,15 @@ async function onAddExpenseClientChange(){
 
 function onExpMilesInput(){
   const miles = parseFloat($('addExpMiles').value);
-  if(isNaN(miles) || miles < 0) return;
-  const rate = Number(me.mileage_rate)||0;
+  const hasMiles = !isNaN(miles) && miles > 0;
+  $('addExpAmountAutoNote').style.display = hasMiles ? '' : 'none';
+  if(!hasMiles) return;
+  // convenience only — fills in whatever rate was last used this session,
+  // never saved anywhere, so it's not the same as the old stored profile setting
+  if(!$('addExpMileageRate').value && lastMileageRate) $('addExpMileageRate').value = lastMileageRate;
+  const rate = parseFloat($('addExpMileageRate').value);
+  if(isNaN(rate) || rate < 0) return;
+  lastMileageRate = rate;
   $('addExpAmount').value = (miles*rate).toFixed(2);
   $('addExpAmount').classList.remove('missing-field');
 }
@@ -2040,6 +2044,8 @@ async function saveExpense(){
   const amountVal = parseFloat($('addExpAmount').value);
   const milesVal = parseFloat($('addExpMiles').value);
   const miles = (!isNaN(milesVal) && milesVal > 0) ? milesVal : 0;
+  const rateVal = parseFloat($('addExpMileageRate').value);
+  const mileageRate = (miles > 0 && !isNaN(rateVal) && rateVal >= 0) ? rateVal : 0;
   const desc = $('addExpDesc').value.trim();
 
   if(!date) return toast('Pick a date');
@@ -2056,14 +2062,14 @@ async function saveExpense(){
   }
 
   if(editingExpenseId){
-    const patch = { expense_date: date, tag, description: desc, amount: amountVal, miles };
+    const patch = { expense_date: date, tag, description: desc, amount: amountVal, miles, mileage_rate: mileageRate };
     if(receiptPath !== undefined){ patch.receipt_path = receiptPath; patch.receipt_type = receiptType; }
     const { error } = await supa.from('expenses').update(patch).eq('id', editingExpenseId);
     if(error) return toast(errText(error));
     logHist('Edited an expense');
   } else {
     const { error } = await supa.from('expenses').insert({
-      user_id: me.id, expense_date: date, tag, description: desc, amount: amountVal, miles,
+      user_id: me.id, expense_date: date, tag, description: desc, amount: amountVal, miles, mileage_rate: mileageRate,
       receipt_path: receiptPath||'', receipt_type: receiptType||''
     });
     if(error) return toast(errText(error));
@@ -2084,6 +2090,13 @@ async function openEditExpense(id){
   $('addExpDate').value = exp.expense_date;
   $('addExpAmount').value = exp.amount;
   $('addExpMiles').value = exp.miles || '';
+  if(exp.miles > 0){
+    $('addExpAmountAutoNote').style.display = '';
+    $('addExpMileageRate').value = exp.mileage_rate > 0 ? exp.mileage_rate : (Number(exp.amount) / Number(exp.miles)).toFixed(2);
+  } else {
+    $('addExpAmountAutoNote').style.display = 'none';
+    $('addExpMileageRate').value = '';
+  }
   $('addExpDesc').value = exp.description || '';
   $('addExpReceiptStatus').textContent = exp.receipt_path ? 'A receipt is already attached — choose a new file to replace it' : '';
   $('addExpReceipt').value = '';
@@ -2283,6 +2296,8 @@ async function makeStub(periodKey){
   const from = keyOf(p.start), to = keyOf(p.end);
   const { data: work, error: e2 } = await supa.from('work_entries').select('*').eq('user_id',me.id).gte('work_date',from).lte('work_date',to);
   if(e2) return toast('Could not load hours for this period');
+  const { data: expenses, error: e3 } = await supa.from('expenses').select('*').eq('user_id',me.id).gte('expense_date',from).lte('expense_date',to);
+  if(e3) return toast('Could not load expenses for this period');
 
   const byDay = {};
   (work||[]).forEach(x=>{ byDay[x.work_date]=byDay[x.work_date]||{work:[]}; byDay[x.work_date].work.push(x); });
@@ -2306,8 +2321,9 @@ async function makeStub(periodKey){
   }
   const totalHours = rows.reduce((s,r)=>s+r.hours, 0);
   const totalFlat = rows.reduce((s,r)=>s+r.flatTotal, 0);
+  const totalExpenses = (expenses||[]).reduce((s,e)=>s+Number(e.amount||0), 0);
   const rate = Number(me.rate)||0;
-  const gross = totalHours*rate + totalFlat;
+  const gross = totalHours*rate + totalFlat + totalExpenses;
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'pt', format:'letter' });
@@ -2359,6 +2375,30 @@ async function makeStub(periodKey){
     }
   });
 
+  if(expenses && expenses.length){
+    const expenseRows = expenses.slice().sort((a,b)=>a.expense_date.localeCompare(b.expense_date)).map(e => {
+      const d = new Date(e.expense_date+'T00:00:00');
+      const dateStr = d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      let desc = e.description || '';
+      if(e.miles > 0){
+        const mileageNote = `${e.miles} mi${e.mileage_rate>0 ? ` @ $${Number(e.mileage_rate).toFixed(2)}/mi` : ''}`;
+        desc = desc ? `${desc} — ${mileageNote}` : mileageNote;
+      }
+      return [dateStr, e.tag || '—', desc || '—', '$'+Number(e.amount||0).toFixed(2)];
+    });
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0);
+    doc.text('EXPENSES', 48, doc.lastAutoTable.finalY + 26);
+    doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 34,
+      margin: {left:48, right:48},
+      head: [['DATE','CASE','DESCRIPTION','AMOUNT']],
+      body: expenseRows,
+      styles: {font:'helvetica', fontSize:9, cellPadding:6},
+      headStyles: {fillColor:[220,232,226], textColor:[18,40,32], fontStyle:'bold', fontSize:8.5},
+      columnStyles: {0:{cellWidth:70}, 1:{cellWidth:70}, 2:{cellWidth:'auto'}, 3:{cellWidth:70, halign:'right'}}
+    });
+  }
+
   let y = doc.lastAutoTable.finalY + 30;
   doc.setFont('helvetica','bold'); doc.setFontSize(13);
   doc.text('TOTAL HOURS', 48, y);
@@ -2368,6 +2408,13 @@ async function makeStub(periodKey){
     doc.setFontSize(12); doc.setTextColor(138,90,23);
     doc.text('FLAT / PER DIEM', 48, y);
     doc.text('$'+totalFlat.toFixed(2), pageW-48, y, {align:'right'});
+    doc.setTextColor(0); doc.setFontSize(13);
+  }
+  if(totalExpenses > 0){
+    y += 20;
+    doc.setFontSize(12); doc.setTextColor(78,122,104);
+    doc.text('EXPENSES', 48, y);
+    doc.text('$'+totalExpenses.toFixed(2), pageW-48, y, {align:'right'});
     doc.setTextColor(0); doc.setFontSize(13);
   }
   y += 24;
@@ -2616,8 +2663,13 @@ async function renderClientsList(){
 }
 
 async function deleteClient(clientId, label){
+  const { data: clientMatters } = await supa.from('matters').select('id,tag').eq('client_id', clientId);
   const { error } = await supa.from('clients').delete().eq('id', clientId);
   if(error) return toast(errText(error));
+  for(const m of (clientMatters||[])){
+    await supa.from('matters').delete().eq('id', m.id);
+    await cleanupOrphanedTag(m.tag);
+  }
   logHist(`Removed client ${label}`);
   toast(`${label} removed — their logged hours are untouched`);
   await renderClientsList();
@@ -2773,8 +2825,21 @@ async function removeMatterEntirely(matterId, tag){
   editingClientMatters = editingClientMatters.filter(m => m.id !== matterId);
   delete editingMatterRows[matterId];
   logHist(`Removed job ${tag}`);
+  await cleanupOrphanedTag(tag);
   toast(`${tag} removed — logged hours under that tag are untouched`);
   renderEditClientMatters();
+}
+// removes a tag from the shared tags registry once no job still uses it,
+// so it stops showing up as a selectable case on the Billing tab — this
+// never touches work_entries, so historical logged hours under that tag
+// are completely unaffected
+async function cleanupOrphanedTag(tag){
+  const { data: stillUsed } = await supa.from('matters').select('id').eq('owner_id', me.id).eq('tag', tag);
+  if(stillUsed && stillUsed.length) return;
+  const { data: tagRows } = await supa.from('tags').select('id').eq('employer_id', me.id).eq('tag', tag);
+  for(const row of (tagRows||[])) await supa.from('tags').delete().eq('id', row.id);
+  invAllTags = await myTags();
+  await refreshTagOptions();
 }
 function renderEditMatterRowsHtml(matterId){
   const rows = editingMatterRows[matterId] || [];
@@ -3329,6 +3394,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-16.1</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-17.1</div>
 </body>
 </html>
