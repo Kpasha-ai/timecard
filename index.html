@@ -188,6 +188,9 @@
   .sub-toggle{display:flex;gap:4px;background:var(--sage-mist);border-radius:9px;padding:4px;width:fit-content;margin-bottom:14px}
   .sub-toggle-btn{border:0;background:transparent;color:var(--pine);font-weight:600;font-size:13px;padding:7px 16px;border-radius:7px}
   .sub-toggle-btn.active{background:#fff;box-shadow:0 1px 3px rgba(18,40,32,.12)}
+  .chrome-tab-bar{display:flex;background:var(--sage-mist);padding:10px 14px 0}
+  .chrome-tab-btn{border:0;background:var(--sage-mist);color:var(--ink-dim);font-family:var(--display);font-weight:700;font-size:16px;padding:10px 20px;border-radius:10px 10px 0 0;cursor:pointer;margin-right:2px}
+  .chrome-tab-btn.active{background:var(--card);color:var(--pine)}
   .card-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
   .card-title{font-family:var(--display);font-weight:700;font-size:20px}
   .nav-btns{display:flex;gap:6px;margin-left:auto}
@@ -501,7 +504,6 @@
         <button id="tabPay" onclick="setView('pay')">Paystub</button>
         <button id="tabTeam" onclick="setView('team')">Team</button>
         <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
-        <button id="tabTeamMatters" onclick="setView('teammatters')">Team Matters</button>
         <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
         <button id="tabBilling" onclick="setView('billing')">Billing</button>
       </nav>
@@ -584,22 +586,6 @@
       <div id="clientsList" style="padding:0 18px 18px"><div class="loading">Loading…</div></div>
     </div>
 
-    <div class="card" id="teamMattersView" style="display:none">
-      <div class="card-head"><div class="card-title" style="font-size:18px">Team Matters</div></div>
-      <div class="bpanel" id="teamMattersNoTeamPanel" style="display:none">
-        <p>You need to be on a team to see Team Matters. Head to the Team tab to create or join one.</p>
-      </div>
-      <div id="teamMattersHasTeamPanel" style="display:none">
-        <div class="bpanel">
-          <select id="teamMattersTeamSelect" onchange="onTeamMattersTeamChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
-        </div>
-        <div class="bpanel">
-          <h3>Shared cases</h3>
-          <div id="teamMattersList"><div class="loading">Loading…</div></div>
-        </div>
-      </div>
-    </div>
-
     <div class="card" id="billingView" style="display:none">
       <div class="card-head"><div class="card-title" style="font-size:18px">Billing</div></div>
 
@@ -657,69 +643,89 @@
 
     <!-- MY TEAM -->
     <div class="card" id="teamView" style="display:none">
-      <div class="card-head"><div class="card-title" style="font-size:18px">Team</div></div>
+      <div class="chrome-tab-bar">
+        <button class="chrome-tab-btn active" id="teamSubTabTeam" onclick="setTeamSubView('team')">Team</button>
+        <button class="chrome-tab-btn" id="teamSubTabMatters" onclick="setTeamSubView('matters')">Team Matters</button>
+      </div>
 
-      <!-- shown when the user belongs to no teams yet -->
-      <div class="bpanel" id="noTeamPanel" style="display:none">
-        <p>You're not part of a team yet.</p>
-        <button class="btn-bill" onclick="openCreateTeam()">+ Create team</button>
-        <h3 style="margin-top:18px">Have a team code?</h3>
-        <div class="inviterow">
-          <input id="joinTeamCodeInput" placeholder="e.g. TEAM-4F8XQ" style="text-transform:uppercase">
-          <button class="btn-bill" onclick="joinTeamByCode()">Join team</button>
+      <div id="teamSubTeamPanel">
+        <!-- shown when the user belongs to no teams yet -->
+        <div class="bpanel" id="noTeamPanel" style="display:none">
+          <p>You're not part of a team yet.</p>
+          <button class="btn-bill" onclick="openCreateTeam()">+ Create team</button>
+          <h3 style="margin-top:18px">Have a team code?</h3>
+          <div class="inviterow">
+            <input id="joinTeamCodeInput" placeholder="e.g. TEAM-4F8XQ" style="text-transform:uppercase">
+            <button class="btn-bill" onclick="joinTeamByCode()">Join team</button>
+          </div>
+        </div>
+
+        <!-- shown once the user belongs to at least one team -->
+        <div id="hasTeamPanel" style="display:none">
+          <div class="bpanel">
+            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Your teams</label>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <select id="teamSwitcherSelect" onchange="onTeamSwitcherChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
+              <button class="btn-ghost-dark" onclick="openCreateTeam()">+ Create another team</button>
+              <button class="btn-ghost-dark" onclick="openJoinTeamModal()">Join another team</button>
+            </div>
+            <div style="margin-top:14px">
+              <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team name</label>
+              <div class="inviterow">
+                <input id="teamNameInput2" style="max-width:260px">
+                <button class="btn-bill" id="teamNameSaveBtn2" onclick="saveTeamName2()">Save</button>
+              </div>
+            </div>
+            <div style="margin-top:14px">
+              <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team code — share this so others can join</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <code id="teamCodeDisplay" style="background:var(--sage-mist);padding:8px 12px;border-radius:8px;font-size:14px;letter-spacing:.05em"></code>
+              </div>
+            </div>
+            <div id="teamInviteWrap" style="margin-top:14px;display:none">
+              <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Invite to</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <select id="inviteTeamSelect" style="max-width:200px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px"></select>
+                <input id="inviteIdInput" placeholder="TC-XXXXX" style="text-transform:uppercase;max-width:160px">
+                <button class="btn-bill" onclick="sendTeamInvite()">Send invite</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bpanel">
+            <h3>Roster</h3>
+            <div id="teamRosterList"><div class="loading">Loading…</div></div>
+          </div>
+
+          <div class="bpanel">
+            <h3>Team calendar</h3>
+            <div id="teamCalFilters" class="tagchips" style="margin-bottom:12px"></div>
+            <div class="card-head" style="padding:0 0 12px">
+              <div class="card-title" id="teamCalTitle" style="font-size:16px">—</div>
+              <div class="nav-btns">
+                <button class="today" onclick="teamCalShift(0)">Today</button>
+                <button onclick="teamCalShift(-1)">‹</button>
+                <button onclick="teamCalShift(1)">›</button>
+              </div>
+            </div>
+            <div class="dow-row"><span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+            <div class="cal-grid" id="teamCalGrid"><div class="loading">Loading…</div></div>
+          </div>
         </div>
       </div>
 
-      <!-- shown once the user belongs to at least one team -->
-      <div id="hasTeamPanel" style="display:none">
-        <div class="bpanel">
-          <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Your teams</label>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-            <select id="teamSwitcherSelect" onchange="onTeamSwitcherChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
-            <button class="btn-ghost-dark" onclick="openCreateTeam()">+ Create another team</button>
-            <button class="btn-ghost-dark" onclick="openJoinTeamModal()">Join another team</button>
-          </div>
-          <div style="margin-top:14px">
-            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team name</label>
-            <div class="inviterow">
-              <input id="teamNameInput2" style="max-width:260px">
-              <button class="btn-bill" id="teamNameSaveBtn2" onclick="saveTeamName2()">Save</button>
-            </div>
-          </div>
-          <div style="margin-top:14px">
-            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team code — share this so others can join</label>
-            <div style="display:flex;align-items:center;gap:8px">
-              <code id="teamCodeDisplay" style="background:var(--sage-mist);padding:8px 12px;border-radius:8px;font-size:14px;letter-spacing:.05em"></code>
-            </div>
-          </div>
-          <div id="teamInviteWrap" style="margin-top:14px;display:none">
-            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Invite to</label>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-              <select id="inviteTeamSelect" style="max-width:200px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px"></select>
-              <input id="inviteIdInput" placeholder="TC-XXXXX" style="text-transform:uppercase;max-width:160px">
-              <button class="btn-bill" onclick="sendTeamInvite()">Send invite</button>
-            </div>
-          </div>
+      <div id="teamSubMattersPanel" style="display:none">
+        <div class="bpanel" id="teamMattersNoTeamPanel" style="display:none">
+          <p>You need to be on a team to see Team Matters. Head to the Team tab to create or join one.</p>
         </div>
-
-        <div class="bpanel">
-          <h3>Roster</h3>
-          <div id="teamRosterList"><div class="loading">Loading…</div></div>
-        </div>
-
-        <div class="bpanel">
-          <h3>Team calendar</h3>
-          <div id="teamCalFilters" class="tagchips" style="margin-bottom:12px"></div>
-          <div class="card-head" style="padding:0 0 12px">
-            <div class="card-title" id="teamCalTitle" style="font-size:16px">—</div>
-            <div class="nav-btns">
-              <button class="today" onclick="teamCalShift(0)">Today</button>
-              <button onclick="teamCalShift(-1)">‹</button>
-              <button onclick="teamCalShift(1)">›</button>
-            </div>
+        <div id="teamMattersHasTeamPanel" style="display:none">
+          <div class="bpanel">
+            <select id="teamMattersTeamSelect" onchange="onTeamMattersTeamChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
           </div>
-          <div class="dow-row"><span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
-          <div class="cal-grid" id="teamCalGrid"><div class="loading">Loading…</div></div>
+          <div class="bpanel">
+            <h3>Shared cases</h3>
+            <div id="teamMattersList"><div class="loading">Loading…</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1251,11 +1257,11 @@ const tutorialSteps = [
   { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
   { target: 'tabPay', view: 'pay', title: 'Paystub', text: 'Set your hourly rate and when your pay period starts here. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together.' },
-  { target: 'tabTeam', view: 'team', title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
-  { target: 'tabTeam', view: 'team', title: 'Team: roles', text: "Everyone starts as a Team Member, who can only bill their own hours. A Team Lead has full billing power — they can bill for the whole team and set custom rates. A Team Manager has everything a Lead has, plus the ability to promote and demote people." },
-  { target: 'tabTeam', view: 'team', title: 'Team: promoting people', text: 'Managers can promote someone right from the roster — click "Lead" or "Manager" next to their name and confirm. Demoting is instant, no confirmation needed. Regular team members won\'t see these buttons at all.' },
+  { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
+  { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: roles', text: "Everyone starts as a Team Member, who can only bill their own hours. A Team Lead has full billing power — they can bill for the whole team and set custom rates. A Team Manager has everything a Lead has, plus the ability to promote and demote people." },
+  { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: promoting people', text: 'Managers can promote someone right from the roster — click "Lead" or "Manager" next to their name and confirm. Demoting is instant, no confirmation needed. Regular team members won\'t see these buttons at all.' },
+  { target: 'teamSubTabMatters', view: 'team', after: () => setTeamSubView('matters'), title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
   { target: 'tabMatters', view: 'matters', title: 'Client/Job', text: "This is where you set up who you're billing. Add a client, then create a job under them with its own tag and rate — that tag is what ties your logged hours to a specific client and case." },
-  { target: 'tabTeamMatters', view: 'teammatters', title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
   { target: 'addExpenseMainBtn', view: 'expenses', title: 'Expenses', text: 'Log anything beyond hours here — meals, supplies, mileage. For mileage, enter the miles and rate per mile and the total calculates itself. Receipts can be attached too.' },
   { target: 'tabBilling', view: 'billing', title: 'Billing: case tags', text: "This turns logged hours into a client invoice. Pick a case tag to bill — only hours you logged under that exact tag in Timesheet get pulled in, so tagging your work to the right job is what makes it billable here at all." },
   { target: 'tabBilling', view: 'billing', title: 'Billing: your rate', text: "The rate shown here defaults to your own hourly rate, but you can change it just for this one invoice — that override doesn't touch your actual rate anywhere else, it only affects this bill." },
@@ -1305,6 +1311,7 @@ async function showTutorialStep(i){
   $('tutorialNextBtn').disabled = true;
   $('tutorialBackBtn').disabled = true;
   if(step.view && step.view !== view) await setView(step.view);
+  if(step.after) await step.after();
   await new Promise(r => setTimeout(r, 60));   // let setView's re-render settle first
   positionTutorialSpotlight(step.target);
   $('tutorialNextBtn').disabled = false;
@@ -1341,11 +1348,11 @@ function repositionTutorialSpotlight(){
    Team page rather than describe them hypothetically. Reuses the same
    overlay/spotlight engine as the main tutorial above. */
 const teamOnboardingSteps = [
-  { target: null, view: 'team', title: "You're on a team now", text: "Quick walkthrough of what everything on this page does." },
-  { target: 'teamSwitcherSelect', view: 'team', title: 'Switching teams', text: "This dropdown switches between teams, if you're ever on more than one." },
-  { target: 'teamCodeDisplay', view: 'team', title: 'Team name & code', text: "Share this code so others can join your team. You can rename the team anytime just above it." },
-  { target: 'teamRosterList', view: 'team', title: 'Roster & roles', text: 'Everyone starts as a Team Member, who can only bill their own hours. Managers can click "Lead" or "Manager" next to someone\'s name to promote them — "Remove" takes them off the team entirely.' },
-  { target: 'tabTeamMatters', view: 'teammatters', title: 'Team Matters', text: "Jobs shared with the team show up here, separate from your own personal Client/Job list — that's where team-wide cases live." },
+  { target: null, view: 'team', after: () => setTeamSubView('team'), title: "You're on a team now", text: "Quick walkthrough of what everything on this page does." },
+  { target: 'teamSwitcherSelect', view: 'team', after: () => setTeamSubView('team'), title: 'Switching teams', text: "This dropdown switches between teams, if you're ever on more than one." },
+  { target: 'teamCodeDisplay', view: 'team', after: () => setTeamSubView('team'), title: 'Team name & code', text: "Share this code so others can join your team. You can rename the team anytime just above it." },
+  { target: 'teamRosterList', view: 'team', after: () => setTeamSubView('team'), title: 'Roster & roles', text: 'Everyone starts as a Team Member, who can only bill their own hours. Managers can click "Lead" or "Manager" next to someone\'s name to promote them — "Remove" takes them off the team entirely.' },
+  { target: 'teamSubTabMatters', view: 'team', after: () => setTeamSubView('matters'), title: 'Team Matters', text: "Jobs shared with the team show up here, separate from your own personal Client/Job list — that's where team-wide cases live." },
   { target: null, view: null, title: "That's it", text: "You can always revisit the full tutorial anytime from the Tutorial button up top." }
 ];
 async function startTeamOnboarding(){
@@ -1472,7 +1479,6 @@ async function setView(v){
   $('tabPay').classList.toggle('active', v==='pay');
   $('tabTeam').classList.toggle('active', v==='team');
   $('tabMatters').classList.toggle('active', v==='matters');
-  $('tabTeamMatters').classList.toggle('active', v==='teammatters');
   $('tabBilling').classList.toggle('active', v==='billing');
   $('tabExpenses').classList.toggle('active', v==='expenses');
   $('timesheetHeaderRow').style.display = (v==='week'||v==='month') ? '' : 'none';
@@ -1485,7 +1491,6 @@ async function setView(v){
   $('payView').style.display = v==='pay' ? '' : 'none';
   $('teamView').style.display = v==='team' ? '' : 'none';
   $('mattersView').style.display = v==='matters' ? '' : 'none';
-  $('teamMattersView').style.display = v==='teammatters' ? '' : 'none';
   $('billingView').style.display = v==='billing' ? '' : 'none';
   $('expensesView').style.display = v==='expenses' ? '' : 'none';
   if(v==='week') await loadWeek();
@@ -1493,7 +1498,6 @@ async function setView(v){
   if(v==='pay') await loadPay();
   if(v==='team') await loadTeamTab();
   if(v==='matters') await loadMattersTab();
-  if(v==='teammatters') await loadTeamMattersTab();
   if(v==='billing') await loadBilling();
   if(v==='expenses') await loadExpenses();
 }
@@ -2632,10 +2636,21 @@ async function makeStub(periodKey){
     const flatEntries = rec.work.filter(x=>x.entry_type && x.entry_type!=='hourly' && x.flat_amount>0);
     const flatParts = flatEntries.map(x => ({ tag:x.tag, amount:Number(x.flat_amount), label:ENTRY_TYPE_LABEL[x.entry_type]||'Flat' }));
     const flatTotal = flatEntries.reduce((s,x)=>s+Number(x.flat_amount||0),0);
-    const descriptions = rec.work.filter(x=>x.description).map(x =>
-      x.description.length>50 ? x.description.slice(0,49)+'…' : x.description);
+    // full descriptions, never truncated — every entry for the day, not just one
+    const descriptions = rec.work.filter(x=>x.description).map(x => x.description);
     const cases = [...new Set(descriptions)].join('; ');
-    rows.push({ date:d, hours:hrs, cases, untaggedHrs, taggedParts, flatParts, flatTotal });
+
+    // pre-compute the exact lines the hours column will need to draw, so the
+    // placeholder below can tell autoTable how tall this row really needs to
+    // be — this is what was silently cutting off a day's later entries when
+    // there was more than one, since the manually-drawn text was previously
+    // invisible to autoTable's own row-height calculation
+    const parts = [];
+    if(untaggedHrs) parts.push({ text: fmtH(untaggedHrs)+'h', color:[18,40,32] });
+    taggedParts.forEach(tp => parts.push({ text: `${fmtH(tp.hrs)}h ${tp.tag}`, color:[184,111,17] }));
+    flatParts.forEach(fp => parts.push({ text: `$${fp.amount.toFixed(2)} ${fp.label}${fp.tag?' '+fp.tag:''}`, color:[138,90,23] }));
+
+    rows.push({ date:d, hours:hrs, cases, untaggedHrs, taggedParts, flatParts, flatTotal, parts });
   }
   const totalHours = rows.reduce((s,r)=>s+r.hours, 0);
   const totalFlat = rows.reduce((s,r)=>s+r.flatTotal, 0);
@@ -2664,19 +2679,25 @@ async function makeStub(periodKey){
     head: [['DAY','DESCRIPTION','HOURS']],
     body: rows.map(r => [
       r.date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),
-      r.cases || '—', ''
+      r.cases || '—',
+      // a real multi-line placeholder (one blank line per part, or a single
+      // line for the "—" case) — invisible text, but its line count is what
+      // tells autoTable how tall to actually make this row before
+      // didDrawCell paints over it with the real, styled/colored version
+      r.parts.length ? r.parts.map(()=>' ').join('\n') : '—'
     ]),
     styles: {font:'helvetica', fontSize:9, cellPadding:6},
     headStyles: {fillColor:[220,232,226], textColor:[18,40,32], fontStyle:'bold', fontSize:8.5},
     columnStyles: {0:{cellWidth:70}, 1:{cellWidth:'auto'}, 2:{cellWidth:60, halign:'right'}},
+    didParseCell: (data) => {
+      // hide the placeholder's own text — it exists only to reserve height
+      if(data.section === 'body' && data.column.index === 2) data.cell.styles.textColor = [255,255,255];
+    },
     didDrawCell: (data) => {
       if(data.section !== 'body' || data.column.index !== 2) return;
       const r = rows[data.row.index];
       if(!r) return;
-      const parts = [];
-      if(r.untaggedHrs) parts.push({ text: fmtH(r.untaggedHrs)+'h', color:[18,40,32] });
-      r.taggedParts.forEach(tp => parts.push({ text: `${fmtH(tp.hrs)}h ${tp.tag}`, color:[184,111,17] }));
-      r.flatParts.forEach(fp => parts.push({ text: `$${fp.amount.toFixed(2)} ${fp.label}${fp.tag?' '+fp.tag:''}`, color:[138,90,23] }));
+      const parts = r.parts;
       const cx = data.cell.x + data.cell.width - 6, cy = data.cell.y + data.cell.height/2;
       if(!parts.length){
         doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(150);
@@ -2752,12 +2773,22 @@ async function loadBilling(){
   await renderClientInvPanel();
 }
 
+let teamSubView = 'team';   // which inner tab (team | matters) is showing within the Team page
+async function setTeamSubView(sub){
+  teamSubView = sub;
+  $('teamSubTabTeam').classList.toggle('active', sub==='team');
+  $('teamSubTabMatters').classList.toggle('active', sub==='matters');
+  $('teamSubTeamPanel').style.display = sub==='team' ? '' : 'none';
+  $('teamSubMattersPanel').style.display = sub==='matters' ? '' : 'none';
+  if(sub==='matters') await loadTeamMattersTab();
+}
 async function loadTeamTab(){
   await loadMyTeamsPanel();
   invAllMembers = await teamMembers();
   const fixed = await resolveColorCollisions();
   if(fixed) invAllMembers = await teamMembers();
   await refreshTagOptions();
+  await setTeamSubView(teamSubView);   // re-apply whichever inner tab was last selected
 }
 
 /* ================= multi-team system (named teams with roles) =================
@@ -3948,6 +3979,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.4</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.6</div>
 </body>
 </html>
