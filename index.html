@@ -69,29 +69,30 @@
   }
 
   @keyframes loginLightChange{
-    0%,66%{fill:#C0392B}
-    67%,100%{fill:#4E7A68}
+    0%,86%{fill:#C0392B}
+    87%,100%{fill:#4E7A68}
   }
   /* card sits full-size showing TIMEX (0-13%), flips over to reveal the
      light-green Tx backside — held to a strictly linear rotation so the
      90° crossing point above is exactly predictable (13-32%) — then spins
-     90° clockwise in place, turning it vertical, and settles into its
-     one final resting spot partway down the frame (32-50%) and simply
-     stays there — it's the MACHINE that does the final moving, sliding
-     up from below to visually cover its bottom half like it's sliding
-     into a slot (50-100%) */
+     90° clockwise and rises to the top of the frame, roughly where a nav
+     bar would sit (32-45%), holds there while the machine rises up from
+     below to its own resting spot (45-68%), then drops straight down
+     until the machine visually covers its bottom half, like it's sliding
+     into a slot (68-86%), staying there for the rest of the animation */
   @keyframes loginCardMove{
     0%,13%{transform:translateY(0) rotateY(0deg) rotate(0deg) scale(1);opacity:1;animation-timing-function:linear}
     32%{transform:translateY(0) rotateY(180deg) rotate(0deg) scale(1);opacity:1;animation-timing-function:ease}
-    50%,100%{transform:translateY(40px) rotateY(180deg) rotate(90deg) scale(.55);opacity:1}
+    45%,68%{transform:translateY(-300px) rotateY(180deg) rotate(90deg) scale(.55);opacity:1}
+    86%,100%{transform:translateY(40px) rotateY(180deg) rotate(90deg) scale(.55);opacity:1}
   }
   @keyframes loginOverlayFadeOut{
-    0%,92%{opacity:1}
+    0%,95%{opacity:1}
     100%{opacity:0}
   }
   @keyframes loginOverlayColorFade{
-    0%,74%{background-color:var(--pine)}
-    90%,100%{background-color:#fff}
+    0%,88%{background-color:var(--pine)}
+    95%,100%{background-color:#fff}
   }
 
   /* ============ tutorial ============ */
@@ -508,7 +509,7 @@
     <div class="app-main-col">
       <div class="topbar">
         <button class="voice-log-btn" id="voiceLogBtn" onclick="quickAddViaVoice()">🎤 Voice log</button>
-        <button class="voice-log-btn" id="topbarAddHoursBtn" onclick="onTopbarAddHoursBtnClick()" style="background:transparent;border:1.5px solid var(--sage-mist);color:var(--sage-mist)">+ Add hours</button>
+        <button class="voice-log-btn" id="topbarAddHoursBtn" onclick="openAddHours()" style="margin-left:12px">+ Add hours</button>
         <div class="topbar-profile" id="topbarProfile">
           <span class="topbar-name" id="topbarName"></span>
           <div class="avatar-wrap" onclick="document.getElementById('avatarFileInput').click()" title="Click to change your profile picture">
@@ -672,23 +673,31 @@
       <!-- shown once the user belongs to at least one team -->
       <div id="hasTeamPanel" style="display:none">
         <div class="bpanel">
+          <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Your teams</label>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <select id="teamSwitcherSelect" onchange="onTeamSwitcherChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
             <button class="btn-ghost-dark" onclick="openCreateTeam()">+ Create another team</button>
             <button class="btn-ghost-dark" onclick="openJoinTeamModal()">Join another team</button>
           </div>
-        </div>
-
-        <div class="bpanel">
-          <h3>Team name</h3>
-          <div class="inviterow">
-            <input id="teamNameInput2" style="max-width:260px">
-            <button class="btn-bill" id="teamNameSaveBtn2" onclick="saveTeamName2()">Save</button>
+          <div style="margin-top:14px">
+            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team name</label>
+            <div class="inviterow">
+              <input id="teamNameInput2" style="max-width:260px">
+              <button class="btn-bill" id="teamNameSaveBtn2" onclick="saveTeamName2()">Save</button>
+            </div>
           </div>
           <div style="margin-top:14px">
             <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team code — share this so others can join</label>
             <div style="display:flex;align-items:center;gap:8px">
               <code id="teamCodeDisplay" style="background:var(--sage-mist);padding:8px 12px;border-radius:8px;font-size:14px;letter-spacing:.05em"></code>
+            </div>
+          </div>
+          <div id="teamInviteWrap" style="margin-top:14px;display:none">
+            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Invite to</label>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <select id="inviteTeamSelect" style="max-width:200px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px"></select>
+              <input id="inviteIdInput" placeholder="TC-XXXXX" style="text-transform:uppercase;max-width:160px">
+              <button class="btn-bill" onclick="sendTeamInvite()">Send invite</button>
             </div>
           </div>
         </div>
@@ -697,47 +706,21 @@
           <h3>Roster</h3>
           <div id="teamRosterList"><div class="loading">Loading…</div></div>
         </div>
-      </div>
 
-      <div class="bpanel" id="teamNameEditRow">
-        <h3>Team name</h3>
-        <div class="inviterow">
-          <input id="teamNameInput" placeholder="e.g. Kamarei Consulting" style="max-width:260px">
-          <button class="btn-bill" onclick="saveTeamName()">Save</button>
-        </div>
-      </div>
-
-      <div class="bpanel" id="invitesPanel" style="display:none">
-        <h3>Invites</h3>
-        <div id="invitesList"></div>
-      </div>
-
-      <div class="bpanel">
-        <h3>Invite someone</h3>
-        <div class="inviterow">
-          <input id="inviteIdInput" placeholder="TC-XXXXX" style="text-transform:uppercase">
-          <button class="btn-bill" onclick="sendInvite()">Send invite</button>
-        </div>
-      </div>
-
-      <div class="bpanel">
-        <h3>Your team</h3>
-        <div id="teamList"><div class="loading">Loading…</div></div>
-      </div>
-
-      <div class="bpanel">
-        <h3>Team calendar</h3>
-        <div id="teamCalFilters" class="tagchips" style="margin-bottom:12px"></div>
-        <div class="card-head" style="padding:0 0 12px">
-          <div class="card-title" id="teamCalTitle" style="font-size:16px">—</div>
-          <div class="nav-btns">
-            <button class="today" onclick="teamCalShift(0)">Today</button>
-            <button onclick="teamCalShift(-1)">‹</button>
-            <button onclick="teamCalShift(1)">›</button>
+        <div class="bpanel">
+          <h3>Team calendar</h3>
+          <div id="teamCalFilters" class="tagchips" style="margin-bottom:12px"></div>
+          <div class="card-head" style="padding:0 0 12px">
+            <div class="card-title" id="teamCalTitle" style="font-size:16px">—</div>
+            <div class="nav-btns">
+              <button class="today" onclick="teamCalShift(0)">Today</button>
+              <button onclick="teamCalShift(-1)">‹</button>
+              <button onclick="teamCalShift(1)">›</button>
+            </div>
           </div>
+          <div class="dow-row"><span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+          <div class="cal-grid" id="teamCalGrid"><div class="loading">Loading…</div></div>
         </div>
-        <div class="dow-row"><span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
-        <div class="cal-grid" id="teamCalGrid"><div class="loading">Loading…</div></div>
       </div>
     </div>
   </main>
@@ -1494,7 +1477,7 @@ async function setView(v){
   $('tabExpenses').classList.toggle('active', v==='expenses');
   $('timesheetHeaderRow').style.display = (v==='week'||v==='month') ? '' : 'none';
   $('addHoursBtnWrap').style.display = (v==='week'||v==='month'||v==='pay') ? '' : 'none';
-  $('topbarAddHoursBtn').textContent = (v==='team') ? '+ Add/Join Team' : '+ Add hours';
+  $('topbarAddHoursBtn').style.display = (v==='team') ? 'none' : '';
   $('subTabWeek').classList.toggle('active', v==='week');
   $('subTabMonth').classList.toggle('active', v==='month');
   $('weekView').style.display = v==='week' ? '' : 'none';
@@ -2771,14 +2754,9 @@ async function loadBilling(){
 
 async function loadTeamTab(){
   await loadMyTeamsPanel();
-  await renderTeamName();
-  await renderInvites();
-  await renderTeam();
   invAllMembers = await teamMembers();
   const fixed = await resolveColorCollisions();
-  if(fixed){ await renderTeam(); invAllMembers = await teamMembers(); }
-  renderTeamCalFilters();
-  await loadTeamCalendar();
+  if(fixed) invAllMembers = await teamMembers();
   await refreshTagOptions();
 }
 
@@ -2829,6 +2807,18 @@ async function loadMyTeamsPanel(){
 function myMembershipForCurrentTeam(){
   return myTeamMemberships.find(m=>m.team_id===currentTeamId);
 }
+function myInvitableTeams(){
+  // members have zero invite power, same as their zero promotion power —
+  // only leads, managers, and the hidden admin (itself a manager) can invite
+  return myTeamMemberships.filter(m => m.role === 'lead' || m.role === 'manager');
+}
+async function teamMembersForTeam(teamId){
+  const { data: members } = await supa.from('team_members').select('*').eq('team_id', teamId);
+  const ids = [...new Set((members||[]).map(m=>m.user_id))];
+  if(!ids.length) return [];
+  const { data: profiles } = await supa.from('profiles').select('*').in('id', ids);
+  return (profiles||[]).map(p => ({ id:p.id, name:`${p.first_name||''} ${p.last_name||''}`.trim()||'Unknown', self: p.id===me.id, color:p.color, rate: Number(p.rate)||0 }));
+}
 async function onTeamSwitcherChange(){
   currentTeamId = $('teamSwitcherSelect').value;
   await renderCurrentTeamPanel();
@@ -2842,12 +2832,21 @@ async function renderCurrentTeamPanel(){
   $('teamNameInput2').disabled = !canManage;
   $('teamNameSaveBtn2').style.display = canManage ? '' : 'none';
   await renderTeamRoster();
+
+  const invitable = myInvitableTeams();
+  if(invitable.length){
+    $('teamInviteWrap').style.display = '';
+    $('inviteTeamSelect').innerHTML = invitable.map(m=>`<option value="${m.team_id}" ${m.team_id===currentTeamId?'selected':''}>${escapeHtml(m.team.name)}</option>`).join('');
+  } else {
+    $('teamInviteWrap').style.display = 'none';
+  }
+
+  teamCalMembers = await teamMembersForTeam(currentTeamId);
+  teamCalVisible = [];
+  renderTeamCalFilters();
+  await loadTeamCalendar();
 }
 
-function onTopbarAddHoursBtnClick(){
-  if(view === 'team') openCreateTeam();
-  else openAddHours();
-}
 function openCreateTeam(){ $('newTeamNameInput').value=''; $('createTeamOverlay').classList.add('on'); }
 function closeCreateTeam(){ $('createTeamOverlay').classList.remove('on'); }
 async function submitCreateTeam(){
@@ -2982,6 +2981,34 @@ async function removeFromRoster(memberRowId){
   if(error) return toast(errText(error));
   await renderTeamRoster();
 }
+async function sendTeamInvite(){
+  const teamId = $('inviteTeamSelect').value;
+  if(!teamId) return toast('Pick a team to invite to');
+  // re-check permission even though the dropdown is already limited to
+  // invitable teams — defense in depth against a stale UI, and this is
+  // exactly the rule the person asked for: members can't invite anyone,
+  // anywhere, and leads/managers only to teams they actually hold that role on
+  const mine = myTeamMemberships.find(m => m.team_id === teamId);
+  if(!mine || (mine.role !== 'lead' && mine.role !== 'manager')) return toast("You don't have permission to invite to that team");
+
+  const code = $('inviteIdInput').value.trim().toUpperCase();
+  if(!/^TC-[A-Z2-9]{5}$/.test(code)) return toast('Enter a valid account ID like TC-ABC12');
+  const { data, error } = await supa.rpc('find_by_account_id', { code });
+  if(error) return toast(errText(error));
+  const target = (data||[])[0];
+  if(!target) return toast('No account found with that ID');
+  if(target.id === me.id) return toast("That's your own account ID");
+
+  const { data: already } = await supa.from('team_members').select('id').eq('team_id', teamId).eq('user_id', target.id);
+  if(already && already.length) return toast(`${target.first_name} is already on that team`);
+
+  const { error: e2 } = await supa.from('team_members').insert({ team_id: teamId, user_id: target.id, role: 'member', is_admin: false });
+  if(e2) return toast(errText(e2));
+  $('inviteIdInput').value = '';
+  logHist(`Invited ${target.first_name} ${target.last_name} to ${mine.team.name}`);
+  toast(`${target.first_name} added to ${mine.team.name}`);
+  if(teamId === currentTeamId) await renderTeamRoster();
+}
 
 // if my color happens to match a teammate's (random assignment at signup can collide,
 // or an account created before random colors existed), reassign to an unused one —
@@ -3051,98 +3078,6 @@ async function refreshTagOptions(){
 // Reuses the existing company field — no new column needed. Whoever is at
 // the root of an invite chain (nobody employs them) owns the name; everyone
 // they've brought on, directly or through a peer, sees that same name.
-async function renderTeamName(){
-  const { data: asEmployee } = await supa.from('team_memberships').select('employer_id').eq('employee_id', me.id);
-  if(asEmployee && asEmployee.length){
-    $('teamNameEditRow').style.display = 'none';
-  } else {
-    $('teamNameInput').value = me.company || '';
-    $('teamNameEditRow').style.display = '';
-  }
-}
-async function saveTeamName(){
-  const name = $('teamNameInput').value.trim();
-  const { error } = await supa.from('profiles').update({ company: name }).eq('id', me.id);
-  if(error) return toast('Could not save');
-  me.company = name;
-  logHist('Team name updated');
-  await renderTeamName();
-  toast('Team name saved');
-}
-
-async function renderInvites(){
-  const { data } = await supa.from('invites').select('*').eq('to_id', me.id).eq('status','pending');
-  const invites = data || [];
-  $('invitesPanel').style.display = invites.length ? '' : 'none';
-  if(!invites.length) return;
-  const rows = [];
-  for(const inv of invites){
-    const { data: fromProf } = await supa.from('profiles').select('*').eq('id', inv.from_id).single();
-    const label = fromProf ? (fromProf.company || `${fromProf.first_name} ${fromProf.last_name}`) : inv.from_id;
-    rows.push(`<div class="rowitem">
-      <span class="nm">${escapeHtml(label)}</span><span class="sub">wants to add you to their team</span>
-      <button class="accept" onclick="respondInvite('${inv.id}',true)">Accept</button>
-      <button class="decline" onclick="respondInvite('${inv.id}',false)">Decline</button>
-    </div>`);
-  }
-  $('invitesList').innerHTML = rows.join('');
-}
-
-async function sendInvite(){
-  const code = $('inviteIdInput').value.trim().toUpperCase();
-  if(!/^TC-[A-Z2-9]{5}$/.test(code)) return toast('Enter a valid account ID like TC-ABC12');
-  const { data, error } = await supa.rpc('find_by_account_id', { code });
-  if(error) return toast(errText(error));
-  const target = (data||[])[0];
-  if(!target) return toast('No account found with that ID');
-  if(target.id === me.id) return toast("That's your own account ID");
-  const { data: existingTeam } = await supa.from('team_memberships').select('*').eq('employer_id', me.id).eq('employee_id', target.id);
-  if(existingTeam && existingTeam.length) return toast(`${target.first_name} is already on your team`);
-  const { data: pending } = await supa.from('invites').select('*').eq('from_id', me.id).eq('to_id', target.id).eq('status','pending');
-  if(pending && pending.length) return toast('Invite already pending');
-  const { error: e2 } = await supa.from('invites').insert({ from_id: me.id, to_id: target.id, status:'pending' });
-  if(e2) return toast(errText(e2));
-  $('inviteIdInput').value = '';
-  logHist(`Invited ${target.first_name} ${target.last_name} to your team`);
-  toast(`Invite sent to ${target.first_name}`);
-}
-
-async function respondInvite(inviteId, accept){
-  if(accept){
-    const { error } = await supa.rpc('accept_invite', { invite_id: inviteId });
-    if(error) return toast(errText(error));
-  } else {
-    const { error } = await supa.from('invites').update({ status: 'declined' }).eq('id', inviteId);
-    if(error) return toast(errText(error));
-  }
-  logHist(accept ? 'Accepted a team invite' : 'Declined a team invite');
-  toast(accept ? 'Invite accepted' : 'Invite declined');
-  await loadBilling();
-}
-
-async function renderTeam(){
-  const members = await teamMembers();
-  const others = members.filter(m => !m.self);
-  if(!others.length){ $('teamList').innerHTML = '<div class="hint">No one on your team yet — invite someone above.</div>'; return; }
-  const { data: asEmployer } = await supa.from('team_memberships').select('employee_id').eq('employer_id', me.id);
-  const myEmployeeIds = new Set((asEmployer||[]).map(r=>r.employee_id));
-  $('teamList').innerHTML = others.map(p => `<div class="rowitem">
-      <span class="dot" style="background:${p.color||'#4E7A68'}"></span>
-      <span class="nm">${escapeHtml(p.name)}</span>
-      ${myEmployeeIds.has(p.id)
-        ? `<button class="removebtn" onclick="removeTeamMember('${p.id}','${escapeHtml(p.name.split(' ')[0])}')">Remove</button>`
-        : '<span class="sub">Teammate</span>'}
-    </div>`).join('');
-}
-async function removeTeamMember(employeeId, label){
-  const { error } = await supa.from('team_memberships').delete().eq('employer_id', me.id).eq('employee_id', employeeId);
-  if(error) return toast(errText(error));
-  logHist(`Removed ${label} from your team`);
-  toast(`${label} removed — their logged hours are untouched`);
-  await loadBilling();
-}
-
-
 /* ================= work tags ================= */
 // creates a shared team tag if it doesn't already exist; returns the final tag text.
 // Used by the Matter wizard — this is now the only way tags get created.
@@ -3599,6 +3534,7 @@ let invMode = 'mine', invAllMembers = [], invAllTags = [], invSelectedMembers = 
 let teamCalAnchor = new Date();
 let teamCalVisible = [];   // member ids currently shown; null means "all"
 let teamCalCache = {};     // dateKey -> [{user_id, hours, tag, description}]
+let teamCalMembers = [];   // the SELECTED team's roster, in the same {id,name,self,color,rate} shape as teamMembers()
 let invoicePreview = [];
 
 async function setInvMode(mode){
@@ -3925,9 +3861,9 @@ function renderSearchResults(results, memberMap, showEmp){
 // way browsers silently bump the value up/down — this stops that outright
 /* ================= team calendar ================= */
 function renderTeamCalFilters(){
-  if(teamCalVisible === null || !teamCalVisible.length) teamCalVisible = invAllMembers.map(m=>m.id);
-  teamCalVisible = teamCalVisible.filter(id => invAllMembers.some(m=>m.id===id));
-  $('teamCalFilters').innerHTML = invAllMembers.map(m => `<label class="filter-chip" style="border-color:${teamCalVisible.includes(m.id)?m.color:'var(--line)'}">
+  if(teamCalVisible === null || !teamCalVisible.length) teamCalVisible = teamCalMembers.map(m=>m.id);
+  teamCalVisible = teamCalVisible.filter(id => teamCalMembers.some(m=>m.id===id));
+  $('teamCalFilters').innerHTML = teamCalMembers.map(m => `<label class="filter-chip" style="border-color:${teamCalVisible.includes(m.id)?m.color:'var(--line)'}">
       <input type="checkbox" ${teamCalVisible.includes(m.id)?'checked':''} onchange="toggleTeamCalPerson('${m.id}')">
       <span class="swatch" style="background:${m.color}"></span>${escapeHtml(m.name)}${m.self?' (you)':''}
     </label>`).join('') || '<div class="hint">No team yet.</div>';
@@ -3944,7 +3880,7 @@ async function loadTeamCalendar(){
   const y = teamCalAnchor.getFullYear(), m = teamCalAnchor.getMonth();
   $('teamCalTitle').textContent = `${MONTHS[m]} ${y}`;
   const from = `${y}-${pad(m+1)}-01`, to = `${y}-${pad(m+1)}-${pad(new Date(y,m+1,0).getDate())}`;
-  const ids = invAllMembers.map(x=>x.id);
+  const ids = teamCalMembers.map(x=>x.id);
   if(!ids.length){ $('teamCalGrid').innerHTML = '<div class="loading">No team yet.</div>'; return; }
   const { data, error } = await supa.from('work_entries').select('*').in('user_id', ids).gte('work_date',from).lte('work_date',to);
   if(error){ $('teamCalGrid').innerHTML = '<div class="loading">Could not load.</div>'; return; }
@@ -3959,7 +3895,7 @@ async function loadTeamCalendar(){
 
 function renderTeamCalendarGrid(){
   const y = teamCalAnchor.getFullYear(), m = teamCalAnchor.getMonth();
-  const memberMap = Object.fromEntries(invAllMembers.map(x=>[x.id,x]));
+  const memberMap = Object.fromEntries(teamCalMembers.map(x=>[x.id,x]));
   const firstDow = (new Date(y,m,1).getDay()+1)%7;
   const days = new Date(y,m+1,0).getDate();
   const todayK = keyOf(new Date());
@@ -4012,6 +3948,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.1</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.4</div>
 </body>
 </html>
