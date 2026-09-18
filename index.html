@@ -33,7 +33,12 @@
   .login-anim-overlay{position:fixed;inset:0;background:var(--pine);display:none;align-items:center;justify-content:center;z-index:200;pointer-events:none}
   .login-anim-overlay.on{display:flex;animation:loginOverlayFadeOut 2.75s ease forwards}
   .login-anim-stage{position:relative;width:340px;height:280px;perspective:800px}
-  .anim-machine-svg{position:absolute;left:100px;top:60px;width:140px;height:160px}
+  .anim-machine-svg{position:absolute;left:100px;top:60px;width:140px;height:160px;
+    animation:loginMachineSlideUp 2.75s ease forwards}
+  @keyframes loginMachineSlideUp{
+    0%{transform:translateY(600px)}
+    38%,100%{transform:translateY(0)}
+  }
   .anim-light{fill:#C0392B;animation:loginLightChange 2.75s step-end forwards}
   .anim-card{
     position:absolute;left:90px;top:60px;width:160px;height:100px;
@@ -166,7 +171,6 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
   input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
-  .btn-ghost-dark{background:transparent;border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:8px 16px;font-size:13px;font-weight:600}
   .account-menu-wrap{position:relative}
   .account-dropdown{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--line);border-radius:10px;
     box-shadow:0 6px 20px rgba(18,40,32,.2);min-width:160px;overflow:hidden;z-index:20}
@@ -175,6 +179,7 @@
   .account-dropdown button:hover{background:var(--sage-mist)}
   .dropdown-divider{height:1px;background:var(--line);margin:2px 0}
   .btn-ghost-dark{background:transparent;border:1.5px solid var(--line);color:var(--ink-dim);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600}
+  .btn-ghost-dark:disabled{opacity:.5;cursor:default}
   main{max-width:900px;margin:0 auto;padding:22px;width:100%}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
   .sub-toggle{display:flex;gap:4px;background:var(--sage-mist);border-radius:9px;padding:4px;width:fit-content;margin-bottom:14px}
@@ -286,6 +291,7 @@
   .inviterow{display:flex;gap:8px}
   .inviterow input{flex:1;max-width:220px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px}
   .btn-bill{background:var(--sage);color:#fff;border:0;border-radius:8px;font-size:13px;font-weight:600;padding:9px 14px;white-space:nowrap}
+  .btn-bill:disabled{opacity:.6;cursor:default}
   .btn-bill-lg{background:var(--sage);color:#fff;border:0;border-radius:9px;font-size:14.5px;font-weight:700;padding:11px 18px;white-space:nowrap;box-shadow:0 2px 8px rgba(78,122,104,.3)}
   .client-action-btn{border:0;border-radius:8px;font-size:12px;font-weight:600;padding:6px 10px;white-space:nowrap}
   .client-action-btn.neutral{background:var(--line);color:var(--ink)}
@@ -299,6 +305,14 @@
   .rowitem .accept{background:var(--sage);color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:600;padding:5px 10px}
   .rowitem .decline{background:transparent;color:var(--danger);border:1px solid var(--line);border-radius:6px;font-size:12px;font-weight:600;padding:5px 10px}
   .rowitem .removebtn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:6px;font-size:10px;font-weight:600;padding:4px 8px;text-transform:uppercase}
+  .team-roster-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .team-roster-row:last-child{border-bottom:0}
+  .team-roster-name{font-weight:600;flex:1;min-width:120px}
+  .team-roster-role{font-size:12px;color:var(--ink-dim);min-width:110px}
+  .team-roster-actions{display:flex;gap:6px}
+  .role-toggle-btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:6px;font-size:10px;font-weight:600;padding:4px 8px;text-transform:uppercase}
+  .role-toggle-btn.active{background:var(--sage);border-color:var(--sage);color:#fff}
+  .role-toggle-btn:disabled{opacity:.4;cursor:default}
   .tagchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
   .tagchip{display:flex;align-items:center;gap:6px;background:var(--case-soft);border:1px solid var(--case-line);border-radius:7px;padding:5px 6px 5px 10px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--case)}
   .filter-chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:20px;padding:5px 10px 5px 6px;font-size:12.5px;font-weight:600;cursor:pointer;user-select:none}
@@ -482,15 +496,17 @@
       <nav class="side-tabs">
         <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
         <button id="tabPay" onclick="setView('pay')">Paystub</button>
-        <button id="tabTeam" onclick="setView('team')">My Team</button>
+        <button id="tabTeam" onclick="setView('team')">Team</button>
         <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
-        <button id="tabBilling" onclick="setView('billing')">Billing</button>
+        <button id="tabTeamMatters" onclick="setView('teammatters')">Team Matters</button>
         <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
+        <button id="tabBilling" onclick="setView('billing')">Billing</button>
       </nav>
     </aside>
     <div class="app-main-col">
       <div class="topbar">
         <button class="voice-log-btn" id="voiceLogBtn" onclick="quickAddViaVoice()">🎤 Voice log</button>
+        <button class="voice-log-btn" id="topbarAddHoursBtn" onclick="onTopbarAddHoursBtnClick()" style="background:transparent;border:1.5px solid var(--sage-mist);color:var(--sage-mist)">+ Add hours</button>
         <div class="topbar-profile" id="topbarProfile">
           <span class="topbar-name" id="topbarName"></span>
           <div class="avatar-wrap" onclick="document.getElementById('avatarFileInput').click()" title="Click to change your profile picture">
@@ -510,7 +526,7 @@
         <button class="sub-toggle-btn" id="subTabMonth" onclick="setView('month')">Month</button>
       </div>
     </div>
-    <div style="text-align:center;margin-bottom:26px">
+    <div style="text-align:center;margin-bottom:26px" id="addHoursBtnWrap">
       <button class="btn-bill" id="addHoursMainBtn" onclick="openAddHours()">+ Add hours</button>
     </div>
     <!-- WEEK -->
@@ -563,6 +579,22 @@
         <button class="btn-bill" style="margin-left:auto" onclick="openMatterWizard()">+ Create Job</button>
       </div>
       <div id="clientsList" style="padding:0 18px 18px"><div class="loading">Loading…</div></div>
+    </div>
+
+    <div class="card" id="teamMattersView" style="display:none">
+      <div class="card-head"><div class="card-title" style="font-size:18px">Team Matters</div></div>
+      <div class="bpanel" id="teamMattersNoTeamPanel" style="display:none">
+        <p>You need to be on a team to see Team Matters. Head to the Team tab to create or join one.</p>
+      </div>
+      <div id="teamMattersHasTeamPanel" style="display:none">
+        <div class="bpanel">
+          <select id="teamMattersTeamSelect" onchange="onTeamMattersTeamChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
+        </div>
+        <div class="bpanel">
+          <h3>Shared cases</h3>
+          <div id="teamMattersList"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
     </div>
 
     <div class="card" id="billingView" style="display:none">
@@ -622,7 +654,48 @@
 
     <!-- MY TEAM -->
     <div class="card" id="teamView" style="display:none">
-      <div class="card-head"><div class="card-title" style="font-size:18px" id="teamNameTitle">My Team</div></div>
+      <div class="card-head"><div class="card-title" style="font-size:18px">Team</div></div>
+
+      <!-- shown when the user belongs to no teams yet -->
+      <div class="bpanel" id="noTeamPanel" style="display:none">
+        <p>You're not part of a team yet.</p>
+        <button class="btn-bill" onclick="openCreateTeam()">+ Create team</button>
+        <h3 style="margin-top:18px">Have a team code?</h3>
+        <div class="inviterow">
+          <input id="joinTeamCodeInput" placeholder="e.g. TEAM-4F8XQ" style="text-transform:uppercase">
+          <button class="btn-bill" onclick="joinTeamByCode()">Join team</button>
+        </div>
+      </div>
+
+      <!-- shown once the user belongs to at least one team -->
+      <div id="hasTeamPanel" style="display:none">
+        <div class="bpanel">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <select id="teamSwitcherSelect" onchange="onTeamSwitcherChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
+            <button class="btn-ghost-dark" onclick="openCreateTeam()">+ Create another team</button>
+            <button class="btn-ghost-dark" onclick="openJoinTeamModal()">Join another team</button>
+          </div>
+        </div>
+
+        <div class="bpanel">
+          <h3>Team name</h3>
+          <div class="inviterow">
+            <input id="teamNameInput2" style="max-width:260px">
+            <button class="btn-bill" id="teamNameSaveBtn2" onclick="saveTeamName2()">Save</button>
+          </div>
+          <div style="margin-top:14px">
+            <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team code — share this so others can join</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="teamCodeDisplay" style="background:var(--sage-mist);padding:8px 12px;border-radius:8px;font-size:14px;letter-spacing:.05em"></code>
+            </div>
+          </div>
+        </div>
+
+        <div class="bpanel">
+          <h3>Roster</h3>
+          <div id="teamRosterList"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
 
       <div class="bpanel" id="teamNameEditRow">
         <h3>Team name</h3>
@@ -791,6 +864,62 @@
         <textarea id="editEntryDesc" rows="3" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px"></textarea>
       </div>
       <button class="btn btn-primary" onclick="saveEditEntry()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE TEAM -->
+<div class="overlay" id="createTeamOverlay" onclick="overlayClick(event, closeCreateTeam)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h2>Create team</h2><button class="close" onclick="closeCreateTeam()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Team name</label><input id="newTeamNameInput" placeholder="e.g. Kamarei Consulting"></div>
+      <button class="btn btn-primary" onclick="submitCreateTeam()">Create team</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOIN TEAM -->
+<div class="overlay" id="joinTeamOverlay" onclick="overlayClick(event, closeJoinTeamModal)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h2>Join a team</h2><button class="close" onclick="closeJoinTeamModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Team code</label><input id="joinTeamCodeInput2" placeholder="e.g. TEAM-4F8XQ" style="text-transform:uppercase"></div>
+      <button class="btn btn-primary" onclick="submitJoinTeam()">Join team</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROMOTE / DEMOTE CONFIRM -->
+<div class="overlay" id="promoteConfirmOverlay" onclick="overlayClick(event, closePromoteConfirm)">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head"><h2 id="promoteConfirmTitle">Promote</h2><button class="close" onclick="closePromoteConfirm()">✕</button></div>
+    <div class="modal-body">
+      <p id="promoteConfirmText" style="margin:0 0 16px"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn-ghost-dark" onclick="closePromoteConfirm()">Cancel</button>
+        <button class="btn-bill" onclick="confirmPromote()">Yes, promote</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TO TEAM MATTERS -->
+<div class="overlay" id="addToTeamMattersOverlay" onclick="overlayClick(event, closeAddToTeamMattersPrompt)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h2>Add to Team Matters?</h2><button class="close" onclick="closeAddToTeamMattersPrompt()">✕</button></div>
+    <div class="modal-body">
+      <div id="addToTeamStage1">
+        <p id="addToTeamPromptText" style="margin:0 0 16px"></p>
+        <div style="display:flex;gap:10px">
+          <button class="btn-ghost-dark" onclick="closeAddToTeamMattersPrompt()">No, keep it personal</button>
+          <button class="btn-bill" onclick="showTeamPickStage()">Yes, add to a team</button>
+        </div>
+      </div>
+      <div id="addToTeamStage2" style="display:none">
+        <p style="margin:0 0 12px">Which team?</p>
+        <div id="addToTeamTeamList"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1133,14 +1262,16 @@ function playLoginAnimation(){
 // what data the account happens to have
 const tutorialSteps = [
   { target: null, view: null, title: 'Welcome to TimecardX', text: "Let me show you how to get started — this'll only take a couple of minutes." },
-  { target: 'tabTimesheet', view: 'week', title: 'Timesheet', text: 'This is your home base. Switch between Week and Month views up top — every hour you log shows up here.' },
+  { target: 'tabTimesheet', view: 'week', title: 'Timesheet', text: "This is your home base — it tracks every hour you personally work, tagged to a job or not. Think of it as your own complete time record, separate from what gets billed to any client. Switch between Week and Month views up top." },
   { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
   { target: 'tabPay', view: 'pay', title: 'Paystub', text: 'Set your hourly rate and when your pay period starts here. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together.' },
-  { target: 'tabTeam', view: 'team', title: 'My Team', text: "Invite teammates and see everyone's logged hours side by side — handy for keeping a whole team's timesheets in one place." },
+  { target: 'tabTeam', view: 'team', title: 'Team', text: "Invite teammates and see everyone's logged hours side by side — handy for keeping a whole team's timesheets in one place. You can also create or join named teams here, with roles for who can bill on the team's behalf." },
   { target: 'tabMatters', view: 'matters', title: 'Client/Job', text: "This is where you set up who you're billing. Add a client, then create a job under them with its own tag and rate — that tag is what ties your logged hours to a specific client and case." },
-  { target: 'tabBilling', view: 'billing', title: 'Billing', text: 'Turn logged hours into a client invoice. Pick a client or case and a date range, then generate a PDF — hours and expenses for that case get pulled in automatically.' },
   { target: 'addExpenseMainBtn', view: 'expenses', title: 'Expenses', text: 'Log anything beyond hours here — meals, supplies, mileage. For mileage, enter the miles and rate per mile and the total calculates itself. Receipts can be attached too.' },
+  { target: 'tabBilling', view: 'billing', title: 'Billing: case tags', text: "This turns logged hours into a client invoice. Pick a case tag to bill — only hours you logged under that exact tag in Timesheet get pulled in, so tagging your work to the right job is what makes it billable here at all." },
+  { target: 'tabBilling', view: 'billing', title: 'Billing: your rate', text: "The rate shown here defaults to your own hourly rate, but you can change it just for this one invoice — that override doesn't touch your actual rate anywhere else, it only affects this bill." },
+  { target: 'tabBilling', view: 'billing', title: 'Billing: your team', text: "Switch from \"My hours\" to \"Whole team\" or \"Custom selection\" to pull teammates' hours into the same invoice. Each person can have their own rate for that case too, separate from what they're normally paid — useful when different people bill a client at different rates." },
   { target: 'topbarProfile', view: null, title: 'Your account', text: "That's your name, profile picture, and invite code. Click your picture anytime to change it, and share your invite code to bring teammates onto your team." },
   { target: null, view: null, title: "You're all set!", text: 'That was the tour — you can reopen it anytime from the Tutorial button up top.' }
 ];
@@ -1153,10 +1284,12 @@ async function startTutorial(){
   await showTutorialStep(0);
 }
 async function tutorialNext(){
+  if($('tutorialNextBtn').disabled) return;   // a transition is already in progress — ignore extra clicks
   if(tutorialIndex >= tutorialSteps.length-1){ endTutorial(); return; }
   await showTutorialStep(tutorialIndex+1);
 }
 async function tutorialBack(){
+  if($('tutorialBackBtn').disabled) return;
   if(tutorialIndex <= 0) return;
   await showTutorialStep(tutorialIndex-1);
 }
@@ -1167,14 +1300,25 @@ function endTutorial(){
 async function showTutorialStep(i){
   tutorialIndex = i;
   const step = tutorialSteps[i];
-  if(step.view && step.view !== view) await setView(step.view);
+  // update everything visible immediately, before the (possibly slow, real
+  // network) view switch below — otherwise a click can look like it did
+  // nothing until the switch finishes, which is exactly what invites a
+  // second click and the overlapping-calls race that caused the reported
+  // lag/stall in the first place
   $('tutorialStepCount').textContent = `Step ${i+1} of ${tutorialSteps.length}`;
   $('tutorialTitle').textContent = step.title;
   $('tutorialText').textContent = step.text;
   $('tutorialBackBtn').style.display = i===0 ? 'none' : '';
   $('tutorialNextBtn').textContent = i===tutorialSteps.length-1 ? 'Got it' : 'Next';
+  $('tutorialSpotlight').style.opacity = '0';   // don't leave it stuck on the previous step's target while the next view loads
+
+  $('tutorialNextBtn').disabled = true;
+  $('tutorialBackBtn').disabled = true;
+  if(step.view && step.view !== view) await setView(step.view);
   await new Promise(r => setTimeout(r, 60));   // let setView's re-render settle first
   positionTutorialSpotlight(step.target);
+  $('tutorialNextBtn').disabled = false;
+  if(i > 0) $('tutorialBackBtn').disabled = false;
 }
 function positionTutorialSpotlight(targetId){
   const spotlight = $('tutorialSpotlight');
@@ -1312,9 +1456,12 @@ async function setView(v){
   $('tabPay').classList.toggle('active', v==='pay');
   $('tabTeam').classList.toggle('active', v==='team');
   $('tabMatters').classList.toggle('active', v==='matters');
+  $('tabTeamMatters').classList.toggle('active', v==='teammatters');
   $('tabBilling').classList.toggle('active', v==='billing');
   $('tabExpenses').classList.toggle('active', v==='expenses');
   $('timesheetHeaderRow').style.display = (v==='week'||v==='month') ? '' : 'none';
+  $('addHoursBtnWrap').style.display = (v==='week'||v==='month'||v==='pay') ? '' : 'none';
+  $('topbarAddHoursBtn').textContent = (v==='team') ? '+ Add/Join Team' : '+ Add hours';
   $('subTabWeek').classList.toggle('active', v==='week');
   $('subTabMonth').classList.toggle('active', v==='month');
   $('weekView').style.display = v==='week' ? '' : 'none';
@@ -1322,6 +1469,7 @@ async function setView(v){
   $('payView').style.display = v==='pay' ? '' : 'none';
   $('teamView').style.display = v==='team' ? '' : 'none';
   $('mattersView').style.display = v==='matters' ? '' : 'none';
+  $('teamMattersView').style.display = v==='teammatters' ? '' : 'none';
   $('billingView').style.display = v==='billing' ? '' : 'none';
   $('expensesView').style.display = v==='expenses' ? '' : 'none';
   if(v==='week') await loadWeek();
@@ -1329,6 +1477,7 @@ async function setView(v){
   if(v==='pay') await loadPay();
   if(v==='team') await loadTeamTab();
   if(v==='matters') await loadMattersTab();
+  if(v==='teammatters') await loadTeamMattersTab();
   if(v==='billing') await loadBilling();
   if(v==='expenses') await loadExpenses();
 }
@@ -2588,6 +2737,7 @@ async function loadBilling(){
 }
 
 async function loadTeamTab(){
+  await loadMyTeamsPanel();
   await renderTeamName();
   await renderInvites();
   await renderTeam();
@@ -2597,6 +2747,205 @@ async function loadTeamTab(){
   renderTeamCalFilters();
   await loadTeamCalendar();
   await refreshTagOptions();
+}
+
+/* ================= multi-team system (named teams with roles) =================
+   This is a separate, new system from the invite-chain team_memberships above —
+   existing teams were intentionally NOT migrated into it. Nothing here touches
+   work_entries, so every previously logged hour is completely unaffected.
+   Roles: member (bill only self) < lead (full billing power, no promotion power)
+   < manager (can promote/demote members and leads) < hidden admin flag on top
+   of manager (can additionally demote a manager; permanently set on whoever
+   created the team). */
+let myTeamMemberships = [];   // this user's own rows across every team they're in, each with its team's name/code attached
+let currentTeamId = null;     // which team is currently shown in the switcher
+
+function genTeamCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no 0/O/1/I — avoids visual mixups when read aloud or typed
+  let s = '';
+  for(let i=0;i<5;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return 'TEAM-' + s;
+}
+
+async function loadMyTeamsPanel(){
+  const { data: memberships } = await supa.from('team_members').select('*').eq('user_id', me.id);
+  const teamIds = [...new Set((memberships||[]).map(m=>m.team_id))];
+  let teamsById = {};
+  if(teamIds.length){
+    const { data: teams } = await supa.from('teams').select('*').in('id', teamIds);
+    (teams||[]).forEach(t => teamsById[t.id] = t);
+  }
+  myTeamMemberships = (memberships||[]).map(m => ({...m, team: teamsById[m.team_id]})).filter(m=>m.team);
+
+  if(!myTeamMemberships.length){
+    $('noTeamPanel').style.display = '';
+    $('hasTeamPanel').style.display = 'none';
+    return;
+  }
+  $('noTeamPanel').style.display = 'none';
+  $('hasTeamPanel').style.display = '';
+
+  if(!currentTeamId || !myTeamMemberships.some(m=>m.team_id===currentTeamId)){
+    currentTeamId = myTeamMemberships[0].team_id;
+  }
+  $('teamSwitcherSelect').innerHTML = myTeamMemberships
+    .map(m=>`<option value="${m.team_id}" ${m.team_id===currentTeamId?'selected':''}>${escapeHtml(m.team.name)}</option>`).join('');
+
+  await renderCurrentTeamPanel();
+}
+function myMembershipForCurrentTeam(){
+  return myTeamMemberships.find(m=>m.team_id===currentTeamId);
+}
+async function onTeamSwitcherChange(){
+  currentTeamId = $('teamSwitcherSelect').value;
+  await renderCurrentTeamPanel();
+}
+async function renderCurrentTeamPanel(){
+  const mine = myMembershipForCurrentTeam();
+  if(!mine) return;
+  $('teamNameInput2').value = mine.team.name;
+  $('teamCodeDisplay').textContent = mine.team.code;
+  const canManage = mine.role === 'manager';
+  $('teamNameInput2').disabled = !canManage;
+  $('teamNameSaveBtn2').style.display = canManage ? '' : 'none';
+  await renderTeamRoster();
+}
+
+function onTopbarAddHoursBtnClick(){
+  if(view === 'team') openCreateTeam();
+  else openAddHours();
+}
+function openCreateTeam(){ $('newTeamNameInput').value=''; $('createTeamOverlay').classList.add('on'); }
+function closeCreateTeam(){ $('createTeamOverlay').classList.remove('on'); }
+async function submitCreateTeam(){
+  const name = $('newTeamNameInput').value.trim();
+  if(!name) return toast('Enter a team name');
+  const code = genTeamCode();
+  const { data: team, error } = await supa.from('teams').insert({ name, code, created_by: me.id }).select().single();
+  if(error) return toast(errText(error));
+  const { error: e2 } = await supa.from('team_members').insert({ team_id: team.id, user_id: me.id, role: 'manager', is_admin: true });
+  if(e2) return toast(errText(e2));
+  logHist(`Created team "${name}"`);
+  closeCreateTeam();
+  currentTeamId = team.id;
+  await loadMyTeamsPanel();
+  toast(`${name} created`);
+}
+
+function openJoinTeamModal(){ $('joinTeamCodeInput2').value=''; $('joinTeamOverlay').classList.add('on'); }
+function closeJoinTeamModal(){ $('joinTeamOverlay').classList.remove('on'); }
+async function submitJoinTeam(){
+  await doJoinTeamByCode($('joinTeamCodeInput2').value.trim().toUpperCase());
+  closeJoinTeamModal();
+}
+async function joinTeamByCode(){
+  await doJoinTeamByCode($('joinTeamCodeInput').value.trim().toUpperCase());
+}
+async function doJoinTeamByCode(code){
+  if(!code) return toast('Enter a team code');
+  const { data: teams, error } = await supa.from('teams').select('*').eq('code', code);
+  if(error) return toast(errText(error));
+  const team = (teams||[])[0];
+  if(!team) return toast('No team found with that code');
+  if(myTeamMemberships.some(m=>m.team_id===team.id)) return toast("You're already on this team");
+  const { error: e2 } = await supa.from('team_members').insert({ team_id: team.id, user_id: me.id, role: 'member', is_admin: false });
+  if(e2) return toast(errText(e2));
+  logHist(`Joined team "${team.name}"`);
+  currentTeamId = team.id;
+  await loadMyTeamsPanel();
+  toast(`Joined ${team.name}`);
+}
+
+async function saveTeamName2(){
+  const mine = myMembershipForCurrentTeam();
+  if(!mine || mine.role !== 'manager') return;
+  const name = $('teamNameInput2').value.trim();
+  if(!name) return toast('Enter a team name');
+  const { error } = await supa.from('teams').update({ name }).eq('id', currentTeamId);
+  if(error) return toast(errText(error));
+  mine.team.name = name;
+  $('teamSwitcherSelect').innerHTML = myTeamMemberships
+    .map(m=>`<option value="${m.team_id}" ${m.team_id===currentTeamId?'selected':''}>${escapeHtml(m.team.name)}</option>`).join('');
+  toast('Team name saved');
+}
+
+async function renderTeamRoster(){
+  const box = $('teamRosterList');
+  const mine = myMembershipForCurrentTeam();
+  if(!mine) return;
+  const { data: members } = await supa.from('team_members').select('*').eq('team_id', currentTeamId);
+  const ids = [...new Set((members||[]).map(m=>m.user_id))];
+  const { data: profiles } = ids.length ? await supa.from('profiles').select('*').in('id', ids) : { data: [] };
+  const profById = {}; (profiles||[]).forEach(p=>profById[p.id]=p);
+
+  const canManage = mine.role === 'manager';   // leads have zero promotion power, per spec
+
+  box.innerHTML = (members||[]).map(m => {
+    const p = profById[m.user_id] || {};
+    const name = `${p.first_name||''} ${p.last_name||''}`.trim() || 'Unknown';
+    const isSelf = m.user_id === me.id;
+    const roleLabel = (m.role === 'manager') ? 'Team Manager' : (m.role === 'lead') ? 'Team Lead' : 'Team Member';
+
+    let actions = '';
+    if(canManage && !isSelf){
+      let leadBtn = '';
+      if(m.role !== 'manager'){   // a manager already implies lead-level access — no separate lead toggle needed
+        const isLead = m.role === 'lead';
+        leadBtn = `<button class="role-toggle-btn${isLead?' active':''}" onclick="onLeadToggleClicked('${m.id}',${isLead})">Lead</button>`;
+      }
+      const isManager = m.role === 'manager';
+      const managerToggleAllowed = !isManager || mine.is_admin;   // only the admin can demote a fellow manager
+      const disabledAttr = managerToggleAllowed ? '' : 'disabled title="Only the team admin can remove a manager"';
+      const managerBtn = `<button class="role-toggle-btn${isManager?' active':''}" ${disabledAttr} onclick="onManagerToggleClicked('${m.id}',${isManager},${mine.is_admin})">Manager</button>`;
+      const removeBtn = `<button class="removebtn" onclick="removeFromRoster('${m.id}')">Remove</button>`;
+      actions = leadBtn + managerBtn + removeBtn;
+    }
+
+    return `<div class="team-roster-row">
+      <span class="team-roster-name">${escapeHtml(name)}${isSelf?' (you)':''}</span>
+      <span class="team-roster-role">${roleLabel}</span>
+      <span class="team-roster-actions">${actions}</span>
+    </div>`;
+  }).join('') || '<div class="loading">No one here yet.</div>';
+}
+
+let pendingPromote = null;   // {memberRowId, newRole}
+function onLeadToggleClicked(memberRowId, isCurrentlyLead){
+  if(isCurrentlyLead){
+    applyRoleChange(memberRowId, 'member');   // demotion needs no confirmation, per spec
+  } else {
+    pendingPromote = { memberRowId, newRole: 'lead' };
+    $('promoteConfirmTitle').textContent = 'Promote to Team Lead';
+    $('promoteConfirmText').textContent = 'Promote this person to a team lead?';
+    $('promoteConfirmOverlay').classList.add('on');
+  }
+}
+function onManagerToggleClicked(memberRowId, isCurrentlyManager, viewerIsAdmin){
+  if(isCurrentlyManager){
+    if(!viewerIsAdmin) return;   // defense in depth — the button is also disabled in the DOM for this case
+    applyRoleChange(memberRowId, 'member');
+  } else {
+    pendingPromote = { memberRowId, newRole: 'manager' };
+    $('promoteConfirmTitle').textContent = 'Promote to Team Manager';
+    $('promoteConfirmText').textContent = 'Promote this person to a team manager?';
+    $('promoteConfirmOverlay').classList.add('on');
+  }
+}
+function closePromoteConfirm(){ $('promoteConfirmOverlay').classList.remove('on'); pendingPromote = null; }
+async function confirmPromote(){
+  if(!pendingPromote) return;
+  await applyRoleChange(pendingPromote.memberRowId, pendingPromote.newRole);
+  closePromoteConfirm();
+}
+async function applyRoleChange(memberRowId, newRole){
+  const { error } = await supa.from('team_members').update({ role: newRole }).eq('id', memberRowId);
+  if(error) return toast(errText(error));
+  await renderTeamRoster();
+}
+async function removeFromRoster(memberRowId){
+  const { error } = await supa.from('team_members').delete().eq('id', memberRowId);
+  if(error) return toast(errText(error));
+  await renderTeamRoster();
 }
 
 // if my color happens to match a teammate's (random assignment at signup can collide,
@@ -2670,13 +3019,8 @@ async function refreshTagOptions(){
 async function renderTeamName(){
   const { data: asEmployee } = await supa.from('team_memberships').select('employer_id').eq('employee_id', me.id);
   if(asEmployee && asEmployee.length){
-    const { data: root } = await supa.from('profiles').select('company,first_name,last_name').eq('id', asEmployee[0].employer_id).single();
-    const name = (root && root.company) ? root.company : `${root?.first_name || 'Your team'}'s Team`;
-    $('teamNameTitle').textContent = name;
     $('teamNameEditRow').style.display = 'none';
   } else {
-    const name = me.company ? me.company : 'My Team';
-    $('teamNameTitle').textContent = name;
     $('teamNameInput').value = me.company || '';
     $('teamNameEditRow').style.display = '';
   }
@@ -2928,9 +3272,107 @@ async function finishMatterWizard(){
   }
 
   logHist(`Created job ${tag}`);
-  toast('Job created');
   closeMatterWizard();
   await renderClientsList();
+
+  const { data: myMemberships } = await supa.from('team_members').select('*').eq('user_id', me.id);
+  if(myMemberships && myMemberships.length){
+    await openAddToTeamMattersPrompt(matter.id, tag, myMemberships);
+  } else {
+    toast('Job created');
+  }
+}
+
+/* ================= add-to-team-matters prompt ================= */
+let pendingTeamMatterInfo = null;   // {matterId, tag, teams}
+async function openAddToTeamMattersPrompt(matterId, tag, memberships){
+  const teamIds = [...new Set(memberships.map(m=>m.team_id))];
+  const { data: teams } = await supa.from('teams').select('*').in('id', teamIds);
+  pendingTeamMatterInfo = { matterId, tag, teams: teams||[] };
+  $('addToTeamPromptText').textContent = `Add "${tag}" to Team Matters so your team can see and bill this case?`;
+  $('addToTeamStage1').style.display = '';
+  $('addToTeamStage2').style.display = 'none';
+  $('addToTeamMattersOverlay').classList.add('on');
+}
+function closeAddToTeamMattersPrompt(){
+  $('addToTeamMattersOverlay').classList.remove('on');
+  const hadPending = !!pendingTeamMatterInfo;
+  pendingTeamMatterInfo = null;
+  if(hadPending) toast('Job created');
+}
+function showTeamPickStage(){
+  if(!pendingTeamMatterInfo) return;
+  $('addToTeamTeamList').innerHTML = pendingTeamMatterInfo.teams.map(t =>
+    `<button class="btn-ghost-dark" style="display:block;width:100%;text-align:left;margin-bottom:8px" onclick="confirmAddToTeamMatters('${t.id}')">${escapeHtml(t.name)}</button>`
+  ).join('');
+  $('addToTeamStage1').style.display = 'none';
+  $('addToTeamStage2').style.display = '';
+}
+async function confirmAddToTeamMatters(teamId){
+  if(!pendingTeamMatterInfo) return;
+  const { matterId, tag } = pendingTeamMatterInfo;
+  const { error } = await supa.from('matters').update({ team_id: teamId }).eq('id', matterId);
+  if(error) return toast(errText(error));
+  logHist(`Added ${tag} to Team Matters`);
+  $('addToTeamMattersOverlay').classList.remove('on');
+  pendingTeamMatterInfo = null;
+  toast('Added to Team Matters');
+}
+
+/* ================= team matters tab ================= */
+async function loadTeamMattersTab(){
+  await loadMyTeamsPanel();   // ensures myTeamMemberships/currentTeamId are fresh, even on a first visit
+  if(!myTeamMemberships.length){
+    $('teamMattersNoTeamPanel').style.display = '';
+    $('teamMattersHasTeamPanel').style.display = 'none';
+    return;
+  }
+  $('teamMattersNoTeamPanel').style.display = 'none';
+  $('teamMattersHasTeamPanel').style.display = '';
+  $('teamMattersTeamSelect').innerHTML = myTeamMemberships
+    .map(m=>`<option value="${m.team_id}" ${m.team_id===currentTeamId?'selected':''}>${escapeHtml(m.team.name)}</option>`).join('');
+  await renderTeamMattersList();
+}
+async function onTeamMattersTeamChange(){
+  currentTeamId = $('teamMattersTeamSelect').value;
+  await renderTeamMattersList();
+}
+async function renderTeamMattersList(){
+  const box = $('teamMattersList');
+  const { data: matters } = await supa.from('matters').select('*').eq('team_id', currentTeamId);
+  if(!matters || !matters.length){ box.innerHTML = '<div class="loading">No cases shared to this team yet.</div>'; return; }
+
+  const clientIds = [...new Set(matters.map(m=>m.client_id))];
+  const { data: clients } = clientIds.length ? await supa.from('clients').select('*').in('id', clientIds) : { data: [] };
+  const clientById = {}; (clients||[]).forEach(c=>clientById[c.id]=c);
+
+  const ownerIds = [...new Set(matters.map(m=>m.owner_id))];
+  const { data: owners } = ownerIds.length ? await supa.from('profiles').select('*').in('id', ownerIds) : { data: [] };
+  const ownerById = {}; (owners||[]).forEach(o=>ownerById[o.id]=o);
+
+  const mine = myMembershipForCurrentTeam();
+  const canManage = mine && (mine.role === 'lead' || mine.role === 'manager');   // members can view but not manage
+
+  box.innerHTML = matters.map(m => {
+    const client = clientById[m.client_id];
+    const clientName = client ? clientDisplayName(client) : 'Unknown client';
+    const owner = ownerById[m.owner_id];
+    const ownerName = owner ? `${owner.first_name||''} ${owner.last_name||''}`.trim() : 'Unknown';
+    const removeBtn = canManage ? `<button class="removebtn" onclick="removeFromTeamMatters('${m.id}')">Remove from team</button>` : '';
+    return `<div class="team-roster-row">
+      <span class="team-roster-name">${escapeHtml(m.tag)} <span style="font-weight:400;color:var(--ink-dim)">— ${escapeHtml(clientName)}</span></span>
+      <span class="team-roster-role">Added by ${escapeHtml(ownerName)}</span>
+      <span class="team-roster-actions">${removeBtn}</span>
+    </div>`;
+  }).join('');
+}
+async function removeFromTeamMatters(matterId){
+  const mine = myMembershipForCurrentTeam();
+  if(!mine || (mine.role !== 'lead' && mine.role !== 'manager')) return;   // defense in depth — the button is also hidden in the DOM otherwise
+  const { error } = await supa.from('matters').update({ team_id: null }).eq('id', matterId);
+  if(error) return toast(errText(error));
+  await renderTeamMattersList();
+  toast('Removed from Team Matters');
 }
 
 let editingClientId = null;
@@ -3535,6 +3977,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-18.2</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-18.7</div>
 </body>
 </html>
