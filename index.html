@@ -31,17 +31,17 @@
 
   /* ============ login animation ============ */
   .login-anim-overlay{position:fixed;inset:0;background:var(--pine);display:none;align-items:center;justify-content:center;z-index:200;pointer-events:none}
-  .login-anim-overlay.on{display:flex;animation:loginOverlayFadeOut 2.75s ease forwards}
+  .login-anim-overlay.on{display:flex;animation:loginOverlayFadeOut 2.75s ease forwards, loginOverlayColorFade 2.75s ease forwards}
   .login-anim-stage{position:relative;width:340px;height:280px;perspective:800px}
-  .anim-machine-svg{position:absolute;left:100px;top:60px;width:140px;height:160px;
+  .anim-machine-svg{position:absolute;left:100px;top:60px;width:140px;height:160px;z-index:2;
     animation:loginMachineSlideUp 2.75s ease forwards}
   @keyframes loginMachineSlideUp{
     0%{transform:translateY(600px)}
-    38%,100%{transform:translateY(0)}
+    65%,100%{transform:translateY(55px)}
   }
   .anim-light{fill:#C0392B;animation:loginLightChange 2.75s step-end forwards}
   .anim-card{
-    position:absolute;left:90px;top:60px;width:160px;height:100px;
+    position:absolute;left:90px;top:60px;width:160px;height:100px;z-index:1;
     transform-style:preserve-3d;
     animation:loginCardMove 2.75s ease forwards;
   }
@@ -69,27 +69,29 @@
   }
 
   @keyframes loginLightChange{
-    0%,75%{fill:#C0392B}
-    76%,100%{fill:#4E7A68}
+    0%,66%{fill:#C0392B}
+    67%,100%{fill:#4E7A68}
   }
   /* card sits full-size showing TIMEX (0-13%), flips over to reveal the
      light-green Tx backside — held to a strictly linear rotation so the
      90° crossing point above is exactly predictable (13-32%) — then spins
-     90° clockwise in place, turning it vertical for a long-edge insertion
-     (32-50%), then zooms out, shrinking and floating up (50-68%), before
-     dropping straight down into the slot from the top to activate the
-     machine and staying visibly inserted there for the rest of the
-     animation, rather than vanishing (68-100%) */
+     90° clockwise in place, turning it vertical, and settles into its
+     one final resting spot partway down the frame (32-50%) and simply
+     stays there — it's the MACHINE that does the final moving, sliding
+     up from below to visually cover its bottom half like it's sliding
+     into a slot (50-100%) */
   @keyframes loginCardMove{
     0%,13%{transform:translateY(0) rotateY(0deg) rotate(0deg) scale(1);opacity:1;animation-timing-function:linear}
     32%{transform:translateY(0) rotateY(180deg) rotate(0deg) scale(1);opacity:1;animation-timing-function:ease}
-    50%{transform:translateY(0) rotateY(180deg) rotate(90deg) scale(1);opacity:1}
-    68%{transform:translateY(-70px) rotateY(180deg) rotate(90deg) scale(.28);opacity:1}
-    78%,100%{transform:translateY(0px) rotateY(180deg) rotate(90deg) scale(.15);opacity:1}
+    50%,100%{transform:translateY(40px) rotateY(180deg) rotate(90deg) scale(.55);opacity:1}
   }
   @keyframes loginOverlayFadeOut{
-    0%,88%{opacity:1}
+    0%,92%{opacity:1}
     100%{opacity:0}
+  }
+  @keyframes loginOverlayColorFade{
+    0%,74%{background-color:var(--pine)}
+    90%,100%{background-color:#fff}
   }
 
   /* ============ tutorial ============ */
@@ -443,7 +445,7 @@
 <div class="login-anim-overlay" id="loginAnimOverlay">
   <div class="login-anim-stage">
     <svg class="anim-machine-svg" viewBox="0 0 140 160">
-      <rect x="15" y="25" width="110" height="125" rx="8" fill="none" stroke="#fff" stroke-width="5"/>
+      <rect x="15" y="25" width="110" height="125" rx="8" fill="#122820" stroke="#fff" stroke-width="5"/>
       <rect x="65" y="35" width="10" height="30" rx="2" fill="#fff"/>
       <circle class="anim-light" cx="70" cy="15" r="10"/>
       <line x1="70" y1="25" x2="70" y2="10" stroke="#fff" stroke-width="4"/>
@@ -1266,8 +1268,11 @@ const tutorialSteps = [
   { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
   { target: 'tabPay', view: 'pay', title: 'Paystub', text: 'Set your hourly rate and when your pay period starts here. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together.' },
-  { target: 'tabTeam', view: 'team', title: 'Team', text: "Invite teammates and see everyone's logged hours side by side — handy for keeping a whole team's timesheets in one place. You can also create or join named teams here, with roles for who can bill on the team's behalf." },
+  { target: 'tabTeam', view: 'team', title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
+  { target: 'tabTeam', view: 'team', title: 'Team: roles', text: "Everyone starts as a Team Member, who can only bill their own hours. A Team Lead has full billing power — they can bill for the whole team and set custom rates. A Team Manager has everything a Lead has, plus the ability to promote and demote people." },
+  { target: 'tabTeam', view: 'team', title: 'Team: promoting people', text: 'Managers can promote someone right from the roster — click "Lead" or "Manager" next to their name and confirm. Demoting is instant, no confirmation needed. Regular team members won\'t see these buttons at all.' },
   { target: 'tabMatters', view: 'matters', title: 'Client/Job', text: "This is where you set up who you're billing. Add a client, then create a job under them with its own tag and rate — that tag is what ties your logged hours to a specific client and case." },
+  { target: 'tabTeamMatters', view: 'teammatters', title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
   { target: 'addExpenseMainBtn', view: 'expenses', title: 'Expenses', text: 'Log anything beyond hours here — meals, supplies, mileage. For mileage, enter the miles and rate per mile and the total calculates itself. Receipts can be attached too.' },
   { target: 'tabBilling', view: 'billing', title: 'Billing: case tags', text: "This turns logged hours into a client invoice. Pick a case tag to bill — only hours you logged under that exact tag in Timesheet get pulled in, so tagging your work to the right job is what makes it billable here at all." },
   { target: 'tabBilling', view: 'billing', title: 'Billing: your rate', text: "The rate shown here defaults to your own hourly rate, but you can change it just for this one invoice — that override doesn't touch your actual rate anywhere else, it only affects this bill." },
@@ -1276,16 +1281,18 @@ const tutorialSteps = [
   { target: null, view: null, title: "You're all set!", text: 'That was the tour — you can reopen it anytime from the Tutorial button up top.' }
 ];
 let tutorialIndex = 0;
+let activeTutorialSteps = tutorialSteps;   // swapped to teamOnboardingSteps for the short team-specific rundown
 
 async function startTutorial(){
   closeAccountMenu();
+  activeTutorialSteps = tutorialSteps;
   $('tutorialOverlay').style.display = 'block';
   window.addEventListener('resize', repositionTutorialSpotlight);
   await showTutorialStep(0);
 }
 async function tutorialNext(){
   if($('tutorialNextBtn').disabled) return;   // a transition is already in progress — ignore extra clicks
-  if(tutorialIndex >= tutorialSteps.length-1){ endTutorial(); return; }
+  if(tutorialIndex >= activeTutorialSteps.length-1){ endTutorial(); return; }
   await showTutorialStep(tutorialIndex+1);
 }
 async function tutorialBack(){
@@ -1299,17 +1306,17 @@ function endTutorial(){
 }
 async function showTutorialStep(i){
   tutorialIndex = i;
-  const step = tutorialSteps[i];
+  const step = activeTutorialSteps[i];
   // update everything visible immediately, before the (possibly slow, real
   // network) view switch below — otherwise a click can look like it did
   // nothing until the switch finishes, which is exactly what invites a
   // second click and the overlapping-calls race that caused the reported
   // lag/stall in the first place
-  $('tutorialStepCount').textContent = `Step ${i+1} of ${tutorialSteps.length}`;
+  $('tutorialStepCount').textContent = `Step ${i+1} of ${activeTutorialSteps.length}`;
   $('tutorialTitle').textContent = step.title;
   $('tutorialText').textContent = step.text;
   $('tutorialBackBtn').style.display = i===0 ? 'none' : '';
-  $('tutorialNextBtn').textContent = i===tutorialSteps.length-1 ? 'Got it' : 'Next';
+  $('tutorialNextBtn').textContent = i===activeTutorialSteps.length-1 ? 'Got it' : 'Next';
   $('tutorialSpotlight').style.opacity = '0';   // don't leave it stuck on the previous step's target while the next view loads
 
   $('tutorialNextBtn').disabled = true;
@@ -1338,8 +1345,34 @@ function positionTutorialSpotlight(targetId){
 }
 function repositionTutorialSpotlight(){
   if($('tutorialOverlay').style.display !== 'block') return;
-  const step = tutorialSteps[tutorialIndex];
+  const step = activeTutorialSteps[tutorialIndex];
   if(step) positionTutorialSpotlight(step.target);
+}
+
+/* ================= short team-onboarding tutorial =================
+   Auto-plays exactly once per account, permanently — the first time
+   someone creates or joins a team, right after that action completes.
+   A brand-new user going through the MAIN tutorial has no team yet, so
+   those steps stay abstract; this one fires once a team genuinely
+   exists, so it can point at the real, live buttons and fields on the
+   Team page rather than describe them hypothetically. Reuses the same
+   overlay/spotlight engine as the main tutorial above. */
+const teamOnboardingSteps = [
+  { target: null, view: 'team', title: "You're on a team now", text: "Quick walkthrough of what everything on this page does." },
+  { target: 'teamSwitcherSelect', view: 'team', title: 'Switching teams', text: "This dropdown switches between teams, if you're ever on more than one." },
+  { target: 'teamCodeDisplay', view: 'team', title: 'Team name & code', text: "Share this code so others can join your team. You can rename the team anytime just above it." },
+  { target: 'teamRosterList', view: 'team', title: 'Roster & roles', text: 'Everyone starts as a Team Member, who can only bill their own hours. Managers can click "Lead" or "Manager" next to someone\'s name to promote them — "Remove" takes them off the team entirely.' },
+  { target: 'tabTeamMatters', view: 'teammatters', title: 'Team Matters', text: "Jobs shared with the team show up here, separate from your own personal Client/Job list — that's where team-wide cases live." },
+  { target: null, view: null, title: "That's it", text: "You can always revisit the full tutorial anytime from the Tutorial button up top." }
+];
+async function startTeamOnboarding(){
+  if(me.has_seen_team_onboarding) return;
+  me.has_seen_team_onboarding = true;
+  await supa.from('profiles').update({ has_seen_team_onboarding: true }).eq('id', me.id);
+  activeTutorialSteps = teamOnboardingSteps;
+  $('tutorialOverlay').style.display = 'block';
+  window.addEventListener('resize', repositionTutorialSpotlight);
+  await showTutorialStep(0);
 }
 
 /* ================= profile ================= */
@@ -2830,6 +2863,7 @@ async function submitCreateTeam(){
   currentTeamId = team.id;
   await loadMyTeamsPanel();
   toast(`${name} created`);
+  await startTeamOnboarding();
 }
 
 function openJoinTeamModal(){ $('joinTeamCodeInput2').value=''; $('joinTeamOverlay').classList.add('on'); }
@@ -2854,6 +2888,7 @@ async function doJoinTeamByCode(code){
   currentTeamId = team.id;
   await loadMyTeamsPanel();
   toast(`Joined ${team.name}`);
+  await startTeamOnboarding();
 }
 
 async function saveTeamName2(){
@@ -3977,6 +4012,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-18.7</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.1</div>
 </body>
 </html>
