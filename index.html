@@ -86,6 +86,30 @@
     0%,88%{opacity:1}
     100%{opacity:0}
   }
+
+  /* ============ tutorial ============ */
+  .tutorial-overlay{position:fixed;inset:0;z-index:300;display:none}
+  .tutorial-spotlight{
+    position:fixed;border-radius:10px;opacity:0;
+    box-shadow:0 0 0 9999px rgba(18,40,32,.75), 0 0 0 3px var(--stamp);
+    transition:top .35s ease, left .35s ease, width .35s ease, height .35s ease, opacity .25s ease;
+    pointer-events:none;
+  }
+  .tutorial-card{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+    background:var(--card);border-radius:14px;padding:22px 24px;
+    width:min(420px, 90vw);box-shadow:0 16px 48px rgba(0,0,0,.35);
+  }
+  .tutorial-step-count{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase;margin-bottom:6px}
+  .tutorial-card h3{font-family:var(--display);font-size:19px;margin:0 0 8px}
+  .tutorial-card p{font-size:14px;line-height:1.5;color:var(--ink);margin:0 0 18px}
+  .tutorial-actions{display:flex;align-items:center;gap:10px}
+  .tutorial-nav-btns{margin-left:auto;display:flex;gap:8px}
+  .tutorial-skip{background:transparent;border:0;color:var(--ink-dim);font-size:13px;text-decoration:underline;padding:8px 0}
+
+  @media (max-width:640px){
+    .tutorial-card{bottom:12px;padding:18px 18px;width:94vw}
+  }
   .auth-card{width:100%;max-width:400px;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35)}
   .auth-head{background:var(--pine);color:var(--bone);padding:24px 28px}
   .brand{font-family:var(--display);font-weight:700;font-size:28px}
@@ -142,6 +166,7 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
   input.missing-field, select.missing-field{border-color:#C0392B !important;background:#FBEAE8 !important}
   .btn-ghost{background:transparent;border:1px solid rgba(244,241,232,.35);color:var(--bone);border-radius:7px;padding:6px 12px;font-size:12.5px}
+  .btn-ghost-dark{background:transparent;border:1.5px solid var(--line);color:var(--ink);border-radius:7px;padding:8px 16px;font-size:13px;font-weight:600}
   .account-menu-wrap{position:relative}
   .account-dropdown{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--line);border-radius:10px;
     box-shadow:0 6px 20px rgba(18,40,32,.2);min-width:160px;overflow:hidden;z-index:20}
@@ -419,6 +444,23 @@
   </div>
 </div>
 
+<!-- TUTORIAL -->
+<div class="tutorial-overlay" id="tutorialOverlay" style="display:none">
+  <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+  <div class="tutorial-card" id="tutorialCard">
+    <div class="tutorial-step-count" id="tutorialStepCount"></div>
+    <h3 id="tutorialTitle"></h3>
+    <p id="tutorialText"></p>
+    <div class="tutorial-actions">
+      <button class="tutorial-skip" onclick="endTutorial()">Skip tutorial</button>
+      <div class="tutorial-nav-btns">
+        <button id="tutorialBackBtn" class="btn-ghost-dark" onclick="tutorialBack()">Back</button>
+        <button id="tutorialNextBtn" class="btn-bill" onclick="tutorialNext()">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app" id="app">
   <div class="app-shell">
     <aside class="sidebar">
@@ -458,7 +500,8 @@
           <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="onAvatarFileSelected(this.files)">
           <span class="topbar-code" id="topbarCode"></span>
         </div>
-        <button class="btn-ghost" id="topbarSignOut" onclick="signOut()" style="margin-left:auto">Sign out</button>
+        <button class="btn-ghost" id="tutorialBtn" onclick="startTutorial()" style="margin-left:auto">Tutorial</button>
+        <button class="btn-ghost" id="topbarSignOut" onclick="signOut()">Sign out</button>
       </div>
       <main>
     <div id="timesheetHeaderRow" style="display:flex;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:10px">
@@ -468,7 +511,7 @@
       </div>
     </div>
     <div style="text-align:center;margin-bottom:26px">
-      <button class="btn-bill" onclick="openAddHours()">+ Add hours</button>
+      <button class="btn-bill" id="addHoursMainBtn" onclick="openAddHours()">+ Add hours</button>
     </div>
     <!-- WEEK -->
     <div class="card" id="weekView">
@@ -566,7 +609,7 @@
     <div class="card" id="expensesView" style="display:none">
       <div class="card-head">
         <div class="card-title" style="font-size:18px">Expenses</div>
-        <button class="btn-bill-lg" style="margin-left:auto" onclick="openAddExpense()">+ Add expense</button>
+        <button class="btn-bill-lg" id="addExpenseMainBtn" style="margin-left:auto" onclick="openAddExpense()">+ Add expense</button>
       </div>
       <div class="day-row head" style="grid-template-columns:100px 90px 1fr 90px 32px 32px">
         <div>Date</div><div>Tag</div><div>Description</div><div>Amount</div><div></div><div></div>
@@ -724,8 +767,15 @@
     <div class="modal-head"><h2>Edit entry</h2><button class="close" onclick="closeEditEntry()">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Date</label><input type="date" id="editEntryDate"></div>
-      <div class="field"><label>Tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
-        <input id="editEntryTag" list="tagOptions" style="text-transform:uppercase">
+      <div class="field"><label>Client <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <select id="editEntryClient" onchange="onEditEntryClientChange()" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+          <option value="">No client / general entry</option>
+        </select>
+      </div>
+      <div class="field"><label>Job / Tag <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <select id="editEntryTag" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px">
+          <option value="">No job</option>
+        </select>
       </div>
       <div class="field">
         <label>Entry type</label>
@@ -1075,6 +1125,79 @@ function playLoginAnimation(){
   setTimeout(() => { overlay.classList.remove('on'); }, 2750);
 }
 
+/* ================= tutorial ================= */
+// each step optionally switches to a real view (so the person sees the
+// actual, live tab rather than just a label) and optionally spotlights a
+// real, always-present element — buttons/tabs rather than dynamically
+// rendered rows, so a step never fails to find its target regardless of
+// what data the account happens to have
+const tutorialSteps = [
+  { target: null, view: null, title: 'Welcome to TimecardX', text: "Let me show you how to get started — this'll only take a couple of minutes." },
+  { target: 'tabTimesheet', view: 'week', title: 'Timesheet', text: 'This is your home base. Switch between Week and Month views up top — every hour you log shows up here.' },
+  { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
+  { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
+  { target: 'tabPay', view: 'pay', title: 'Paystub', text: 'Set your hourly rate and when your pay period starts here. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together.' },
+  { target: 'tabTeam', view: 'team', title: 'My Team', text: "Invite teammates and see everyone's logged hours side by side — handy for keeping a whole team's timesheets in one place." },
+  { target: 'tabMatters', view: 'matters', title: 'Client/Job', text: "This is where you set up who you're billing. Add a client, then create a job under them with its own tag and rate — that tag is what ties your logged hours to a specific client and case." },
+  { target: 'tabBilling', view: 'billing', title: 'Billing', text: 'Turn logged hours into a client invoice. Pick a client or case and a date range, then generate a PDF — hours and expenses for that case get pulled in automatically.' },
+  { target: 'addExpenseMainBtn', view: 'expenses', title: 'Expenses', text: 'Log anything beyond hours here — meals, supplies, mileage. For mileage, enter the miles and rate per mile and the total calculates itself. Receipts can be attached too.' },
+  { target: 'topbarProfile', view: null, title: 'Your account', text: "That's your name, profile picture, and invite code. Click your picture anytime to change it, and share your invite code to bring teammates onto your team." },
+  { target: null, view: null, title: "You're all set!", text: 'That was the tour — you can reopen it anytime from the Tutorial button up top.' }
+];
+let tutorialIndex = 0;
+
+async function startTutorial(){
+  closeAccountMenu();
+  $('tutorialOverlay').style.display = 'block';
+  window.addEventListener('resize', repositionTutorialSpotlight);
+  await showTutorialStep(0);
+}
+async function tutorialNext(){
+  if(tutorialIndex >= tutorialSteps.length-1){ endTutorial(); return; }
+  await showTutorialStep(tutorialIndex+1);
+}
+async function tutorialBack(){
+  if(tutorialIndex <= 0) return;
+  await showTutorialStep(tutorialIndex-1);
+}
+function endTutorial(){
+  $('tutorialOverlay').style.display = 'none';
+  window.removeEventListener('resize', repositionTutorialSpotlight);
+}
+async function showTutorialStep(i){
+  tutorialIndex = i;
+  const step = tutorialSteps[i];
+  if(step.view && step.view !== view) await setView(step.view);
+  $('tutorialStepCount').textContent = `Step ${i+1} of ${tutorialSteps.length}`;
+  $('tutorialTitle').textContent = step.title;
+  $('tutorialText').textContent = step.text;
+  $('tutorialBackBtn').style.display = i===0 ? 'none' : '';
+  $('tutorialNextBtn').textContent = i===tutorialSteps.length-1 ? 'Got it' : 'Next';
+  await new Promise(r => setTimeout(r, 60));   // let setView's re-render settle first
+  positionTutorialSpotlight(step.target);
+}
+function positionTutorialSpotlight(targetId){
+  const spotlight = $('tutorialSpotlight');
+  if(!targetId){ spotlight.style.opacity = '0'; return; }
+  const el = $(targetId);
+  if(!el){ spotlight.style.opacity = '0'; return; }
+  el.scrollIntoView({ block:'center', inline:'center', behavior:'auto' });
+  requestAnimationFrame(() => {
+    const r = el.getBoundingClientRect();
+    const pad = 6;
+    spotlight.style.opacity = '1';
+    spotlight.style.top = (r.top-pad)+'px';
+    spotlight.style.left = (r.left-pad)+'px';
+    spotlight.style.width = (r.width+pad*2)+'px';
+    spotlight.style.height = (r.height+pad*2)+'px';
+  });
+}
+function repositionTutorialSpotlight(){
+  if($('tutorialOverlay').style.display !== 'block') return;
+  const step = tutorialSteps[tutorialIndex];
+  if(step) positionTutorialSpotlight(step.target);
+}
+
 /* ================= profile ================= */
 function avatarInitialsOf(first, last){
   return `${(first||'?').charAt(0)}${(last||'').charAt(0)}`.toUpperCase();
@@ -1294,6 +1417,8 @@ async function deleteWorkRow(dk, idx){
 }
 
 let editingEntry = null;   // {dk, idx, id} of the row currently open in the Edit modal
+let editEntryClientsCache = [];
+let editEntryMattersCache = [];
 let currentEditEntryType = 'hourly';
 function setEditEntryType(type){
   currentEditEntryType = type;
@@ -1302,18 +1427,46 @@ function setEditEntryType(type){
   $('editFlatFieldsWrap').style.display = type === 'hourly' ? 'none' : '';
 }
 
-function openEditEntry(dk, idx){
+async function openEditEntry(dk, idx){
   const rec = weekCache[dk];
   const row = rec.work[idx];
   if(!row) return;
   editingEntry = { dk, idx, id: row.id };
   $('editEntryDate').value = dk;
-  $('editEntryTag').value = row.tag || '';
   setEditEntryType(row.entry_type && row.entry_type !== 'hourly' ? row.entry_type : 'hourly');
   $('editEntryHours').value = row.hours || '';
   $('editEntryFlatAmount').value = row.flat_amount || '';
   $('editEntryDesc').value = row.description || '';
+
+  invAllMembers = await teamMembers();   // ensure this is fresh regardless of which tab was open before
+  const ownerIds = invAllMembers.map(m=>m.id);
+  const { data: clients } = ownerIds.length ? await supa.from('clients').select('*').in('owner_id', ownerIds) : { data: [] };
+  editEntryClientsCache = clients || [];
+  $('editEntryClient').innerHTML = '<option value="">No client / general entry</option>' +
+    editEntryClientsCache.map(c=>`<option value="${c.id}">${escapeHtml(clientDisplayName(c))}</option>`).join('');
+  $('editEntryClient').value = '';
+  $('editEntryTag').innerHTML = '<option value="">No job</option>';
+  $('editEntryTag').value = '';
+  editEntryMattersCache = [];
+
+  // if this entry already has a tag, find which client (if any) currently
+  // owns a job with that exact tag, so editing shows the right client and
+  // job already selected — if the tag no longer matches any live job (for
+  // example an old, deleted one), both fields correctly fall back to "none"
+  // rather than showing a stale, unrecognizable value
+  if(row.tag) await fillClientAndMatter('editEntry', row.tag, '');
+
   $('editEntryOverlay').classList.add('on');
+}
+async function onEditEntryClientChange(){
+  const clientId = $('editEntryClient').value;
+  $('editEntryTag').innerHTML = '<option value="">No job</option>';
+  $('editEntryTag').value = '';
+  editEntryMattersCache = [];
+  if(!clientId) return;
+  const { data: matters } = await supa.from('matters').select('*').eq('client_id', clientId);
+  editEntryMattersCache = matters || [];
+  $('editEntryTag').innerHTML += editEntryMattersCache.map(m=>`<option value="${m.tag}">${escapeHtml(m.tag)}</option>`).join('');
 }
 function closeEditEntry(){ $('editEntryOverlay').classList.remove('on'); editingEntry = null; }
 
@@ -1702,9 +1855,9 @@ function highlightMissingFields(kind){
 async function fillClientAndMatter(kind, tag, clientName){
   const ownerIds = invAllMembers.map(m=>m.id);
   if(!ownerIds.length) return;
-  const clientEl = kind === 'expense' ? $('addExpClient') : $('addHrsClient');
-  const matterEl = kind === 'expense' ? $('addExpMatter') : $('addHrsMatter');
-  const onClientChange = kind === 'expense' ? onAddExpenseClientChange : onAddHoursClientChange;
+  const clientEl = kind === 'expense' ? $('addExpClient') : kind === 'editEntry' ? $('editEntryClient') : $('addHrsClient');
+  const matterEl = kind === 'expense' ? $('addExpMatter') : kind === 'editEntry' ? $('editEntryTag') : $('addHrsMatter');
+  const onClientChange = kind === 'expense' ? onAddExpenseClientChange : kind === 'editEntry' ? onEditEntryClientChange : onAddHoursClientChange;
 
   // an exact tag match tells us both the matter and its client directly
   if(tag){
@@ -2491,8 +2644,16 @@ async function myTags(){
   const { data: asEmployee } = await supa.from('team_memberships').select('employer_id').eq('employee_id', me.id);
   const { data: asEmployer } = await supa.from('team_memberships').select('employee_id').eq('employer_id', me.id);
   const ids = [me.id, ...(asEmployee||[]).map(r=>r.employer_id), ...(asEmployer||[]).map(r=>r.employee_id)];
-  const { data } = await supa.from('tags').select('tag').in('employer_id', ids);
-  return [...new Set((data||[]).map(t=>t.tag))];
+  // derived directly from live jobs under live clients, not a separately-
+  // maintained registry — a tag is selectable only if a job currently uses
+  // it AND that job's client still exists. The client check specifically
+  // catches jobs left behind by a client deletion that happened before
+  // deleteClient() was fixed to also remove its jobs — those orphaned rows
+  // can still exist in older data even though new deletions can't create them
+  const { data: validClients } = await supa.from('clients').select('id').in('owner_id', ids);
+  const validClientIds = new Set((validClients||[]).map(c=>c.id));
+  const { data } = await supa.from('matters').select('tag,client_id').in('owner_id', ids);
+  return [...new Set((data||[]).filter(m=>validClientIds.has(m.client_id)).map(m=>m.tag).filter(Boolean))];
 }
 
 let cachedTeamTags = [];
@@ -2606,25 +2767,11 @@ async function removeTeamMember(employeeId, label){
 /* ================= work tags ================= */
 // creates a shared team tag if it doesn't already exist; returns the final tag text.
 // Used by the Matter wizard — this is now the only way tags get created.
+// just normalizes the tag string now — the picker lists derive live from
+// the matters table (see myTags()), so there's no separate registry that
+// needs to be kept in sync on creation anymore
 async function createSharedTagIfNeeded(rawTag){
-  const tag = caseKey(rawTag);
-  if(!tag) return '';
-  const { data: existing } = await supa.from('tags').select('*').eq('employer_id', me.id).eq('tag', tag);
-  if(existing && existing.length) return tag;
-  const { error } = await supa.from('tags').insert({ employer_id: me.id, tag });
-  if(error){ toast(errText(error)); return tag; }
-  logHist(`Added work tag: ${tag}`);
-  invAllTags = await myTags();
-  await refreshTagOptions();
-  return tag;
-}
-async function removeTag(tagId){
-  const { error } = await supa.from('tags').delete().eq('id', tagId);
-  if(error) return toast(errText(error));
-  logHist('Removed a work tag');
-  toast('Tag removed');
-  invAllTags = await myTags();
-  await refreshTagOptions();
+  return caseKey(rawTag) || '';
 }
 
 /* ================= clients & matters ================= */
@@ -2668,7 +2815,10 @@ async function deleteClient(clientId, label){
   if(error) return toast(errText(error));
   for(const m of (clientMatters||[])){
     await supa.from('matters').delete().eq('id', m.id);
-    await cleanupOrphanedTag(m.tag);
+  }
+  if(clientMatters && clientMatters.length){
+    invAllTags = await myTags();
+    await refreshTagOptions();
   }
   logHist(`Removed client ${label}`);
   toast(`${label} removed — their logged hours are untouched`);
@@ -2769,6 +2919,8 @@ async function finishMatterWizard(){
 
   const { data: matter, error: e2 } = await supa.from('matters').insert({ client_id: clientId, owner_id: me.id, tag }).select().single();
   if(e2) return toast(errText(e2));
+  invAllTags = await myTags();
+  await refreshTagOptions();
 
   for(const row of matterWizardRows){
     if(!row.memberId) continue;
@@ -2825,21 +2977,10 @@ async function removeMatterEntirely(matterId, tag){
   editingClientMatters = editingClientMatters.filter(m => m.id !== matterId);
   delete editingMatterRows[matterId];
   logHist(`Removed job ${tag}`);
-  await cleanupOrphanedTag(tag);
-  toast(`${tag} removed — logged hours under that tag are untouched`);
-  renderEditClientMatters();
-}
-// removes a tag from the shared tags registry once no job still uses it,
-// so it stops showing up as a selectable case on the Billing tab — this
-// never touches work_entries, so historical logged hours under that tag
-// are completely unaffected
-async function cleanupOrphanedTag(tag){
-  const { data: stillUsed } = await supa.from('matters').select('id').eq('owner_id', me.id).eq('tag', tag);
-  if(stillUsed && stillUsed.length) return;
-  const { data: tagRows } = await supa.from('tags').select('id').eq('employer_id', me.id).eq('tag', tag);
-  for(const row of (tagRows||[])) await supa.from('tags').delete().eq('id', row.id);
   invAllTags = await myTags();
   await refreshTagOptions();
+  toast(`${tag} removed — logged hours under that tag are untouched`);
+  renderEditClientMatters();
 }
 function renderEditMatterRowsHtml(matterId){
   const rows = editingMatterRows[matterId] || [];
@@ -3385,7 +3526,7 @@ function overlayClick(e, closeFn){
 }
 
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); }
+  if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); endTutorial(); }
 });
 
 if('serviceWorker' in navigator){
@@ -3394,6 +3535,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-17.1</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-18.2</div>
 </body>
 </html>
