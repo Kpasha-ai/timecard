@@ -425,7 +425,7 @@
           <div class="field"><label>First name <span class="req">*</span></label><input id="firstName"></div>
           <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName"></div>
         </div>
-        <div class="field"><label>Username <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="username" placeholder="e.g. pasha"></div>
+        <div class="field"><label>Username <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="username" placeholder="e.g. jsmith"></div>
         <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567"></div>
         <div class="field"><label>Your rate of pay ($/h) <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
           <input id="signupRate" type="number" min="0" step="5" placeholder="0">
@@ -1203,7 +1203,7 @@ async function submitAuth(){
       if(data.user && !data.session){
         return msg('Account created — check your email to confirm, then sign in.', true);
       }
-      if(data.user) await enterApp(data.user);
+      if(data.user) await enterApp(data.user, { showLoginAnimation: true });
     } else {
       const { data, error } = await supa.auth.signInWithPassword({ email, password });
       if(error) return msg(errText(error));
@@ -3979,6 +3979,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.6</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.7</div>
 </body>
 </html>
