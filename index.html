@@ -1258,10 +1258,9 @@ const tutorialSteps = [
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
   { target: 'tabPay', view: 'pay', title: 'Paystub', text: 'Set your hourly rate and when your pay period starts here. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together.' },
   { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
-  { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: roles', text: "Everyone starts as a Team Member, who can only bill their own hours. A Team Lead has full billing power — they can bill for the whole team and set custom rates. A Team Manager has everything a Lead has, plus the ability to promote and demote people." },
-  { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: promoting people', text: 'Managers can promote someone right from the roster — click "Lead" or "Manager" next to their name and confirm. Demoting is instant, no confirmation needed. Regular team members won\'t see these buttons at all.' },
   { target: 'teamSubTabMatters', view: 'team', after: () => setTeamSubView('matters'), title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
-  { target: 'tabMatters', view: 'matters', title: 'Client/Job', text: "This is where you set up who you're billing. Add a client, then create a job under them with its own tag and rate — that tag is what ties your logged hours to a specific client and case." },
+  { target: 'tabMatters', view: 'matters', title: 'Client/Job: add a client', text: 'Hit "+ Create Job" to add a new client — enter their name (or business name) and contact info, then give their first job a tag and rate. That tag is what ties your logged hours to this specific client and case.' },
+  { target: 'tabMatters', view: 'matters', title: 'Client/Job: multiple cases', text: 'A client can have more than one case or job — click "+ Add job" on their row anytime to add another, each with its own tag and rate. Handy for a company with several matters, or different work billed at different rates.' },
   { target: 'addExpenseMainBtn', view: 'expenses', title: 'Expenses', text: 'Log anything beyond hours here — meals, supplies, mileage. For mileage, enter the miles and rate per mile and the total calculates itself. Receipts can be attached too.' },
   { target: 'tabBilling', view: 'billing', title: 'Billing: case tags', text: "This turns logged hours into a client invoice. Pick a case tag to bill — only hours you logged under that exact tag in Timesheet get pulled in, so tagging your work to the right job is what makes it billable here at all." },
   { target: 'tabBilling', view: 'billing', title: 'Billing: your rate', text: "The rate shown here defaults to your own hourly rate, but you can change it just for this one invoice — that override doesn't touch your actual rate anywhere else, it only affects this bill." },
@@ -3979,6 +3978,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.7</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.8</div>
 </body>
 </html>
