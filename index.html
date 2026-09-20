@@ -420,20 +420,16 @@
         <button id="tabLogin" class="active" onclick="setMode('login')">Sign in</button>
         <button id="tabReg" onclick="setMode('register')">Create account</button>
       </div>
-      <div id="regFields" style="display:none">
-        <div class="row2">
-          <div class="field"><label>First name <span class="req">*</span></label><input id="firstName"></div>
-          <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName"></div>
-        </div>
-        <div class="field"><label>Username <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label><input id="username" placeholder="e.g. jsmith"></div>
-        <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567"></div>
-        <div class="field"><label>Your rate of pay ($/h) <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
-          <input id="signupRate" type="number" min="0" step="5" placeholder="0">
-          <p class="hint" style="margin-top:5px">Your standard rate — shows up on Pay, and is the default when adding hours or setting up a job. You can change it anytime.</p>
-        </div>
-      </div>
       <div class="field"><label>Email <span class="req">*</span></label><input id="email" type="email" autocomplete="email"></div>
       <div class="field" id="confirmEmailField" style="display:none"><label>Confirm email <span class="req">*</span></label><input id="confirmEmail" type="email" autocomplete="email"></div>
+      <div id="regFields" style="display:none">
+        <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567" autocomplete="tel"></div>
+        <div class="row2">
+          <div class="field"><label>First name <span class="req">*</span></label><input id="firstName" autocomplete="given-name"></div>
+          <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName" autocomplete="family-name"></div>
+        </div>
+        <div class="field"><label>Username</label><input id="username" placeholder="e.g. jsmith" autocomplete="username"></div>
+      </div>
       <div class="field" id="passField"><label>Password <span class="req">*</span></label><input id="password" type="password" autocomplete="current-password"></div>
       <div class="field" id="pass2Field" style="display:none"><label>Confirm password <span class="req">*</span></label><input id="password2" type="password" autocomplete="new-password"></div>
       <p class="link" id="forgotLink"><a href="javascript:void(0)" onclick="setMode('reset')">Forgot password?</a></p>
@@ -521,8 +517,8 @@
           <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="onAvatarFileSelected(this.files)">
           <span class="topbar-code" id="topbarCode"></span>
         </div>
-        <button class="btn-ghost" id="tutorialBtn" onclick="startTutorial()" style="margin-left:auto">Tutorial</button>
-        <button class="btn-ghost" id="topbarSignOut" onclick="signOut()">Sign out</button>
+        <button class="voice-log-btn" id="tutorialBtn" onclick="startTutorial()" style="margin-left:auto">Tutorial</button>
+        <button class="voice-log-btn" id="topbarSignOut" onclick="signOut()" style="margin-left:12px">Sign out</button>
       </div>
       <main>
     <div id="timesheetHeaderRow" style="display:flex;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:10px">
@@ -864,7 +860,7 @@
   <div class="modal" style="max-width:400px">
     <div class="modal-head"><h2>Create team</h2><button class="close" onclick="closeCreateTeam()">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Team name</label><input id="newTeamNameInput" placeholder="e.g. Kamarei Consulting"></div>
+      <div class="field"><label>Team name</label><input id="newTeamNameInput" placeholder="e.g. Smith Consulting"></div>
       <button class="btn btn-primary" onclick="submitCreateTeam()">Create team</button>
     </div>
   </div>
@@ -1163,6 +1159,16 @@ function setMode(m){
   $('forgotLink').style.display = m==='login' ? '' : 'none';
   $('backLink').style.display = m==='reset' ? '' : 'none';
   $('goBtn').textContent = m==='login' ? 'Sign in' : m==='register' ? 'Create account' : 'Send reset email';
+  // "new-password" (rather than "current-password") is what tells the browser
+  // this isn't an existing saved login — without it, Chrome can pop up its
+  // own saved-password suggestion here, mismatched to whatever email it has
+  // on file rather than the one just typed above
+  $('password').autocomplete = m==='register' ? 'new-password' : 'current-password';
+  if(m==='register'){
+    // fresh fields every time Create Account is opened, so nothing lingers
+    // from a prior attempt and the browser has nothing pre-filled to suggest from
+    ['email','confirmEmail','password','password2','firstName','lastName','username','signupPhone'].forEach(id => $(id).value = '');
+  }
   msg('');
 }
 function msg(t, ok){ const e=$('msg'); e.textContent=t; e.className='msg'+(t?(ok?' ok':' err'):''); }
@@ -1185,8 +1191,6 @@ async function submitAuth(){
       const username = $('username').value.trim().toLowerCase();
       const phone = $('signupPhone').value.trim();
       const confirmEmail = $('confirmEmail').value.trim();
-      const signupRateVal = parseFloat($('signupRate').value);
-      const signupRate = (!isNaN(signupRateVal) && signupRateVal >= 0) ? signupRateVal : 0;
       const password2 = $('password2').value;
       if(!first || !last) return msg('Enter your first and last name.');
       if(!phone) return msg('Enter a phone number.');
@@ -1197,7 +1201,7 @@ async function submitAuth(){
       const color = TEAM_COLORS[Math.floor(Math.random()*TEAM_COLORS.length)];
       const { data, error } = await supa.auth.signUp({
         email, password,
-        options: { data: { first_name:first, last_name:last, username, phone, role:'worker', color, rate:signupRate } }
+        options: { data: { first_name:first, last_name:last, username, phone, role:'worker', color, rate:0 } }
       });
       if(error) return msg(errText(error));
       if(data.user && !data.session){
@@ -1256,7 +1260,7 @@ const tutorialSteps = [
   { target: 'tabTimesheet', view: 'week', title: 'Timesheet', text: "This is your home base — it tracks every hour you personally work, tagged to a job or not. Think of it as your own complete time record, separate from what gets billed to any client. Switch between Week and Month views up top." },
   { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
-  { target: 'tabPay', view: 'pay', title: 'Paystub', text: 'Set your hourly rate and when your pay period starts here. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together.' },
+  { target: 'tabPay', view: 'pay', title: 'Paystub', text: "Set your hourly rate here first — it starts at $0 until you do, and it's the default used when adding hours or setting up a job. This is also where you set when your pay period starts. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together." },
   { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
   { target: 'teamSubTabMatters', view: 'team', after: () => setTeamSubView('matters'), title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
   { target: 'tabMatters', view: 'matters', title: 'Client/Job: add a client', text: 'Hit "+ Create Job" to add a new client — enter their name (or business name) and contact info, then give their first job a tag and rate. That tag is what ties your logged hours to this specific client and case.' },
@@ -3978,6 +3982,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.8</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.9</div>
 </body>
 </html>
