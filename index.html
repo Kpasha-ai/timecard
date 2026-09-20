@@ -517,7 +517,10 @@
           <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="onAvatarFileSelected(this.files)">
           <span class="topbar-code" id="topbarCode"></span>
         </div>
-        <button class="voice-log-btn" id="tutorialBtn" onclick="startTutorial()" style="margin-left:auto">Tutorial</button>
+        <button class="voice-log-btn" id="feedbackBtn" onclick="openFeedback()" title="Send feedback" style="margin-left:auto;width:42px;height:42px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+        <button class="voice-log-btn" id="tutorialBtn" onclick="startTutorial()" style="margin-left:12px">Tutorial</button>
         <button class="voice-log-btn" id="topbarSignOut" onclick="signOut()" style="margin-left:12px">Sign out</button>
       </div>
       <main>
@@ -907,6 +910,30 @@
         <p style="margin:0 0 12px">Which team?</p>
         <div id="addToTeamTeamList"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK -->
+<div class="overlay" id="feedbackOverlay" onclick="overlayClick(event, closeFeedback)">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head"><h2>Send feedback</h2><button class="close" onclick="closeFeedback()">✕</button></div>
+    <div class="modal-body">
+      <p class="hint" style="margin-top:0">Everything here is optional — send as much or as little as you'd like.</p>
+      <div class="field">
+        <label>Rate the app <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <div id="feedbackStars" style="font-size:30px;letter-spacing:6px;margin-top:4px"></div>
+      </div>
+      <div class="field"><label>What did you like? <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <textarea id="feedbackLiked" rows="2" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
+      </div>
+      <div class="field"><label>What would you change? <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <textarea id="feedbackChange" rows="2" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
+      </div>
+      <div class="field"><label>Additional feedback <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+        <textarea id="feedbackAdditional" rows="2" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="submitFeedback()">Send feedback</button>
     </div>
   </div>
 </div>
@@ -3381,6 +3408,42 @@ async function removeFromTeamMatters(matterId){
   toast('Removed from Team Matters');
 }
 
+/* ================= feedback ================= */
+let feedbackRating = 0;   // 0 means "no rating given" — entirely optional
+function openFeedback(){
+  feedbackRating = 0;
+  $('feedbackLiked').value = '';
+  $('feedbackChange').value = '';
+  $('feedbackAdditional').value = '';
+  renderFeedbackStars();
+  $('feedbackOverlay').classList.add('on');
+}
+function closeFeedback(){ $('feedbackOverlay').classList.remove('on'); }
+function renderFeedbackStars(){
+  const box = $('feedbackStars');
+  box.innerHTML = [1,2,3,4,5].map(n =>
+    `<span onclick="setFeedbackRating(${n})" style="cursor:pointer;color:${n<=feedbackRating?'#D98E2B':'var(--line)'}">★</span>`
+  ).join('');
+}
+function setFeedbackRating(n){
+  feedbackRating = (feedbackRating === n) ? 0 : n;   // clicking the same star again clears it, since a rating is optional
+  renderFeedbackStars();
+}
+async function submitFeedback(){
+  const rating = feedbackRating || null;
+  const liked = $('feedbackLiked').value.trim() || null;
+  const changeWanted = $('feedbackChange').value.trim() || null;
+  const additional = $('feedbackAdditional').value.trim() || null;
+
+  const { error } = await supa.from('feedback').insert({
+    user_id: me.id, rating, liked, change_wanted: changeWanted, additional
+  });
+  if(error) return toast('Could not send feedback — try again');
+
+  closeFeedback();
+  toast('Thanks for the feedback!');
+}
+
 let editingClientId = null;
 let editingClientMatters = [];   // [{id, tag}]
 let editingMatterRows = {};      // matterId -> [{memberId, rate}]
@@ -3984,6 +4047,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.10</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.12</div>
 </body>
 </html>
