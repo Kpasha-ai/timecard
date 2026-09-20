@@ -421,17 +421,17 @@
         <button id="tabReg" onclick="setMode('register')">Create account</button>
       </div>
       <div class="field"><label>Email <span class="req">*</span></label><input id="email" type="email" autocomplete="email"></div>
-      <div class="field" id="confirmEmailField" style="display:none"><label>Confirm email <span class="req">*</span></label><input id="confirmEmail" type="email" autocomplete="email"></div>
+      <div class="field" id="confirmEmailField" style="display:none"><label>Confirm email <span class="req">*</span></label><input id="confirmEmail" type="email" autocomplete="off"></div>
       <div id="regFields" style="display:none">
-        <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567" autocomplete="tel"></div>
+        <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567" autocomplete="off"></div>
         <div class="row2">
-          <div class="field"><label>First name <span class="req">*</span></label><input id="firstName" autocomplete="given-name"></div>
-          <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName" autocomplete="family-name"></div>
+          <div class="field"><label>First name <span class="req">*</span></label><input id="firstName" autocomplete="off"></div>
+          <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName" autocomplete="off"></div>
         </div>
-        <div class="field"><label>Username</label><input id="username" placeholder="e.g. jsmith" autocomplete="username"></div>
+        <div class="field"><label>Username</label><input id="username" placeholder="e.g. jsmith" autocomplete="off"></div>
       </div>
       <div class="field" id="passField"><label>Password <span class="req">*</span></label><input id="password" type="password" autocomplete="current-password"></div>
-      <div class="field" id="pass2Field" style="display:none"><label>Confirm password <span class="req">*</span></label><input id="password2" type="password" autocomplete="new-password"></div>
+      <div class="field" id="pass2Field" style="display:none"><label>Confirm password <span class="req">*</span></label><input id="password2" type="password" autocomplete="off"></div>
       <p class="link" id="forgotLink"><a href="javascript:void(0)" onclick="setMode('reset')">Forgot password?</a></p>
       <p class="link" id="backLink" style="display:none"><a href="javascript:void(0)" onclick="setMode('login')">‹ Back to sign in</a></p>
       <button class="btn btn-primary" id="goBtn" onclick="submitAuth()">Sign in</button>
@@ -1159,11 +1159,13 @@ function setMode(m){
   $('forgotLink').style.display = m==='login' ? '' : 'none';
   $('backLink').style.display = m==='reset' ? '' : 'none';
   $('goBtn').textContent = m==='login' ? 'Sign in' : m==='register' ? 'Create account' : 'Send reset email';
-  // "new-password" (rather than "current-password") is what tells the browser
-  // this isn't an existing saved login — without it, Chrome can pop up its
-  // own saved-password suggestion here, mismatched to whatever email it has
-  // on file rather than the one just typed above
-  $('password').autocomplete = m==='register' ? 'new-password' : 'current-password';
+  // fully off (not just "new-password") during signup — this is what actually
+  // stops Chrome's own saved-login and generated-password suggestion popups
+  // from appearing at all, rather than just relabeling which one it offers.
+  // Login mode keeps the helpful autocomplete values so returning users still
+  // get their browser's normal autofill there.
+  $('email').autocomplete = m==='register' ? 'off' : 'email';
+  $('password').autocomplete = m==='register' ? 'off' : 'current-password';
   if(m==='register'){
     // fresh fields every time Create Account is opened, so nothing lingers
     // from a prior attempt and the browser has nothing pre-filled to suggest from
@@ -3982,6 +3984,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.9</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.10</div>
 </body>
 </html>
