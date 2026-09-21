@@ -124,6 +124,24 @@
   .brand{font-family:var(--display);font-weight:700;font-size:28px}
   .brand small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--sage-mist);margin-top:4px}
   .auth-body{padding:24px 28px 28px}
+  .auth-layout{display:flex;align-items:flex-start;justify-content:center;gap:22px;max-width:1060px;width:100%;flex-wrap:wrap}
+  .auth-layout .auth-card{order:2;flex-shrink:0}
+  .auth-side-panel{order:1;width:280px;flex-shrink:0;background:var(--bone);border-radius:14px;padding:22px 24px;box-shadow:0 12px 32px rgba(0,0,0,.25);align-self:stretch;display:flex;flex-direction:column}
+  .auth-updates-panel{order:3}
+  .auth-side-panel h3{font-family:var(--display);font-size:16px;margin:0 0 12px;color:var(--pine)}
+  .auth-about-panel p{font-size:13.5px;line-height:1.65;color:var(--ink-dim);margin:0}
+  .update-entry{padding:12px 0;border-bottom:1px solid var(--line)}
+  .update-entry:last-child{border-bottom:0;padding-bottom:0}
+  .update-entry:first-child{padding-top:0}
+  .update-entry-date{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim)}
+  .update-entry-title{font-size:13.5px;font-weight:700;color:var(--ink);margin:3px 0 5px}
+  .update-entry-readmore{font-size:12px;font-weight:600;color:var(--sage);cursor:pointer;background:none;border:0;padding:0;text-decoration:underline}
+  @media (max-width:900px){
+    .auth-side-panel{width:100%;max-width:400px}
+    .auth-layout .auth-card{order:1}
+    .auth-about-panel{order:2}
+    .auth-updates-panel{order:3}
+  }
   .tabs{display:flex;gap:6px;background:var(--bone);border-radius:8px;padding:4px;margin-bottom:18px}
   .tabs button{flex:1;border:0;background:transparent;padding:8px;border-radius:6px;font-weight:600;font-size:13px;color:var(--ink-dim)}
   .tabs button.active{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -415,7 +433,12 @@
 <body>
 
 <div class="auth-wrap" id="authScreen">
-  <div class="auth-card">
+  <div class="auth-layout">
+    <div class="auth-side-panel auth-about-panel">
+      <h3>About Timecard</h3>
+      <p>Timecard is a billable-hours and invoicing platform built for small teams and legal practices who need more than a basic time tracker. Log hours by the minute, flat rate, or per diem, then turn any pay period into a polished, numbered invoice with one click. Create clients and jobs with their own rates, tag every hour to the right case, and bill your team's work alongside your own. Teams get role-based permissions — members, leads, and managers — so only the right people can bill on the firm's behalf. Share cases across your team, invite teammates by code, and keep everyone's hours visible in one shared calendar. Timecard is currently in active beta with real teams testing it on real work. We'd love your feedback — there's a button for it right inside the app.</p>
+    </div>
+    <div class="auth-card">
     <div class="auth-head"><div class="brand">Timecard<small>SUPABASE</small></div></div>
     <div class="auth-body">
       <div class="tabs">
@@ -446,6 +469,22 @@
       <button class="btn btn-primary" id="goBtn" onclick="submitAuth()">Sign in</button>
       <div class="msg" id="msg"></div>
       <div class="status" id="status">Connecting…</div>
+    </div>
+    </div>
+    <div class="auth-side-panel auth-updates-panel">
+      <h3>What's New</h3>
+      <div id="updatesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE DETAIL POPUP -->
+<div class="overlay" id="updateDetailOverlay" onclick="overlayClick(event, closeUpdateDetail)">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head"><h2 id="updateDetailTitle">Update</h2><button class="close" onclick="closeUpdateDetail()">✕</button></div>
+    <div class="modal-body">
+      <p class="hint" id="updateDetailMeta" style="margin-top:0"></p>
+      <ul id="updateDetailChanges" style="margin:0;padding-left:20px;line-height:1.7"></ul>
     </div>
   </div>
 </div>
@@ -1120,6 +1159,67 @@ const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let me = null;          // { id, username, first_name, last_name, ... } from profiles
 let mode = 'login';
 let anchor = new Date();
+// Shown on the login page's "What's New" panel. Add new entries to the TOP
+// of this array (newest first) each time a build ships — date, build
+// marker, a short title, and a few plain-language bullet points of what
+// changed. Nothing here is read from the database; it's just maintained
+// by hand right alongside the code.
+const UPDATE_LOG = [
+  {
+    date: 'Sep 21, 2026', build: '2026-09-19.18', title: 'Team creation reliability',
+    changes: [
+      'Creating or joining a team now double-checks it actually saved before saying so, instead of just assuming success',
+      'Fixed a timing issue where the onboarding walkthrough covered the page before you could see your new team appear',
+      'Fixed Chrome auto-filling a saved password on the sign-in and sign-up pages'
+    ]
+  },
+  {
+    date: 'Sep 20, 2026', build: '2026-09-19.16', title: '"Paystub" renamed to "My Invoice"',
+    changes: [
+      '"Paystub" is now called "My Invoice" everywhere in the app',
+      'My Invoice and Billing now each print their own invoice numbers (M0001, M0002... and B0001, B0002...)',
+      'Fixed long descriptions getting cut off in the invoice PDF',
+      'Fixed a day with more than one entry sometimes not showing all of its hours on the PDF'
+    ]
+  },
+  {
+    date: 'Sep 19, 2026', build: '2026-09-19.6', title: 'Team Matters moved inside Team',
+    changes: [
+      'Team Matters is now a tab right next to Team, instead of its own separate page in the sidebar',
+      'Cleaned up the old, separate team invite system in favor of the new role-based one',
+      'Added a short walkthrough that plays the first time you create or join a team'
+    ]
+  },
+  {
+    date: 'Sep 18, 2026', build: '2026-09-18.1', title: 'Team roles and multi-team support',
+    changes: [
+      'You can now create or join more than one named team',
+      'Added Team Member, Team Lead, and Team Manager roles, each with different billing permissions',
+      'Added a feedback button so anyone testing the app can send suggestions directly'
+    ]
+  }
+];
+function renderUpdatesList(){
+  const box = $('updatesList');
+  if(!box) return;
+  box.innerHTML = UPDATE_LOG.map((u,i) => `
+    <div class="update-entry">
+      <div class="update-entry-date">${escapeHtml(u.date)} — ${escapeHtml(u.build)}</div>
+      <div class="update-entry-title">${escapeHtml(u.title)}</div>
+      <button class="update-entry-readmore" onclick="openUpdateDetail(${i})">Read more</button>
+    </div>
+  `).join('');
+}
+function openUpdateDetail(i){
+  const u = UPDATE_LOG[i];
+  if(!u) return;
+  $('updateDetailTitle').textContent = u.title;
+  $('updateDetailMeta').textContent = `${u.date} — Build ${u.build}`;
+  $('updateDetailChanges').innerHTML = u.changes.map(c => `<li>${escapeHtml(c)}</li>`).join('');
+  $('updateDetailOverlay').classList.add('on');
+}
+function closeUpdateDetail(){ $('updateDetailOverlay').classList.remove('on'); }
+
 const TEAM_COLORS = ['#4E7A68','#D98E2B','#7A5EA8','#B4452F','#3E6E9E','#8C7B2F','#A85E7E','#2F8C86','#C0562A','#5B6EBF'];
 const _tcRegionMeta = { origin: 'q9f-4471', seq: 205817, checksum: 'x02mk7' };
 function lightTint(hex, alpha){ return hex + alpha; }   // hex + 2-digit alpha suffix, e.g. '#4E7A6822'
@@ -1182,6 +1282,7 @@ function segHours(i,o){ if(!i||!o) return 0; const m=t=>{const[h,mm]=t.split(':'
   // resume an existing session if there is one
   const { data:{ session } } = await supa.auth.getSession();
   if(session) await enterApp(session.user);
+  renderUpdatesList();
 })();
 
 /* ================= auth ================= */
@@ -2856,7 +2957,14 @@ function genTeamCode(){
 }
 
 async function loadMyTeamsPanel(){
-  const { data: memberships } = await supa.from('team_members').select('*').eq('user_id', me.id);
+  const { data: memberships, error } = await supa.from('team_members').select('*').eq('user_id', me.id);
+  if(error){
+    // don't silently treat a failed query as "you have no teams" — that's
+    // exactly what let a database-side bug masquerade as missing data
+    // before, and led straight to duplicate teams being created
+    toast(`Could not load your teams: ${errText(error)}`);
+    return;
+  }
   const teamIds = [...new Set((memberships||[]).map(m=>m.team_id))];
   let teamsById = {};
   if(teamIds.length){
@@ -4088,6 +4196,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.18</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.20</div>
 </body>
 </html>
