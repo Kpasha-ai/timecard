@@ -124,9 +124,9 @@
   .brand{font-family:var(--display);font-weight:700;font-size:28px}
   .brand small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--sage-mist);margin-top:4px}
   .auth-body{padding:24px 28px 28px}
-  .auth-layout{display:flex;align-items:flex-start;justify-content:center;gap:22px;max-width:1060px;width:100%;flex-wrap:wrap}
+  .auth-layout{display:flex;align-items:flex-start;justify-content:space-between;gap:60px;max-width:1400px;width:100%;flex-wrap:wrap}
   .auth-layout .auth-card{order:2;flex-shrink:0}
-  .auth-side-panel{order:1;width:280px;flex-shrink:0;background:var(--bone);border-radius:14px;padding:22px 24px;box-shadow:0 12px 32px rgba(0,0,0,.25);align-self:stretch;display:flex;flex-direction:column}
+  .auth-side-panel{order:1;width:280px;flex-shrink:0;background:rgba(255,255,255,.88);backdrop-filter:blur(6px);border-radius:14px;padding:22px 24px;box-shadow:0 12px 32px rgba(0,0,0,.25);align-self:stretch;display:flex;flex-direction:column}
   .auth-updates-panel{order:3}
   .auth-side-panel h3{font-family:var(--display);font-size:16px;margin:0 0 12px;color:var(--pine)}
   .auth-about-panel p{font-size:13.5px;line-height:1.65;color:var(--ink-dim);margin:0}
@@ -437,8 +437,8 @@
 <div class="auth-wrap" id="authScreen">
   <div class="auth-layout">
     <div class="auth-side-panel auth-about-panel">
-      <h3>About Timecard</h3>
-      <p>Timecard is a billable-hours and invoicing platform built for small teams and legal practices who need more than a basic time tracker. Log hours by the minute, flat rate, or per diem, then turn any pay period into a polished, numbered invoice with one click. Create clients and jobs with their own rates, tag every hour to the right case, and bill your team's work alongside your own. Teams get role-based permissions — members, leads, and managers — so only the right people can bill on the firm's behalf. Share cases across your team, invite teammates by code, and keep everyone's hours visible in one shared calendar. Timecard is currently in active beta with real teams testing it on real work. We'd love your feedback — there's a button for it right inside the app.</p>
+      <h3>About Us</h3>
+      <p>We're a billable-hours tracker built for contract workers and small teams just starting off, who need something simple to manage and bill their time. Log hours by the minute, flat rate, or per diem, then turn any pay period into a polished, numbered invoice with one click. Add clients and jobs with their own rates, and tag every hour to the right one. Share cases with teammates and keep everyone's hours visible in one place. We're currently in active beta — we'd love your feedback, right from the button inside the app.</p>
     </div>
     <div class="auth-card">
     <div class="auth-head"><div class="brand">Timecard<small>SUPABASE</small></div></div>
@@ -4229,6 +4229,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.21</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.23</div>
 </body>
 </html>
