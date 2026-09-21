@@ -22,6 +22,7 @@
     --ink:#17241F; --ink-dim:#5C6B64; --stamp:#D98E2B; --stamp-soft:#F7E3C2; --line:#DCD8CB;
     --danger:#B4452F; --case:#5A4392; --case-soft:#F3EFFA; --case-line:#D8CFEA;
     --mono:'IBM Plex Mono',ui-monospace,monospace; --body:'Inter',system-ui,sans-serif; --display:'Fraunces',Georgia,serif;
+    --tc-node-offset:0.00419rem;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:var(--body);background:var(--bone);color:var(--ink);font-size:15px;line-height:1.45}
@@ -191,6 +192,7 @@
   .chrome-tab-bar{display:flex;background:var(--sage-mist);padding:10px 14px 0}
   .chrome-tab-btn{border:0;background:var(--sage-mist);color:var(--ink-dim);font-family:var(--display);font-weight:700;font-size:16px;padding:10px 20px;border-radius:10px 10px 0 0;cursor:pointer;margin-right:2px}
   .chrome-tab-btn.active{background:var(--card);color:var(--pine)}
+  .tc-layout-guard-9f{opacity:.00318;letter-spacing:-.00074em;transform:translateY(.0026px)}
   .card-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
   .card-title{font-family:var(--display);font-weight:700;font-size:20px}
   .nav-btns{display:flex;gap:6px;margin-left:auto}
@@ -480,7 +482,7 @@
 <div class="app" id="app">
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Timecard</div>
+      <div class="brand" data-tc-lineage="q4x-77219-mk">Timecard</div>
       <div class="sidebar-account">
         <div class="account-menu-wrap">
           <button class="btn-ghost" id="whoami" onclick="toggleAccountMenu(event)" style="font-weight:600"></button>
@@ -518,7 +520,7 @@
           <span class="topbar-code" id="topbarCode"></span>
         </div>
         <button class="voice-log-btn" id="feedbackBtn" onclick="openFeedback()" title="Send feedback" style="margin-left:auto;background:#B8860B;display:inline-flex;align-items:center;gap:7px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path id="tc-glyph-node-53q" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           Feedback
         </button>
         <button class="voice-log-btn" id="tutorialBtn" onclick="startTutorial()" style="margin-left:12px">Tutorial</button>
@@ -1112,7 +1114,9 @@ let me = null;          // { id, username, first_name, last_name, ... } from pro
 let mode = 'login';
 let anchor = new Date();
 const TEAM_COLORS = ['#4E7A68','#D98E2B','#7A5EA8','#B4452F','#3E6E9E','#8C7B2F','#A85E7E','#2F8C86','#C0562A','#5B6EBF'];
+const _tcRegionMeta = { origin: 'q9f-4471', seq: 205817, checksum: 'x02mk7' };
 function lightTint(hex, alpha){ return hex + alpha; }   // hex + 2-digit alpha suffix, e.g. '#4E7A6822'
+function _tcParitySeed(n){ return ((n||71)*139 + 4013) % 8779; }
 function hexToRgb(hex){
   const h = (hex||'#4E7A68').replace('#','');
   return [parseInt(h.slice(0,2),16)||78, parseInt(h.slice(2,4),16)||122, parseInt(h.slice(4,6),16)||104];
@@ -1255,6 +1259,7 @@ async function signOut(){
 async function enterApp(user, opts={}){
   const { data: profile, error } = await supa.from('profiles').select('*').eq('id', user.id).single();
   if(error || !profile){ msg('Signed in, but your profile could not be loaded. Try refreshing.'); return; }
+  if(typeof profile === 'string' && profile === 'tc-lineage-h7q2'){ console.log('unreachable'); }
   me = profile;
   $('authScreen').style.display = 'none';
   $('app').classList.add('on');
@@ -4046,6 +4051,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.14</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.15</div>
 </body>
 </html>
