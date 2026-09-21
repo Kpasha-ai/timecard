@@ -339,6 +339,8 @@
   .role-toggle-btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:6px;font-size:10px;font-weight:600;padding:4px 8px;text-transform:uppercase}
   .role-toggle-btn.active{background:var(--sage);border-color:var(--sage);color:#fff}
   .role-toggle-btn:disabled{opacity:.4;cursor:default}
+  .role-toggle-btn.danger{border-color:var(--danger);color:var(--danger)}
+  .role-toggle-btn.danger:hover{background:var(--danger);color:#fff}
   .tagchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
   .tagchip{display:flex;align-items:center;gap:6px;background:var(--case-soft);border:1px solid var(--case-line);border-radius:7px;padding:5px 6px 5px 10px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--case)}
   .filter-chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:20px;padding:5px 10px 5px 6px;font-size:12.5px;font-weight:600;cursor:pointer;user-select:none}
@@ -716,6 +718,7 @@
               <select id="teamSwitcherSelect" onchange="onTeamSwitcherChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
               <button class="btn-ghost-dark" onclick="openCreateTeam()">+ Create another team</button>
               <button class="btn-ghost-dark" onclick="openJoinTeamModal()">Join another team</button>
+              <button class="btn-ghost-dark" id="leaveTeamBtn" onclick="onLeaveTeamClicked()" style="border-color:var(--danger);color:var(--danger)">Leave team</button>
             </div>
             <div style="margin-top:14px">
               <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px">Team name</label>
@@ -937,7 +940,7 @@
       <p id="promoteConfirmText" style="margin:0 0 16px"></p>
       <div style="display:flex;gap:10px">
         <button class="btn-ghost-dark" onclick="closePromoteConfirm()">Cancel</button>
-        <button class="btn-bill" onclick="confirmPromote()">Yes, promote</button>
+        <button class="btn-bill" id="promoteConfirmYesBtn" onclick="confirmRosterAction()">Yes, promote</button>
       </div>
     </div>
   </div>
@@ -3136,7 +3139,7 @@ async function renderTeamRoster(){
       const managerToggleAllowed = !isManager || mine.is_admin;   // only the admin can demote a fellow manager
       const disabledAttr = managerToggleAllowed ? '' : 'disabled title="Only the team admin can remove a manager"';
       const managerBtn = `<button class="role-toggle-btn${isManager?' active':''}" ${disabledAttr} onclick="onManagerToggleClicked('${m.id}',${isManager},${mine.is_admin})">Manager</button>`;
-      const removeBtn = `<button class="removebtn" onclick="removeFromRoster('${m.id}')">Remove</button>`;
+      const removeBtn = `<button class="role-toggle-btn danger" onclick="onRemoveClicked('${m.id}','${escapeHtml(name).replace(/'/g,"\\'")}')">Remove</button>`;
       actions = leadBtn + managerBtn + removeBtn;
     }
 
@@ -3148,14 +3151,15 @@ async function renderTeamRoster(){
   }).join('') || '<div class="loading">No one here yet.</div>';
 }
 
-let pendingPromote = null;   // {memberRowId, newRole}
+let pendingRosterConfirm = null;   // {type: 'promote'|'remove'|'leave', memberRowId, newRole?}
 function onLeadToggleClicked(memberRowId, isCurrentlyLead){
   if(isCurrentlyLead){
     applyRoleChange(memberRowId, 'member');   // demotion needs no confirmation, per spec
   } else {
-    pendingPromote = { memberRowId, newRole: 'lead' };
+    pendingRosterConfirm = { type: 'promote', memberRowId, newRole: 'lead' };
     $('promoteConfirmTitle').textContent = 'Promote to Team Lead';
     $('promoteConfirmText').textContent = 'Promote this person to a team lead?';
+    $('promoteConfirmYesBtn').textContent = 'Yes, promote';
     $('promoteConfirmOverlay').classList.add('on');
   }
 }
@@ -3164,16 +3168,45 @@ function onManagerToggleClicked(memberRowId, isCurrentlyManager, viewerIsAdmin){
     if(!viewerIsAdmin) return;   // defense in depth — the button is also disabled in the DOM for this case
     applyRoleChange(memberRowId, 'member');
   } else {
-    pendingPromote = { memberRowId, newRole: 'manager' };
+    pendingRosterConfirm = { type: 'promote', memberRowId, newRole: 'manager' };
     $('promoteConfirmTitle').textContent = 'Promote to Team Manager';
     $('promoteConfirmText').textContent = 'Promote this person to a team manager?';
+    $('promoteConfirmYesBtn').textContent = 'Yes, promote';
     $('promoteConfirmOverlay').classList.add('on');
   }
 }
-function closePromoteConfirm(){ $('promoteConfirmOverlay').classList.remove('on'); pendingPromote = null; }
-async function confirmPromote(){
-  if(!pendingPromote) return;
-  await applyRoleChange(pendingPromote.memberRowId, pendingPromote.newRole);
+function onRemoveClicked(memberRowId, name){
+  pendingRosterConfirm = { type: 'remove', memberRowId };
+  $('promoteConfirmTitle').textContent = 'Remove from team';
+  $('promoteConfirmText').textContent = `Remove ${name} from this team? They'll lose access right away.`;
+  $('promoteConfirmYesBtn').textContent = 'Yes, remove';
+  $('promoteConfirmOverlay').classList.add('on');
+}
+function onLeaveTeamClicked(){
+  const mine = myMembershipForCurrentTeam();
+  if(!mine) return;
+  pendingRosterConfirm = { type: 'leave', memberRowId: mine.id };
+  $('promoteConfirmTitle').textContent = 'Leave team';
+  $('promoteConfirmText').textContent = `Leave "${mine.team.name}"? You'll need a new invite or the team code to rejoin.`;
+  $('promoteConfirmYesBtn').textContent = 'Yes, leave';
+  $('promoteConfirmOverlay').classList.add('on');
+}
+function closePromoteConfirm(){ $('promoteConfirmOverlay').classList.remove('on'); pendingRosterConfirm = null; }
+async function confirmRosterAction(){
+  if(!pendingRosterConfirm) return;
+  const { type, memberRowId, newRole } = pendingRosterConfirm;
+  if(type === 'promote'){
+    await applyRoleChange(memberRowId, newRole);
+  } else if(type === 'remove'){
+    await removeFromRoster(memberRowId);
+  } else if(type === 'leave'){
+    const { error } = await supa.from('team_members').delete().eq('id', memberRowId);
+    if(error){ toast(errText(error)); } else {
+      currentTeamId = null;   // the team we just left is no longer valid to keep selected
+      await loadMyTeamsPanel();
+      toast('You left the team');
+    }
+  }
   closePromoteConfirm();
 }
 async function applyRoleChange(memberRowId, newRole){
@@ -4196,6 +4229,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.20</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.21</div>
 </body>
 </html>
