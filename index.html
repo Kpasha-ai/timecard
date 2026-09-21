@@ -387,7 +387,7 @@
   .expense-row>button:nth-child(6){grid-area:del}
 
   /* Pay: period on its own line (it's already long — date range + badges),
-     hours/rate/pay compact below, then the checkbox+paystub button */
+     hours/rate/pay compact below, then the checkbox+My Invoice button */
   .pay-row{grid-template-columns:1fr 1fr 1fr !important;grid-template-areas:"period period period" "hrs rate pay" "actions actions actions";row-gap:6px;padding:12px 8px}
   .pay-row.head{display:none}
   .pay-row .pr-period{grid-area:period;font-size:12.5px}
@@ -499,7 +499,7 @@
       </div>
       <nav class="side-tabs">
         <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
-        <button id="tabPay" onclick="setView('pay')">Paystub</button>
+        <button id="tabPay" onclick="setView('pay')">My Invoice</button>
         <button id="tabTeam" onclick="setView('team')">Team</button>
         <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
         <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
@@ -1293,7 +1293,7 @@ const tutorialSteps = [
   { target: 'tabTimesheet', view: 'week', title: 'Timesheet', text: "This is your home base — it tracks every hour you personally work, tagged to a job or not. Think of it as your own complete time record, separate from what gets billed to any client. Switch between Week and Month views up top." },
   { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
-  { target: 'tabPay', view: 'pay', title: 'Paystub', text: "Set your hourly rate here first — it starts at $0 until you do, and it's the default used when adding hours or setting up a job. This is also where you set when your pay period starts. Hit the Paystub button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together." },
+  { target: 'tabPay', view: 'pay', title: 'My Invoice', text: "Set your hourly rate here first — it starts at $0 until you do, and it's the default used when adding hours or setting up a job. This is also where you set when your pay period starts. Hit the My Invoice button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together, with its own invoice number." },
   { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
   { target: 'teamSubTabMatters', view: 'team', after: () => setTeamSubView('matters'), title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
   { target: 'tabMatters', view: 'matters', title: 'Client/Job: add a client', text: 'Hit "+ Create Job" to add a new client — enter their name (or business name) and contact info, then give their first job a tag and rate. That tag is what ties your logged hours to this specific client and case.' },
@@ -1845,7 +1845,7 @@ function renderPay(periods){
       <span class="pr-num pr-money">$${pay.toFixed(2)}</span>
       <span class="pr-actions">
         <label class="paidcheck"><input type="checkbox" ${paid?'checked':''} onchange="togglePaid('${p.key}',this.checked)"> Paid</label>
-        <button class="btn-stub-sm" onclick="makeStub('${p.key}')">Paystub</button>
+        <button class="btn-stub-sm" onclick="makeStub('${p.key}')">My Invoice</button>
       </span>
     </div>`;
   }
@@ -1890,7 +1890,7 @@ async function togglePaid(periodKey, checked){
   toast(checked ? 'Marked as paid ✓' : 'Marked as unpaid');
 }
 
-/* ================= paystub PDF ================= */
+/* ================= My Invoice PDF ================= */
 /* ================= add hours (quick entry) ================= */
 let addHoursClientsCache = [];
 let addHoursMattersCache = [];   // matters belonging to whichever client is currently selected
@@ -2693,6 +2693,7 @@ async function makeStub(periodKey){
   const totalExpenses = (expenses||[]).reduce((s,e)=>s+Number(e.amount||0), 0);
   const rate = Number(me.rate)||0;
   const gross = totalHours*rate + totalFlat + totalExpenses;
+  const invNum = await nextMyInvoiceNumber();
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'pt', format:'letter' });
@@ -2701,7 +2702,9 @@ async function makeStub(periodKey){
   doc.setFont('helvetica','bold'); doc.setFontSize(18);
   doc.text('TIMECARD', 48, 56);
   doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(90);
-  doc.text('PAY PERIOD STATEMENT', 48, 72);
+  doc.text('MY INVOICE', 48, 72);
+  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.text(`Invoice #${invNum}`, pageW-48, 56, {align:'right'});
   doc.setTextColor(0);
   doc.setFont('helvetica','bold'); doc.setFontSize(12);
   doc.text(`${me.first_name} ${me.last_name}`, 48, 100);
@@ -2797,8 +2800,8 @@ async function makeStub(periodKey){
   doc.text('GROSS PAY', 48, y);
   doc.text('$'+gross.toFixed(2), pageW-48, y, {align:'right'});
 
-  doc.save(`paystub-${me.username}-${periodKey}.pdf`);
-  toast('Paystub downloaded');
+  doc.save(`my-invoice-${invNum}-${me.username}.pdf`);
+  toast(`My Invoice ${invNum} downloaded`);
 }
 
 /* ================= billing: team + invites ================= */
@@ -3810,10 +3813,17 @@ function onBilledHours(idx, v){
 
 async function nextInvoiceNumber(){
   const { data } = await supa.from('invoice_counters').select('*').eq('employer_id', me.id).single();
-  let n = data?.next_number || 100;
+  let n = data?.next_number || 1;
   const { error } = await supa.from('invoice_counters').upsert({ employer_id: me.id, next_number: n+1 }, { onConflict:'employer_id' });
   if(error) toast('Warning: invoice number counter did not save — next invoice may repeat this number');
-  return String(n).padStart(5,'0');
+  return 'B' + String(n).padStart(4,'0');
+}
+async function nextMyInvoiceNumber(){
+  const { data } = await supa.from('my_invoice_counters').select('*').eq('user_id', me.id).single();
+  let n = data?.next_number || 1;
+  const { error } = await supa.from('my_invoice_counters').upsert({ user_id: me.id, next_number: n+1 }, { onConflict:'user_id' });
+  if(error) toast('Warning: invoice number counter did not save — next invoice may repeat this number');
+  return 'M' + String(n).padStart(4,'0');
 }
 
 async function generateClientInvoice(){
@@ -4051,6 +4061,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.15</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.16</div>
 </body>
 </html>
