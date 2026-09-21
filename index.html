@@ -2938,7 +2938,20 @@ async function submitCreateTeam(){
   closeCreateTeam();
   currentTeamId = team.id;
   await loadMyTeamsPanel();
+
+  // never claim success on faith alone — confirm the team actually shows up
+  // in what we can read back before saying so. If the writes above reported
+  // no error but the team still isn't visible here, that's a real signal
+  // something is wrong (commonly: a database policy blocking the read-back,
+  // or a required migration that was never run) — surface it clearly rather
+  // than silently telling the person it worked when it didn't
+  const confirmed = myTeamMemberships.some(m => m.team_id === team.id);
+  if(!confirmed){
+    toast(`"${name}" was created, but couldn't be confirmed — refresh and check your Team tab. If it's missing, a required database update may not have been run.`);
+    return;
+  }
   toast(`${name} created`);
+  await new Promise(r => setTimeout(r, 500));   // let the page visibly settle before the tutorial covers it
   await startTeamOnboarding();
 }
 
@@ -2963,7 +2976,14 @@ async function doJoinTeamByCode(code){
   logHist(`Joined team "${team.name}"`);
   currentTeamId = team.id;
   await loadMyTeamsPanel();
+
+  const confirmed = myTeamMemberships.some(m => m.team_id === team.id);
+  if(!confirmed){
+    toast(`Joined "${team.name}", but couldn't be confirmed — refresh and check your Team tab. If it's missing, a required database update may not have been run.`);
+    return;
+  }
   toast(`Joined ${team.name}`);
+  await new Promise(r => setTimeout(r, 500));   // let the page visibly settle before the tutorial covers it
   await startTeamOnboarding();
 }
 
@@ -4068,6 +4088,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.17</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.18</div>
 </body>
 </html>
