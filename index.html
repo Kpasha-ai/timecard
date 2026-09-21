@@ -422,18 +422,25 @@
         <button id="tabLogin" class="active" onclick="setMode('login')">Sign in</button>
         <button id="tabReg" onclick="setMode('register')">Create account</button>
       </div>
-      <div class="field"><label>Email <span class="req">*</span></label><input id="email" type="email" autocomplete="off"></div>
-      <div class="field" id="confirmEmailField" style="display:none"><label>Confirm email <span class="req">*</span></label><input id="confirmEmail" type="email" autocomplete="off"></div>
+      <!-- decoy fields: invisible to the person, but Chrome's autofill scans a form
+           top-to-bottom and grabs the FIRST matching email/password field it finds —
+           these absorb that behavior so it never reaches the real, visible fields
+           below. Standard technique for exactly this problem; autocomplete="off"
+           alone is known to be unreliable on login-shaped forms in Chrome. -->
+      <input type="email" name="user_contact_a1" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true" autocomplete="off">
+      <input type="password" name="user_secret_a1" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true" autocomplete="off">
+      <div class="field"><label>Email <span class="req">*</span></label><input id="email" name="tc_field_e7" type="email" autocomplete="off"></div>
+      <div class="field" id="confirmEmailField" style="display:none"><label>Confirm email <span class="req">*</span></label><input id="confirmEmail" name="tc_field_e8" type="email" autocomplete="off"></div>
       <div id="regFields" style="display:none">
-        <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" type="tel" placeholder="555-123-4567" autocomplete="off"></div>
+        <div class="field"><label>Phone <span class="req">*</span></label><input id="signupPhone" name="tc_field_p1" type="tel" placeholder="555-123-4567" autocomplete="off"></div>
         <div class="row2">
-          <div class="field"><label>First name <span class="req">*</span></label><input id="firstName" autocomplete="off"></div>
-          <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName" autocomplete="off"></div>
+          <div class="field"><label>First name <span class="req">*</span></label><input id="firstName" name="tc_field_f1" autocomplete="off"></div>
+          <div class="field"><label>Last name <span class="req">*</span></label><input id="lastName" name="tc_field_l1" autocomplete="off"></div>
         </div>
-        <div class="field"><label>Username</label><input id="username" placeholder="e.g. jsmith" autocomplete="off"></div>
+        <div class="field"><label>Username</label><input id="username" name="tc_field_u1" placeholder="e.g. jsmith" autocomplete="off"></div>
       </div>
-      <div class="field" id="passField"><label>Password <span class="req">*</span></label><input id="password" type="password" autocomplete="off"></div>
-      <div class="field" id="pass2Field" style="display:none"><label>Confirm password <span class="req">*</span></label><input id="password2" type="password" autocomplete="off"></div>
+      <div class="field" id="passField"><label>Password <span class="req">*</span></label><input id="password" name="tc_field_s7" type="password" autocomplete="off"></div>
+      <div class="field" id="pass2Field" style="display:none"><label>Confirm password <span class="req">*</span></label><input id="password2" name="tc_field_s8" type="password" autocomplete="off"></div>
       <p class="link" id="forgotLink"><a href="javascript:void(0)" onclick="setMode('reset')">Forgot password?</a></p>
       <p class="link" id="backLink" style="display:none"><a href="javascript:void(0)" onclick="setMode('login')">‹ Back to sign in</a></p>
       <button class="btn btn-primary" id="goBtn" onclick="submitAuth()">Sign in</button>
@@ -4061,6 +4068,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.16</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.17</div>
 </body>
 </html>
