@@ -547,7 +547,7 @@
       </div>
       <nav class="side-tabs">
         <button id="tabTimesheet" class="active" onclick="goToTimesheet()">Timesheet</button>
-        <button id="tabPay" onclick="setView('pay')">My Invoice</button>
+        <button id="tabPay" onclick="setView('pay')">My Hours</button>
         <button id="tabTeam" onclick="setView('team')">Team</button>
         <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
         <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
@@ -774,7 +774,7 @@
             <select id="teamMattersTeamSelect" onchange="onTeamMattersTeamChange()" style="max-width:240px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px"></select>
           </div>
           <div class="bpanel">
-            <h3>Shared cases</h3>
+            <h3 style="display:flex;align-items:center;justify-content:space-between;gap:12px">Shared cases <button class="btn-bill" onclick="openMatterWizard()">+ Create Job</button></h3>
             <div id="teamMattersList"><div class="loading">Loading…</div></div>
           </div>
         </div>
@@ -1404,7 +1404,7 @@ const tutorialSteps = [
   { target: 'tabTimesheet', view: 'week', title: 'Timesheet', text: "This is your home base — it tracks every hour you personally work, tagged to a job or not. Think of it as your own complete time record, separate from what gets billed to any client. Switch between Week and Month views up top." },
   { target: 'addHoursMainBtn', view: 'week', title: 'Logging hours', text: 'Click "+ Add hours", or just click any empty day in the calendar below, to log time. You can log it as regular hourly work, a flat day-rate, or a per diem — whichever fits the job.' },
   { target: 'voiceLogBtn', view: 'week', title: 'Voice log', text: 'In a hurry? Tap Voice log and say something like "add 3 hours to the Smith case for court prep" — it fills in the entry for you.' },
-  { target: 'tabPay', view: 'pay', title: 'My Invoice', text: "Set your hourly rate here first — it starts at $0 until you do, and it's the default used when adding hours or setting up a job. This is also where you set when your pay period starts. Hit the My Invoice button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together, with its own invoice number." },
+  { target: 'tabPay', view: 'pay', title: 'My Hours', text: "Set your hourly rate here first — it starts at $0 until you do, and it's the default used when adding hours or setting up a job. This is also where you set when your pay period starts. Hit the Invoice button next to any period to generate a PDF — it totals your hours, flat-rate work, and expenses together, with its own invoice number." },
   { target: 'tabTeam', view: 'team', after: () => setTeamSubView('team'), title: 'Team: create or join', text: "Hit \"+ Create team\" to start a new team, or enter a team code to join one someone shared with you. You can belong to more than one team — use the dropdown at the top to switch between them." },
   { target: 'teamSubTabMatters', view: 'team', after: () => setTeamSubView('matters'), title: 'Team Matters', text: "Share a job with your whole team and it shows up here instead of just your own Client/Job list — everyone on the team can see it, so they know what to tag their hours to. You'll be asked whether to share a job the moment you create it." },
   { target: 'tabMatters', view: 'matters', title: 'Client/Job: add a client', text: 'Hit "+ Create Job" to add a new client — enter their name (or business name) and contact info, then give their first job a tag and rate. That tag is what ties your logged hours to this specific client and case.' },
@@ -1956,7 +1956,7 @@ function renderPay(periods){
       <span class="pr-num pr-money">$${pay.toFixed(2)}</span>
       <span class="pr-actions">
         <label class="paidcheck"><input type="checkbox" ${paid?'checked':''} onchange="togglePaid('${p.key}',this.checked)"> Paid</label>
-        <button class="btn-stub-sm" onclick="makeStub('${p.key}')">My Invoice</button>
+        <button class="btn-stub-sm" onclick="makeStub('${p.key}')">Invoice</button>
       </span>
     </div>`;
   }
@@ -3130,17 +3130,18 @@ async function renderTeamRoster(){
 
     let actions = '';
     if(canManage && !isSelf){
-      let leadBtn = '';
-      if(m.role !== 'manager'){   // a manager already implies lead-level access — no separate lead toggle needed
-        const isLead = m.role === 'lead';
-        leadBtn = `<button class="role-toggle-btn${isLead?' active':''}" onclick="onLeadToggleClicked('${m.id}',${isLead})">Lead</button>`;
-      }
       const isManager = m.role === 'manager';
+      const isLead = m.role === 'lead';
       const managerToggleAllowed = !isManager || mine.is_admin;   // only the admin can demote a fellow manager
-      const disabledAttr = managerToggleAllowed ? '' : 'disabled title="Only the team admin can remove a manager"';
-      const managerBtn = `<button class="role-toggle-btn${isManager?' active':''}" ${disabledAttr} onclick="onManagerToggleClicked('${m.id}',${isManager},${mine.is_admin})">Manager</button>`;
+      const managerDisabledAttr = managerToggleAllowed ? '' : 'disabled title="Only the team admin can remove a manager"';
+      const managerBtn = `<button class="role-toggle-btn${isManager?' active':''}" ${managerDisabledAttr} onclick="onManagerToggleClicked('${m.id}',${isManager},${mine.is_admin})">Manager</button>`;
+      // Lead stays visible even for a manager, so a manager can be stepped down to lead directly;
+      // stepping a manager down still needs the admin, same as the Manager button's own restriction.
+      const leadToggleAllowed = !isManager || mine.is_admin;
+      const leadDisabledAttr = leadToggleAllowed ? '' : 'disabled title="Only the team admin can change a manager\'s role"';
+      const leadBtn = `<button class="role-toggle-btn${isLead?' active':''}" ${leadDisabledAttr} onclick="onLeadToggleClicked('${m.id}','${m.role}',${mine.is_admin})">Lead</button>`;
       const removeBtn = `<button class="role-toggle-btn danger" onclick="onRemoveClicked('${m.id}','${escapeHtml(name).replace(/'/g,"\\'")}')">Remove</button>`;
-      actions = leadBtn + managerBtn + removeBtn;
+      actions = managerBtn + leadBtn + removeBtn;
     }
 
     return `<div class="team-roster-row">
@@ -3152,8 +3153,15 @@ async function renderTeamRoster(){
 }
 
 let pendingRosterConfirm = null;   // {type: 'promote'|'remove'|'leave', memberRowId, newRole?}
-function onLeadToggleClicked(memberRowId, isCurrentlyLead){
-  if(isCurrentlyLead){
+function onLeadToggleClicked(memberRowId, currentRole, viewerIsAdmin){
+  if(currentRole === 'manager'){
+    if(!viewerIsAdmin) return;   // defense in depth — the button is also disabled in the DOM for this case
+    pendingRosterConfirm = { type: 'promote', memberRowId, newRole: 'lead' };
+    $('promoteConfirmTitle').textContent = 'Change to Team Lead';
+    $('promoteConfirmText').textContent = 'Change this person from manager to team lead?';
+    $('promoteConfirmYesBtn').textContent = 'Yes, change';
+    $('promoteConfirmOverlay').classList.add('on');
+  } else if(currentRole === 'lead'){
     applyRoleChange(memberRowId, 'member');   // demotion needs no confirmation, per spec
   } else {
     pendingRosterConfirm = { type: 'promote', memberRowId, newRole: 'lead' };
@@ -3525,6 +3533,10 @@ async function confirmAddToTeamMatters(teamId){
   $('addToTeamMattersOverlay').classList.remove('on');
   pendingTeamMatterInfo = null;
   toast('Added to Team Matters');
+  // if we're sitting on the Team Matters tab for that same team, refresh it so the new case shows up immediately
+  if(teamSubView === 'matters' && currentTeamId === teamId){
+    await renderTeamMattersList();
+  }
 }
 
 /* ================= team matters tab ================= */
@@ -4163,11 +4175,21 @@ async function loadTeamCalendar(){
   const from = `${y}-${pad(m+1)}-01`, to = `${y}-${pad(m+1)}-${pad(new Date(y,m+1,0).getDate())}`;
   const ids = teamCalMembers.map(x=>x.id);
   if(!ids.length){ $('teamCalGrid').innerHTML = '<div class="loading">No team yet.</div>'; return; }
+
+  // Only hours tagged to a case/job that actually belongs to THIS team should
+  // ever show up here — untagged (personal) hours stay off the team calendar
+  // entirely, and hours tagged to a case that lives on a different team
+  // shouldn't bleed into this one either.
+  const { data: teamMatters } = await supa.from('matters').select('tag').eq('team_id', currentTeamId);
+  const teamTags = new Set((teamMatters||[]).map(mt => mt.tag));
+  if(!teamTags.size){ teamCalCache = {}; renderTeamCalendarGrid(); return; }
+
   const { data, error } = await supa.from('work_entries').select('*').in('user_id', ids).gte('work_date',from).lte('work_date',to);
   if(error){ $('teamCalGrid').innerHTML = '<div class="loading">Could not load.</div>'; return; }
   teamCalCache = {};
   (data||[]).forEach(w => {
     if(!w.hours) return;
+    if(!w.tag || !teamTags.has(w.tag)) return;   // no tag, or a case that isn't shared to this team — keep it personal
     teamCalCache[w.work_date] = teamCalCache[w.work_date] || [];
     teamCalCache[w.work_date].push(w);
   });
@@ -4229,6 +4251,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.25</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.29</div>
 </body>
 </html>
