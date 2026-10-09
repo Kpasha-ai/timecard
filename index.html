@@ -202,6 +202,42 @@
   .adm-row .meta{flex:1;min-width:200px}
   .adm-row .meta b{font-size:14px}
   .adm-row .meta > span{display:block;font-size:12px;color:var(--ink-dim);margin-top:4px}
+  /* AI Polish is built but switched off for now — remove this rule (and deploy the edge function) to bring it back */
+  .adm-ai-row{display:none!important}
+  .fb-thumbs{display:flex;gap:12px;margin-top:6px}
+  .fb-thumb{width:58px;height:50px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:#9A9A8E;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .fb-thumb:hover{border-color:#B9B9A8}
+  .fb-thumb.up.on{background:#DCEFE3;border-color:#2E8B57;color:#1F6B41}
+  .fb-thumb.down.on{background:#F6DEDA;border-color:#C0392B;color:#9B2C20}
+  .fb-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .fb-pill{border-radius:999px;padding:7px 15px;font-weight:600;font-size:13.5px;font-family:inherit;cursor:pointer;border:1.5px solid;background:#fff}
+  .fb-pill.complaint{color:#9B2C20;border-color:#E3A59D}
+  .fb-pill.suggestion{color:#7A5A00;border-color:#E6C766}
+  .fb-pill.compliment{color:#1F6B41;border-color:#98CFAE}
+  .fb-pill.complaint.on{background:#C0392B;border-color:#C0392B;color:#fff}
+  .fb-pill.suggestion.on{background:#E0A800;border-color:#E0A800;color:#2B2100}
+  .fb-pill.compliment.on{background:#2E8B57;border-color:#2E8B57;color:#fff}
+  .fbx-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .fbx-chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-weight:600;font-size:13px;font-family:inherit;color:var(--ink-dim);cursor:pointer}
+  .fbx-chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
+  .fbx-item{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff}
+  .fbx-item.unread{border-left:4px solid #B8860B}
+  .fbx-head{width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;padding:11px 13px;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
+  .fbx-thumbicon{flex:none;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+  .fbx-thumbicon.up{color:#2E8B57}.fbx-thumbicon.down{color:#C0392B}.fbx-thumbicon.none{color:#C9C9BC}
+  .fbx-main{min-width:0;flex:1}
+  .fbx-top{font-size:12.5px;color:var(--ink-dim);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .fbx-item.unread .fbx-top b{color:var(--ink)}
+  .fbx-prev{font-size:14px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fbx-body{padding:0 13px 13px 45px;font-size:14px;line-height:1.5;word-break:break-word}
+  .fbx-msg{white-space:pre-wrap}
+  .fbx-body .fb-line{margin-top:6px}
+  .fbx-tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 9px;text-transform:uppercase;letter-spacing:.05em}
+  .fbx-tag.complaint{background:#F6DEDA;color:#9B2C20}
+  .fbx-tag.suggestion{background:#F8EBBE;color:#6B4E00}
+  .fbx-tag.compliment{background:#DCEFE3;color:#1F6B41}
+  .fbx-actions{margin-top:10px}
+  .adm-count{display:inline-block;min-width:18px;margin-left:6px;padding:1px 6px;border-radius:9px;background:#B8860B;color:#fff;font-weight:700;font-size:11px;line-height:16px;font-family:inherit;text-align:center}
   .adm-pill{display:inline-block;margin-right:6px;font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 9px;text-transform:uppercase;letter-spacing:.05em}
   .adm-pill.live{background:#DCE8E2;color:var(--sage)}
   .adm-pill.draft{background:var(--stamp-soft);color:#8A5A17}
@@ -263,7 +299,7 @@
   .chrome-tab-bar{display:flex;background:var(--sage-mist);padding:10px 14px 0}
   .chrome-tab-btn{border:0;background:var(--sage-mist);color:var(--ink-dim);font-family:var(--display);font-weight:700;font-size:16px;padding:10px 20px;border-radius:10px 10px 0 0;cursor:pointer;margin-right:2px}
   .chrome-tab-btn.active{background:var(--card);color:var(--pine)}
-  @media (max-width:600px){ #adminView .chrome-tab-btn{padding:10px 11px;font-size:14px;margin-right:0} }
+  @media (max-width:600px){ #adminView .chrome-tab-btn{padding:10px 9px;font-size:13px;margin-right:0;white-space:nowrap} #adminView .chrome-tab-bar{overflow-x:auto} }
   .tc-layout-guard-9f{opacity:.00318;letter-spacing:-.00074em;transform:translateY(.0026px)}
   .card-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
   .card-title{font-family:var(--display);font-weight:700;font-size:20px}
@@ -704,6 +740,7 @@
       <div class="chrome-tab-bar">
         <button class="chrome-tab-btn active" id="admTabAnn" onclick="setAdmTab('ann')">Announcements</button>
         <button class="chrome-tab-btn" id="admTabTut" onclick="setAdmTab('tut')">Tutorials</button>
+        <button class="chrome-tab-btn" id="admTabFb" onclick="setAdmTab('fb')">Feedback<span class="adm-count" id="admFbCount" style="display:none"></span></button>
         <button class="chrome-tab-btn" id="admTabStats" onclick="setAdmTab('stats')">Statistics</button>
       </div>
 
@@ -755,6 +792,18 @@
         <div class="bpanel">
           <h3>Saved tutorials</h3>
           <div id="admTutList"><div class="hint">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- feedback inbox -->
+      <div id="admPanelFb" style="display:none">
+        <div class="bpanel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+            <h3 style="margin:0">Feedback inbox</h3>
+            <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="loadAdmFeedback()">Refresh</button>
+          </div>
+          <div class="fbx-filters" id="admFbFilters"></div>
+          <div id="admFbList"><div class="hint">Loading…</div></div>
         </div>
       </div>
 
@@ -1105,19 +1154,27 @@
   <div class="modal" style="max-width:440px">
     <div class="modal-head"><h2>Send feedback</h2><button class="close" onclick="closeFeedback()">✕</button></div>
     <div class="modal-body">
-      <p class="hint" style="margin-top:0">Everything here is optional — send as much or as little as you'd like.</p>
       <div class="field">
-        <label>Rate the app</label>
-        <div id="feedbackStars" style="font-size:30px;letter-spacing:6px;margin-top:4px"></div>
+        <label>How would you rate your experience with us?</label>
+        <div class="fb-thumbs">
+          <button type="button" class="fb-thumb up" id="fbThumbUp" aria-label="Thumbs up" aria-pressed="false" onclick="setFeedbackSentiment('up')">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true"><path d="M2 21h4V9H2v12zm20-11c0-1.1-.9-2-2-2h-6.3l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 1 6.59 7.59C6.22 7.95 6 8.45 6 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+          </button>
+          <button type="button" class="fb-thumb down" id="fbThumbDown" aria-label="Thumbs down" aria-pressed="false" onclick="setFeedbackSentiment('down')">
+            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true" style="transform:rotate(180deg)"><path d="M2 21h4V9H2v12zm20-11c0-1.1-.9-2-2-2h-6.3l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 1 6.59 7.59C6.22 7.95 6 8.45 6 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="field"><label>What did you like?</label>
-        <textarea id="feedbackLiked" rows="2" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
+      <div class="field">
+        <label>What kind of feedback is it? (pick any)</label>
+        <div class="fb-pills">
+          <button type="button" class="fb-pill complaint" id="fbPillComplaint" aria-pressed="false" onclick="toggleFeedbackCategory('complaint')">Complaint</button>
+          <button type="button" class="fb-pill suggestion" id="fbPillSuggestion" aria-pressed="false" onclick="toggleFeedbackCategory('suggestion')">Suggestion</button>
+          <button type="button" class="fb-pill compliment" id="fbPillCompliment" aria-pressed="false" onclick="toggleFeedbackCategory('compliment')">Compliment</button>
+        </div>
       </div>
-      <div class="field"><label>What would you change?</label>
-        <textarea id="feedbackChange" rows="2" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
-      </div>
-      <div class="field"><label>Additional feedback</label>
-        <textarea id="feedbackAdditional" rows="2" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
+      <div class="field"><label>Your feedback</label>
+        <textarea id="feedbackMessage" rows="4" maxlength="2000" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;resize:vertical"></textarea>
       </div>
       <button class="btn btn-primary" onclick="submitFeedback()">Send feedback</button>
     </div>
@@ -1802,9 +1859,11 @@ function setAdmTab(t){
   admTab = t;
   $('admTabAnn').classList.toggle('active', t==='ann');
   $('admTabTut').classList.toggle('active', t==='tut');
+  $('admTabFb').classList.toggle('active', t==='fb');
   $('admTabStats').classList.toggle('active', t==='stats');
   $('admPanelAnn').style.display = t==='ann' ? '' : 'none';
   $('admPanelTut').style.display = t==='tut' ? '' : 'none';
+  $('admPanelFb').style.display = t==='fb' ? '' : 'none';
   $('admPanelStats').style.display = t==='stats' ? '' : 'none';
   loadAdminTab();
 }
@@ -1813,7 +1872,9 @@ async function loadAdminTab(){
   await loadAdmTutorials();
   if(admTab==='ann') await renderAdmAnnouncements();
   else if(admTab==='tut'){ if(!admSteps.length && !admTutEditingId) admAddStep(true); renderAdmSteps(); renderAdmTutorialList(); }
+  else if(admTab==='fb') await loadAdmFeedback();
   else await loadAdmStats();
+  if(admTab!=='fb') refreshFeedbackUnread();
 }
 async function loadAdmTutorials(){
   const { data } = await supa.from('tutorials').select('*').order('created_at', { ascending:false });
@@ -2083,19 +2144,102 @@ function admUndoMessage(){
   admMsgPrev = null; $('admMsgUndoBtn').style.display = 'none';
 }
 
+/* ---------- admin: feedback inbox ---------- */
+let admFeedback = [];        // rows from admin_feedback_inbox()
+let admFbFilter = 'all';     // all | unread | complaint | suggestion | compliment
+let admFbOpen = new Set();   // expanded row ids
+const FB_THUMB_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M2 21h4V9H2v12zm20-11c0-1.1-.9-2-2-2h-6.3l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 1 6.59 7.59C6.22 7.95 6 8.45 6 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>';
+function setFbBadge(n){
+  const b = $('admFbCount'); if(!b) return;
+  b.textContent = n > 99 ? '99+' : String(n);
+  b.style.display = n > 0 ? '' : 'none';
+}
+async function refreshFeedbackUnread(){
+  try{
+    const r = await supa.rpc('admin_feedback_inbox');
+    if(r.error || !Array.isArray(r.data)) return;
+    admFeedback = r.data;
+    setFbBadge(admFeedback.filter(f=>!f.is_read).length);
+  }catch(_e){}
+}
+async function loadAdmFeedback(){
+  const box = $('admFbList');
+  box.innerHTML = '<div class="hint">Loading…</div>';
+  let r;
+  try{ r = await supa.rpc('admin_feedback_inbox'); }catch(e){ r = { error:e }; }
+  if(!r || r.error || !Array.isArray(r.data)){
+    $('admFbFilters').innerHTML = '';
+    box.innerHTML = '<div class="hint">The inbox is not set up yet — run timecard-feedback-v2.sql in the Supabase SQL editor, then press Refresh.</div>';
+    return;
+  }
+  admFeedback = r.data;
+  renderAdmFeedback();
+}
+function fbWhen(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  let h = d.getHours(), ap = h>=12 ? 'PM' : 'AM'; h = h%12 || 12;
+  return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}, ${h}:${String(d.getMinutes()).padStart(2,'0')} ${ap}`;
+}
+function setFbFilter(f){ admFbFilter = f; renderAdmFeedback(); }
+function renderAdmFeedback(){
+  const unread = admFeedback.filter(f=>!f.is_read).length;
+  setFbBadge(unread);
+  const cat = c => admFeedback.filter(f=>(f.categories||[]).includes(c)).length;
+  const chips = [['all',`All (${admFeedback.length})`],['unread',`Unread (${unread})`],
+    ['complaint',`Complaints (${cat('complaint')})`],['suggestion',`Suggestions (${cat('suggestion')})`],['compliment',`Compliments (${cat('compliment')})`]];
+  $('admFbFilters').innerHTML = chips.map(([k,l]) =>
+    `<button class="fbx-chip ${admFbFilter===k?'on':''}" onclick="setFbFilter('${k}')">${l}</button>`).join('');
+  const rows = admFeedback.filter(f =>
+    admFbFilter==='all' ? true : admFbFilter==='unread' ? !f.is_read : (f.categories||[]).includes(admFbFilter));
+  const box = $('admFbList');
+  if(!rows.length){ box.innerHTML = `<div class="hint">${admFeedback.length ? 'Nothing matches this filter.' : 'No feedback yet.'}</div>`; return; }
+  box.innerHTML = rows.map(f => {
+    const open = admFbOpen.has(f.id);
+    const tags = (f.categories||[]).map(c=>`<span class="fbx-tag ${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('');
+    const legacy = [['Liked',f.liked],['Change',f.change_wanted],['Other',f.additional]].filter(x=>x[1]);
+    const full = (f.message || '') ;
+    const preview = (f.message || (legacy[0] ? legacy[0][0]+': '+legacy[0][1] : '') || '(no message)').replace(/\s+/g,' ');
+    const stars = f.rating ? `<div class="fb-line">Old-style rating: ${'★'.repeat(f.rating)}${'☆'.repeat(5-f.rating)}</div>` : '';
+    return `<div class="fbx-item ${f.is_read?'':'unread'}">
+      <button class="fbx-head" onclick="toggleFbOpen('${f.id}')" aria-expanded="${open}">
+        <span class="fbx-thumbicon ${f.sentiment==='up'?'up':f.sentiment==='down'?'down':'none'}" title="${f.sentiment==='up'?'Thumbs up':f.sentiment==='down'?'Thumbs down':'No thumb'}">${f.sentiment==='down' ? `<span style="display:inline-flex;transform:rotate(180deg)">${FB_THUMB_SVG}</span>` : f.sentiment==='up' ? FB_THUMB_SVG : '–'}</span>
+        <span class="fbx-main">
+          <span class="fbx-top"><b>${escapeHtml(f.who||'Someone')}</b><span>${fbWhen(f.created_at)}</span>${tags}</span>
+          ${open ? '' : `<div class="fbx-prev">${escapeHtml(preview)}</div>`}
+        </span>
+      </button>
+      ${open ? `<div class="fbx-body">${full ? `<div class="fbx-msg">${escapeHtml(full)}</div>` : ''}${legacy.map(([l,v])=>`<div class="fb-line"><b>${l}:</b> ${escapeHtml(v)}</div>`).join('')}${stars}
+        ${f.email ? `<div class="fb-line" style="color:var(--ink-dim)">${escapeHtml(f.email)}</div>` : ''}
+        <div class="fbx-actions"><button class="btn-ghost-dark" style="padding:6px 12px;font-size:13px" onclick="setFbRead('${f.id}',${!f.is_read})">${f.is_read?'Mark unread':'Mark read'}</button></div></div>` : ''}
+    </div>`;
+  }).join('');
+}
+async function toggleFbOpen(id){
+  if(admFbOpen.has(id)) admFbOpen.delete(id); else admFbOpen.add(id);
+  const f = admFeedback.find(x=>x.id===id);
+  if(admFbOpen.has(id) && f && !f.is_read){ await setFbRead(id, true, true); return; }
+  renderAdmFeedback();
+}
+async function setFbRead(id, read, quiet){
+  const f = admFeedback.find(x=>x.id===id);
+  if(f) f.is_read = read;
+  renderAdmFeedback();
+  const { error } = await supa.rpc('admin_mark_feedback_read', { fb_id: id, new_read: read });
+  if(error){ if(f) f.is_read = !read; renderAdmFeedback(); toast(errText(error)); }
+}
+
 /* ---------- admin: statistics ---------- */
 async function loadAdmStats(){
   const box = $('admStatsBody');
   box.innerHTML = '<div class="hint">Loading…</div>';
-  let stats = null, fb = [];
+  let stats = null;
   try{
     const r1 = await supa.rpc('admin_stats');
     if(r1.error || !r1.data) throw (r1.error || new Error('no stats'));
     stats = r1.data;
-    const r2 = await supa.rpc('admin_recent_feedback', { max_rows: 10 });
-    fb = r2.data || [];
   }catch(e){
-    box.innerHTML = '<div class="hint">Statistics are not set up yet — run timecard-admin-v2.sql in the Supabase SQL editor, then press Refresh.</div>';
+    box.innerHTML = '<div class="hint">Statistics are not set up yet — run timecard-feedback-v2.sql in the Supabase SQL editor, then press Refresh.</div>';
     return;
   }
   const { data: anns } = await supa.from('announcements').select('*').order('published_at', { ascending:false });
@@ -2105,8 +2249,7 @@ async function loadAdmStats(){
   const total = Number(stats.total_users) || 0;
   const num = v => Number(v||0).toLocaleString();
   const tile = (n, lbl, sub) => `<div class="stat-tile"><div class="stat-num">${n}</div><div class="stat-lbl">${lbl}</div>${sub?`<div class="stat-sub">${sub}</div>`:''}</div>`;
-  const hrs = Math.round(Number(stats.hours_30d||0)*10)/10;
-  const avg = stats.feedback_avg != null ? Number(stats.feedback_avg).toFixed(1) : '—';
+  const hrsAll = Math.round(Number(stats.total_hours||0)*10)/10;
 
   const pubAnns = (anns||[]).filter(a=>a.is_published);
   const annRows = pubAnns.length ? pubAnns.map(a => {
@@ -2116,28 +2259,14 @@ async function loadAdmStats(){
       <span class="stat-val">${n} of ${total} · ${pct}%</span></div>`;
   }).join('') : '<div class="hint">No published announcements yet.</div>';
 
-  const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5-n) : 'no rating';
-  const fbRows = (fb||[]).length ? fb.map(f => {
-    const d = new Date(f.created_at);
-    const when = isNaN(d) ? '' : `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
-    const line = (lbl, v) => v ? `<div class="fb-line"><b>${lbl}:</b> ${escapeHtml(v)}</div>` : '';
-    return `<div class="fb-item"><div class="fb-meta">${escapeHtml(f.who||'Someone')} · ${when} · ${stars(f.rating)}</div>
-      ${line('Liked', f.liked)}${line('Change', f.change_wanted)}${line('Other', f.additional)}</div>`;
-  }).join('') : '<div class="hint">No feedback yet.</div>';
-
   box.innerHTML = `
     <div class="stat-grid">
-      ${tile(num(stats.total_users), 'Total users', `${num(stats.new_users_7d)} new this week · ${num(stats.new_users_30d)} this month`)}
-      ${tile(num(stats.active_users_7d), 'Active, 7 days', 'logged hours')}
-      ${tile(num(stats.active_users_30d), 'Active, 30 days', 'logged hours')}
-      ${tile(num(stats.total_teams), 'Teams', `${num(stats.team_members)} memberships`)}
-      ${tile(num(hrs), 'Hours, 30 days', `${num(stats.entries_30d)} entries`)}
-      ${tile(avg, 'Feedback rating', `${num(stats.feedback_count)} response${Number(stats.feedback_count)===1?'':'s'}`)}
+      ${tile(num(stats.total_users), 'Total users', `${num(stats.new_users_7d)} new this week`)}
+      ${tile(num(stats.total_teams), 'Total teams', `${num(stats.team_members)} memberships`)}
+      ${tile(num(hrsAll), 'Total hours logged', 'all time, all users')}
     </div>
     <div class="stat-h">Announcements — opened by</div>
-    ${annRows}
-    <div class="stat-h">Recent feedback</div>
-    ${fbRows}`;
+    ${annRows}`;
 }
 
 // pick up newly published notes when someone returns to the tab
@@ -4258,37 +4387,43 @@ async function removeFromTeamMatters(matterId){
 }
 
 /* ================= feedback ================= */
-let feedbackRating = 0;   // 0 means "no rating given" — entirely optional
+const FEEDBACK_CATEGORIES = ['complaint','suggestion','compliment'];
+let feedbackSentiment = null;      // 'up' | 'down' | null
+let feedbackCategories = new Set();
 function openFeedback(){
-  feedbackRating = 0;
-  $('feedbackLiked').value = '';
-  $('feedbackChange').value = '';
-  $('feedbackAdditional').value = '';
-  renderFeedbackStars();
+  feedbackSentiment = null; feedbackCategories = new Set();
+  $('feedbackMessage').value = '';
+  renderFeedbackControls();
   $('feedbackOverlay').classList.add('on');
 }
 function closeFeedback(){ $('feedbackOverlay').classList.remove('on'); }
-function renderFeedbackStars(){
-  const box = $('feedbackStars');
-  box.innerHTML = [1,2,3,4,5].map(n =>
-    `<span onclick="setFeedbackRating(${n})" style="cursor:pointer;color:${n<=feedbackRating?'#D98E2B':'var(--line)'}">★</span>`
-  ).join('');
+function renderFeedbackControls(){
+  $('fbThumbUp').classList.toggle('on', feedbackSentiment==='up');
+  $('fbThumbDown').classList.toggle('on', feedbackSentiment==='down');
+  $('fbThumbUp').setAttribute('aria-pressed', feedbackSentiment==='up');
+  $('fbThumbDown').setAttribute('aria-pressed', feedbackSentiment==='down');
+  FEEDBACK_CATEGORIES.forEach(c => {
+    const el = $('fbPill' + c[0].toUpperCase() + c.slice(1));
+    el.classList.toggle('on', feedbackCategories.has(c));
+    el.setAttribute('aria-pressed', feedbackCategories.has(c));
+  });
 }
-function setFeedbackRating(n){
-  feedbackRating = (feedbackRating === n) ? 0 : n;   // clicking the same star again clears it, since a rating is optional
-  renderFeedbackStars();
+function setFeedbackSentiment(v){
+  feedbackSentiment = (feedbackSentiment === v) ? null : v;   // tap again to clear
+  renderFeedbackControls();
+}
+function toggleFeedbackCategory(c){
+  if(feedbackCategories.has(c)) feedbackCategories.delete(c); else feedbackCategories.add(c);
+  renderFeedbackControls();
 }
 async function submitFeedback(){
-  const rating = feedbackRating || null;
-  const liked = $('feedbackLiked').value.trim() || null;
-  const changeWanted = $('feedbackChange').value.trim() || null;
-  const additional = $('feedbackAdditional').value.trim() || null;
-
+  const message = $('feedbackMessage').value.trim() || null;
+  const categories = FEEDBACK_CATEGORIES.filter(c => feedbackCategories.has(c));
+  if(!feedbackSentiment && !categories.length && !message) return toast('Pick a thumb, a type, or write a note first');
   const { error } = await supa.from('feedback').insert({
-    user_id: me.id, rating, liked, change_wanted: changeWanted, additional
+    user_id: me.id, sentiment: feedbackSentiment, categories, message
   });
   if(error) return toast('Could not send feedback — try again');
-
   closeFeedback();
   toast('Thanks for the feedback!');
 }
@@ -4926,6 +5061,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.33</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.34</div>
 </body>
 </html>
