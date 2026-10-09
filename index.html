@@ -173,8 +173,40 @@
   .side-tabs button.active{background:rgba(255,255,255,.08); color:var(--bone); border-left:3px solid var(--stamp)}
   .sidebar-account{padding:0 22px 20px}
   .app-main-col{flex:1; min-width:0; display:flex; flex-direction:column}
-  .topbar{background:var(--pine); padding:14px 22px; display:flex; align-items:center; position:relative; min-height:44px}
-  .topbar-profile{position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:15; display:flex; align-items:center; gap:12px}
+
+  /* ===== notifications ===== */
+  .notif-wrap{position:relative;margin-left:12px}
+  .notif-badge{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:10px;background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--pine);line-height:1}
+  .notif-badge.on{display:flex}
+  .notif-panel{position:absolute;right:0;top:calc(100% + 10px);width:360px;max-height:70vh;overflow-y:auto;background:#fff;border:1.5px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(18,40,32,.28);z-index:40;display:none;color:var(--ink)}
+  .notif-panel.on{display:block}
+  .notif-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--display);font-size:16px;font-weight:700}
+  .notif-head button{background:transparent;border:0;color:var(--ink-dim);font-size:12px;text-decoration:underline;padding:0}
+  .notif-item{display:block;width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid var(--line);padding:13px 16px 13px 30px;position:relative}
+  .notif-item:hover{background:#F7F5EE}
+  .notif-item:last-child{border-bottom:0}
+  .notif-item .nt{font-weight:700;font-size:14px;color:var(--ink)}
+  .notif-item .nb{font-size:13px;color:var(--ink-dim);margin-top:2px;line-height:1.4}
+  .notif-item .nc{font-size:12px;font-weight:700;color:var(--sage);margin-top:6px}
+  .notif-item .nd{font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);margin-top:4px}
+  .notif-item.unread::before{content:'';position:absolute;left:12px;top:19px;width:9px;height:9px;border-radius:50%;background:var(--stamp)}
+  .notif-item.read .nt{font-weight:600;color:var(--ink-dim)}
+  .notif-empty{padding:26px 16px;text-align:center;color:var(--ink-dim);font-size:13.5px}
+  @media (max-width:700px){ .notif-wrap{position:static} .notif-panel{position:fixed;left:12px;right:12px;top:70px;width:auto} }
+  /* admin tab */
+  .adm-step{border:1.5px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#FBFAF6}
+  .adm-step-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim)}
+  .adm-step select,.adm-step input,.adm-step textarea,.adm-form input,.adm-form textarea{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;background:#fff}
+  .adm-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .adm-row:last-child{border-bottom:0}
+  .adm-row .meta{flex:1;min-width:200px}
+  .adm-row .meta b{font-size:14px}
+  .adm-row .meta > span{display:block;font-size:12px;color:var(--ink-dim);margin-top:4px}
+  .adm-pill{display:inline-block;margin-right:6px;font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 9px;text-transform:uppercase;letter-spacing:.05em}
+  .adm-pill.live{background:#DCE8E2;color:var(--sage)}
+  .adm-pill.draft{background:var(--stamp-soft);color:#8A5A17}
+  .topbar{background:var(--pine); padding:14px 22px; display:flex; align-items:center; position:relative; min-height:44px; flex-wrap:wrap; row-gap:10px}
+  .topbar-profile{position:static; margin:0 auto; z-index:15; display:flex; align-items:center; gap:12px; padding:0 14px}
   .topbar-name{color:var(--bone); font-weight:600; font-size:14px; white-space:nowrap}
   .topbar-code{color:rgba(244,241,232,.75); font-size:11.5px; font-family:var(--mono); white-space:nowrap}
   .avatar-wrap{width:42px; height:42px; border-radius:50%; cursor:pointer; overflow:hidden; flex-shrink:0; border:2px solid var(--stamp); background:var(--sage)}
@@ -552,6 +584,7 @@
         <button id="tabMatters" onclick="setView('matters')">Client/Job</button>
         <button id="tabExpenses" onclick="setView('expenses')">Expenses</button>
         <button id="tabBilling" onclick="setView('billing')">Billing</button>
+        <button id="tabAdmin" onclick="setView('admin')" style="display:none">Admin</button>
       </nav>
     </aside>
     <div class="app-main-col">
@@ -567,10 +600,18 @@
           <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="onAvatarFileSelected(this.files)">
           <span class="topbar-code" id="topbarCode"></span>
         </div>
-        <button class="voice-log-btn" id="feedbackBtn" onclick="openFeedback()" title="Send feedback" style="margin-left:auto;background:#B8860B;display:inline-flex;align-items:center;gap:7px">
+        <button class="voice-log-btn" id="feedbackBtn" onclick="openFeedback()" title="Send feedback" style="margin-left:0;background:#B8860B;display:inline-flex;align-items:center;gap:7px">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path id="tc-glyph-node-53q" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           Feedback
         </button>
+        <div class="notif-wrap" id="notifWrap">
+          <button class="voice-log-btn" id="notifBtn" onclick="toggleNotifPanel(event)">Notifications</button>
+          <span class="notif-badge" id="notifBadge">0</span>
+          <div class="notif-panel" id="notifPanel" onclick="event.stopPropagation()">
+            <div class="notif-head"><span>Notifications</span><button onclick="markAllNotifsRead()">Mark all read</button></div>
+            <div id="notifList"></div>
+          </div>
+        </div>
         <button class="voice-log-btn" id="tutorialBtn" onclick="startTutorial()" style="margin-left:12px">Tutorial</button>
         <button class="voice-log-btn" id="topbarSignOut" onclick="signOut()" style="margin-left:12px">Sign out</button>
       </div>
@@ -634,6 +675,31 @@
         <button class="btn-bill" style="margin-left:auto" onclick="openMatterWizard()">+ Create Job</button>
       </div>
       <div id="clientsList" style="padding:0 18px 18px"><div class="loading">Loading…</div></div>
+    </div>
+
+    <!-- ADMIN (only ever shown to app admins) -->
+    <div class="card" id="adminView" style="display:none">
+      <div class="card-head"><div class="card-title" style="font-size:18px">Admin — announcements</div></div>
+      <div class="bpanel adm-form">
+        <h3 id="admFormTitle">New announcement</h3>
+        <div class="field"><label>Title (what users see in their notifications)</label><input id="admTitle" maxlength="90" placeholder="e.g. New Expenses Page: Click to view!"></div>
+        <div class="field"><label>Message (optional, one or two lines)</label><textarea id="admBody" rows="2" maxlength="300" placeholder="e.g. Log meals, supplies and mileage — receipts too."></textarea></div>
+        <div class="field"><label>Tutorial steps — aim for 3 to 5 (leave empty for a message only)</label>
+          <div id="admSteps"></div>
+          <button type="button" class="btn-ghost-dark" style="padding:8px 14px;font-size:13px" onclick="admAddStep()">+ Add step</button>
+        </div>
+        <div class="field" style="max-width:240px"><label>Hide after (optional)</label><input id="admExpires" type="date"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-ghost-dark" onclick="admPreview()">Preview tutorial</button>
+          <button class="btn-ghost-dark" onclick="admSave(false)">Save draft</button>
+          <button class="btn-bill" onclick="admSave(true)">Publish</button>
+          <button class="btn-ghost-dark" id="admCancelEditBtn" style="display:none" onclick="admResetForm()">Cancel edit</button>
+        </div>
+      </div>
+      <div class="bpanel">
+        <h3>Past announcements</h3>
+        <div id="admList"><div class="hint">Loading…</div></div>
+      </div>
     </div>
 
     <div class="card" id="billingView" style="display:none">
@@ -1253,6 +1319,12 @@ function weekDates(d){ const s=weekStart(d); return Array.from({length:7},(_,i)=
 function dateOfKey(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); }
 function addDays(d,n){ const c=new Date(d); c.setDate(c.getDate()+n); return c; }
 function fmtDate(d){ return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`; }
+function safeFileName(s){ return String(s||'').replace(/\//g,'\u2044').replace(/[\\:*?"<>|]+/g,'').replace(/\s+/g,' ').trim().replace(/\.+$/,''); }
+function fileDateRange(a,b){   // numeric, e.g. "9/26-10/9 2026"; across years "12/20/2026-1/2/2027"
+  const md = d => `${d.getMonth()+1}/${d.getDate()}`;
+  if(a.getFullYear()===b.getFullYear()) return `${md(a)}-${md(b)} ${b.getFullYear()}`;
+  return `${md(a)}/${a.getFullYear()}-${md(b)}/${b.getFullYear()}`;
+}
 function fmtDateY(d){ return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.getFullYear()}`; }
 function fmtT(t){ if(!t) return '—'; let [h,mm]=t.split(':').map(Number); const ap=h>=12?'pm':'am'; h=h%12||12; return `${h}:${pad(mm)}${ap}`; }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1361,6 +1433,7 @@ async function submitAuth(){
 async function signOut(){
   await supa.auth.signOut();
   me = null;
+  resetNotificationState();
   $('app').classList.remove('on');
   $('authScreen').style.display = 'flex';
   setMode('login');
@@ -1379,7 +1452,9 @@ async function enterApp(user, opts={}){
   $('topbarCode').textContent = me.account_id || '';
   renderAvatar();
   anchor = new Date();
+  userCreatedAt = user.created_at || me.created_at || null;
   await setView('week');
+  await loadNotifications();
   await checkInviteLink();
   await checkVoiceLogLink();
   if(opts.showLoginAnimation) playLoginAnimation();
@@ -1485,6 +1560,280 @@ function repositionTutorialSpotlight(){
   const step = activeTutorialSteps[tutorialIndex];
   if(step) positionTutorialSpotlight(step.target);
 }
+
+
+/* ================= notifications + admin =================
+   Announcements live in Supabase (announcements / announcement_reads /
+   app_admins — see timecard-notifications.sql). Each announcement can carry
+   tutorial steps, stored as JSON, which run through the SAME tutorial engine
+   as the main tour by swapping activeTutorialSteps. Admin rights are enforced
+   by the database (is_app_admin()); the hidden Admin tab is only cosmetic. */
+
+// Elements an admin can spotlight in a tutorial step. Each is an always-present
+// element (never a dynamically rendered row), tied to the page it lives on, so a
+// step can switch to the right page first. 'sub' is the Team page's inner tab.
+const TOUR_TARGETS = [
+  { id:'',                  label:'No spotlight (centered message)', view:null },
+  { id:'tabTimesheet',      label:'Timesheet tab',            view:'week' },
+  { id:'addHoursMainBtn',   label:'+ Add hours button',       view:'week' },
+  { id:'voiceLogBtn',       label:'Voice log button',         view:'week' },
+  { id:'subTabWeek',        label:'Week / Month toggle',      view:'week' },
+  { id:'tabPay',            label:'My Hours tab',             view:'pay' },
+  { id:'rateInput',         label:'My Hours: hourly rate',    view:'pay' },
+  { id:'anchorInput',       label:'My Hours: pay period start', view:'pay' },
+  { id:'tabTeam',           label:'Team tab',                 view:'team', sub:'team' },
+  { id:'teamSwitcherSelect',label:'Team: team switcher',      view:'team', sub:'team' },
+  { id:'teamRosterList',    label:'Team: roster & roles',     view:'team', sub:'team' },
+  { id:'teamSubTabMatters', label:'Team Matters tab',         view:'team', sub:'matters' },
+  { id:'tabMatters',        label:'Client/Job tab',           view:'matters' },
+  { id:'tabExpenses',       label:'Expenses tab',             view:'expenses' },
+  { id:'addExpenseMainBtn', label:'Expenses: + Add expense',  view:'expenses' },
+  { id:'tabBilling',        label:'Billing tab',              view:'billing' },
+  { id:'invClientFilter',   label:'Billing: bill for client', view:'billing' },
+  { id:'invCase',           label:'Billing: case tag',        view:'billing' },
+  { id:'invMonth',          label:'Billing: month',           view:'billing' },
+  { id:'topbarProfile',     label:'Profile / invite code',    view:null },
+  { id:'feedbackBtn',       label:'Feedback button',          view:null },
+  { id:'notifBtn',          label:'Notifications button',     view:null },
+  { id:'tutorialBtn',       label:'Tutorial button',          view:null }
+];
+
+let isAppAdmin = false;
+let userCreatedAt = null;
+let notifItems = [];            // announcements this person can see (published, not expired)
+let notifReadIds = new Set();   // ids this person has opened
+
+function resetNotificationState(){
+  isAppAdmin = false; notifItems = []; notifReadIds = new Set();
+  closeNotifPanel();
+  $('notifBadge').classList.remove('on');
+  $('tabAdmin').style.display = 'none';
+}
+function isLiveAnnouncement(a){
+  if(!a.is_published) return false;
+  if(a.expires_at && new Date(a.expires_at) <= new Date()) return false;
+  // new accounts shouldn't open to a pile of "new feature" notes for things that were always there
+  if(userCreatedAt && a.published_at && new Date(a.published_at) < new Date(userCreatedAt)) return false;
+  return true;
+}
+async function loadNotifications(){
+  if(!me) return;
+  try{
+    const { data: adm } = await supa.from('app_admins').select('user_id').eq('user_id', me.id);
+    isAppAdmin = !!(adm && adm.length);
+    $('tabAdmin').style.display = isAppAdmin ? '' : 'none';
+
+    const { data: anns, error } = await supa.from('announcements').select('*').order('published_at', { ascending:false });
+    if(error) return;   // tables not created yet (or offline) — stay quiet, the app works fine without notifications
+    const { data: reads } = await supa.from('announcement_reads').select('announcement_id').eq('user_id', me.id);
+    notifReadIds = new Set((reads||[]).map(r=>r.announcement_id));
+    notifItems = (anns||[]).filter(isLiveAnnouncement);
+  }catch(e){ return; }
+  renderNotifBadge();
+  if($('notifPanel').classList.contains('on')) renderNotifPanel();
+}
+function unreadNotifCount(){ return notifItems.filter(a=>!notifReadIds.has(a.id)).length; }
+function renderNotifBadge(){
+  const n = unreadNotifCount();
+  const b = $('notifBadge');
+  b.textContent = n > 9 ? '9+' : String(n);
+  b.classList.toggle('on', n > 0);
+}
+function notifDateLabel(a){
+  const d = new Date(a.published_at || a.created_at);
+  return isNaN(d) ? '' : `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
+}
+function renderNotifPanel(){
+  const box = $('notifList');
+  if(!notifItems.length){ box.innerHTML = '<div class="notif-empty">No notifications yet.</div>'; return; }
+  box.innerHTML = notifItems.map(a => {
+    const unread = !notifReadIds.has(a.id);
+    const hasTour = Array.isArray(a.steps) && a.steps.length > 0;
+    return `<button class="notif-item ${unread?'unread':'read'}" onclick="openNotification('${a.id}')">
+      <div class="nt">${escapeHtml(a.title)}</div>
+      ${a.body ? `<div class="nb">${escapeHtml(a.body)}</div>` : ''}
+      ${hasTour ? '<div class="nc">Click to see how it works →</div>' : ''}
+      <div class="nd">${escapeHtml(notifDateLabel(a))}</div>
+    </button>`;
+  }).join('');
+}
+function toggleNotifPanel(ev){
+  if(ev) ev.stopPropagation();
+  const panel = $('notifPanel');
+  if(panel.classList.contains('on')){ closeNotifPanel(); return; }
+  renderNotifPanel();
+  panel.classList.add('on');
+  loadNotifications();   // refresh in the background so a just-published note shows up
+}
+function closeNotifPanel(){ $('notifPanel').classList.remove('on'); }
+document.addEventListener('click', () => { closeNotifPanel(); });
+
+async function markNotifRead(id){
+  if(notifReadIds.has(id) || !me) return;
+  notifReadIds.add(id);
+  renderNotifBadge();
+  const { error } = await supa.from('announcement_reads').insert({ user_id: me.id, announcement_id: id });
+  if(error && error.code !== '23505') console.warn('could not save read receipt', error.message);   // 23505 = already recorded, fine
+}
+async function markAllNotifsRead(){
+  for(const a of notifItems) await markNotifRead(a.id);
+  renderNotifPanel();
+}
+async function openNotification(id){
+  const a = notifItems.find(x=>x.id===id);
+  if(!a) return;
+  closeNotifPanel();
+  await markNotifRead(id);
+  if(Array.isArray(a.steps) && a.steps.length) await startAnnouncementTour(a.steps);
+  else if(a.body) toast(a.body);
+}
+
+// turn stored steps into the engine's step shape and run them
+function buildTourSteps(steps){
+  return steps.map(st => {
+    const t = TOUR_TARGETS.find(x=>x.id===(st.target||''));
+    const view = (t && t.view) || st.view || null;
+    const sub = (t && t.sub) || st.sub || null;
+    return {
+      target: st.target || null,
+      view,
+      after: sub ? (() => setTeamSubView(sub)) : undefined,
+      title: st.title || '',
+      text: st.text || ''
+    };
+  });
+}
+async function startAnnouncementTour(steps){
+  const built = buildTourSteps(steps);
+  if(!built.length) return;
+  activeTutorialSteps = built;
+  $('tutorialOverlay').style.display = 'block';
+  window.addEventListener('resize', repositionTutorialSpotlight);
+  await showTutorialStep(0);
+}
+
+/* ---------- admin tab ---------- */
+let admSteps = [];
+let admEditingId = null;
+
+async function loadAdminTab(){
+  if(!isAppAdmin) return;
+  if(!admSteps.length && !admEditingId) admAddStep(true);
+  renderAdmSteps();
+  const { data: anns } = await supa.from('announcements').select('*').order('created_at', { ascending:false });
+  const { data: reads } = await supa.from('announcement_reads').select('announcement_id');
+  const counts = {};
+  (reads||[]).forEach(r => counts[r.announcement_id] = (counts[r.announcement_id]||0)+1);
+  const box = $('admList');
+  if(!anns || !anns.length){ box.innerHTML = '<div class="hint">Nothing yet — write your first one above.</div>'; return; }
+  box.innerHTML = anns.map(a => {
+    const n = Array.isArray(a.steps) ? a.steps.length : 0;
+    return `<div class="adm-row">
+      <div class="meta"><b>${escapeHtml(a.title)}</b>
+        <span><span class="adm-pill ${a.is_published?'live':'draft'}">${a.is_published?'Live':'Draft'}</span>
+        ${n ? n+' tutorial step'+(n===1?'':'s') : 'message only'} · opened by ${counts[a.id]||0}</span></div>
+      <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="admEdit('${a.id}')">Edit</button>
+      <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="admTogglePublish('${a.id}',${!a.is_published})">${a.is_published?'Unpublish':'Publish'}</button>
+      <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px;color:var(--danger)" onclick="admDelete('${a.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+function admAddStep(silent){
+  if(admSteps.length >= 8){ toast('That is plenty — 3 to 5 steps reads best'); return; }
+  admSteps.push({ target:'', title:'', text:'' });
+  if(!silent) renderAdmSteps();
+}
+function admRemoveStep(i){ admSteps.splice(i,1); renderAdmSteps(); }
+function admSetStep(i, field, val){ admSteps[i][field] = val; }
+function admSetTarget(i, val){ admSteps[i].target = val; }
+function renderAdmSteps(){
+  $('admSteps').innerHTML = admSteps.map((st,i) => `<div class="adm-step">
+      <div class="adm-step-head"><span>Step ${i+1}</span><button type="button" class="row-del" style="margin-left:auto" onclick="admRemoveStep(${i})" title="Remove step">✕</button></div>
+      <div class="field"><label>Spotlight</label>
+        <select onchange="admSetTarget(${i},this.value)">${TOUR_TARGETS.map(t=>`<option value="${t.id}" ${t.id===st.target?'selected':''}>${escapeHtml(t.label)}</option>`).join('')}</select></div>
+      <div class="field"><label>Step title</label><input value="${escapeHtml(st.title)}" maxlength="60" oninput="admSetStep(${i},'title',this.value)"></div>
+      <div class="field" style="margin-bottom:0"><label>Explanation</label><textarea rows="3" maxlength="400" oninput="admSetStep(${i},'text',this.value)">${escapeHtml(st.text)}</textarea></div>
+    </div>`).join('');
+}
+function admCleanSteps(){
+  return admSteps
+    .filter(st => (st.title||'').trim() || (st.text||'').trim())
+    .map(st => {
+      const t = TOUR_TARGETS.find(x=>x.id===(st.target||''));
+      return { target: st.target || null, view: (t&&t.view)||null, sub: (t&&t.sub)||null, title: st.title.trim(), text: st.text.trim() };
+    });
+}
+async function admPreview(){
+  const steps = admCleanSteps();
+  if(!steps.length) return toast('Add at least one step to preview');
+  await startAnnouncementTour(steps);
+}
+function admResetForm(){
+  admEditingId = null; admSteps = [];
+  $('admTitle').value = ''; $('admBody').value = ''; $('admExpires').value = '';
+  $('admFormTitle').textContent = 'New announcement';
+  $('admCancelEditBtn').style.display = 'none';
+  admAddStep(true); renderAdmSteps();
+}
+async function admSave(publish){
+  if(!isAppAdmin) return;
+  const title = $('admTitle').value.trim();
+  if(!title) return toast('Give it a title first');
+  const steps = admCleanSteps();
+  if(steps.some(st => !st.title || !st.text)) return toast('Every tutorial step needs both a title and an explanation');
+  const expires = $('admExpires').value;
+  const row = {
+    title, body: $('admBody').value.trim(), steps,
+    is_published: !!publish,
+    expires_at: expires ? new Date(expires + 'T23:59:59').toISOString() : null
+  };
+  let error;
+  if(admEditingId){
+    const prev = (await supa.from('announcements').select('*').eq('id', admEditingId).single()).data;
+    if(publish && !(prev && prev.is_published)) row.published_at = new Date().toISOString();
+    ({ error } = await supa.from('announcements').update(row).eq('id', admEditingId));
+  } else {
+    if(publish) row.published_at = new Date().toISOString();
+    row.created_by = me.id;
+    ({ error } = await supa.from('announcements').insert(row));
+  }
+  if(error) return toast(errText(error));
+  toast(publish ? 'Published — users will see it in Notifications' : 'Draft saved');
+  admResetForm();
+  await loadAdminTab();
+  await loadNotifications();
+}
+async function admEdit(id){
+  const { data: a } = await supa.from('announcements').select('*').eq('id', id).single();
+  if(!a) return;
+  admEditingId = id;
+  $('admTitle').value = a.title; $('admBody').value = a.body || '';
+  $('admExpires').value = a.expires_at ? String(a.expires_at).slice(0,10) : '';
+  admSteps = (a.steps||[]).map(st => ({ target: st.target || '', title: st.title || '', text: st.text || '' }));
+  if(!admSteps.length) admAddStep(true);
+  $('admFormTitle').textContent = 'Edit announcement';
+  $('admCancelEditBtn').style.display = '';
+  renderAdmSteps();
+  $('admTitle').scrollIntoView({ block:'center' });
+}
+async function admTogglePublish(id, publish){
+  const patch = { is_published: publish };
+  if(publish) patch.published_at = new Date().toISOString();
+  const { error } = await supa.from('announcements').update(patch).eq('id', id);
+  if(error) return toast(errText(error));
+  toast(publish ? 'Published' : 'Unpublished');
+  await loadAdminTab(); await loadNotifications();
+}
+async function admDelete(id){
+  if(!confirm('Delete this announcement for everyone? This cannot be undone.')) return;
+  const { error } = await supa.from('announcements').delete().eq('id', id);
+  if(error) return toast(errText(error));
+  toast('Deleted');
+  await loadAdminTab(); await loadNotifications();
+}
+
+// pick up newly published notes when someone returns to the tab
+document.addEventListener('visibilitychange', () => { if(!document.hidden && me) loadNotifications(); });
 
 /* ================= short team-onboarding tutorial =================
    Auto-plays exactly once per account, permanently — the first time
@@ -1628,6 +1977,7 @@ async function setView(v){
   $('tabMatters').classList.toggle('active', v==='matters');
   $('tabBilling').classList.toggle('active', v==='billing');
   $('tabExpenses').classList.toggle('active', v==='expenses');
+  $('tabAdmin').classList.toggle('active', v==='admin');
   $('timesheetHeaderRow').style.display = (v==='week'||v==='month') ? '' : 'none';
   $('addHoursBtnWrap').style.display = (v==='week'||v==='month'||v==='pay') ? '' : 'none';
   $('topbarAddHoursBtn').style.display = (v==='team') ? 'none' : '';
@@ -1640,6 +1990,7 @@ async function setView(v){
   $('mattersView').style.display = v==='matters' ? '' : 'none';
   $('billingView').style.display = v==='billing' ? '' : 'none';
   $('expensesView').style.display = v==='expenses' ? '' : 'none';
+  $('adminView').style.display = (v==='admin' && isAppAdmin) ? '' : 'none';
   if(v==='week') await loadWeek();
   if(v==='month') await loadMonth();
   if(v==='pay') await loadPay();
@@ -1647,6 +1998,7 @@ async function setView(v){
   if(v==='matters') await loadMattersTab();
   if(v==='billing') await loadBilling();
   if(v==='expenses') await loadExpenses();
+  if(v==='admin' && isAppAdmin) await loadAdminTab();
 }
 
 /* ================= week data ================= */
@@ -2911,7 +3263,9 @@ async function makeStub(periodKey){
   doc.text('GROSS PAY', 48, y);
   doc.text('$'+gross.toFixed(2), pageW-48, y, {align:'right'});
 
-  doc.save(`my-invoice-${invNum}-${me.username}.pdf`);
+  const stubTitle = `${fileDateRange(p.start, p.end)} ${me.first_name} ${me.last_name} Hours`;
+  doc.setProperties({ title: stubTitle, author: `${me.first_name} ${me.last_name}` });
+  doc.save(`${safeFileName(stubTitle)}.pdf`);
   toast(`My Invoice ${invNum} downloaded`);
 }
 
@@ -4064,7 +4418,20 @@ async function generateClientInvoice(){
   yy += 24; doc.setFontSize(16); doc.setTextColor(78,122,104);
   doc.text('AMOUNT DUE', 48, yy); doc.text('$'+totalAmt.toFixed(2), pageW-48, yy, {align:'right'});
 
-  doc.save(`invoice-${invNum}-${client.replace(/[^\w]+/g,'_')}.pdf`);
+  // file name = date range + the team being billed (for team cases); falls back to the Bill-to name
+  let billName = client;
+  const { data: tagMatters } = await supa.from('matters').select('tag,team_id').in('tag', tags);
+  const teamIdsBilled = [...new Set((tagMatters||[]).map(mt=>mt.team_id).filter(Boolean))];
+  if(teamIdsBilled.length){
+    const { data: teamRows } = await supa.from('teams').select('*').in('id', teamIdsBilled);
+    const names = (teamRows||[]).map(t=>t.name).filter(Boolean);
+    if(names.length) billName = names.join(', ');
+  } else if(!$('clientName').value.trim()){
+    billName = tags.join(', ');
+  }
+  const billTitle = `${fileDateRange(new Date(y, m-1, 1), new Date(y, m, 0))} ${billName}`;
+  doc.setProperties({ title: billTitle, author: me.company || `${me.first_name} ${me.last_name}` });
+  doc.save(`${safeFileName(billTitle)}.pdf`);
   logHist(`Generated invoice #${invNum} for ${client} — $${totalAmt.toFixed(2)} (${invMode} mode)`);
   toast(`Invoice #${invNum} generated — $${totalAmt.toFixed(2)}`);
 }
@@ -4242,7 +4609,7 @@ function overlayClick(e, closeFn){
 }
 
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); endTutorial(); }
+  if(e.key === 'Escape'){ closeDay(); closeSearch(); closeHistory(); endTutorial(); closeNotifPanel(); }
 });
 
 if('serviceWorker' in navigator){
@@ -4251,6 +4618,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.29</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.32</div>
 </body>
 </html>
