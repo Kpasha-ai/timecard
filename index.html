@@ -205,6 +205,27 @@
   .adm-pill{display:inline-block;margin-right:6px;font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 9px;text-transform:uppercase;letter-spacing:.05em}
   .adm-pill.live{background:#DCE8E2;color:var(--sage)}
   .adm-pill.draft{background:var(--stamp-soft);color:#8A5A17}
+  .adm-ai-row{display:flex;align-items:center;gap:10px;margin-top:7px}
+  .adm-ai-btn{background:transparent;border:1.5px solid var(--sage);color:var(--sage);border-radius:8px;font-size:12.5px;font-weight:700;padding:6px 12px}
+  .adm-ai-btn:hover{background:var(--sage);color:#fff}
+  .adm-ai-btn:disabled{opacity:.6;cursor:default;background:transparent;color:var(--sage)}
+  .adm-undo-btn{background:transparent;border:0;color:var(--ink-dim);font-size:12.5px;text-decoration:underline;padding:0}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:6px}
+  .stat-tile{border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff}
+  .stat-num{font-family:var(--display);font-size:30px;font-weight:700;color:var(--ink);line-height:1.1}
+  .stat-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim);margin-top:4px}
+  .stat-sub{font-size:12px;color:var(--ink-dim);margin-top:2px}
+  .stat-h{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin:22px 0 8px}
+  .stat-row{display:grid;grid-template-columns:minmax(120px,1.4fr) 2fr auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .stat-row:last-child{border-bottom:0}
+  .stat-bar{height:6px;background:#E8E4D8;border-radius:3px;overflow:hidden}
+  .stat-bar>i{display:block;height:100%;background:var(--sage);border-radius:0 3px 3px 0}
+  .stat-val{font-family:var(--mono);font-size:12.5px;color:var(--ink);white-space:nowrap}
+  .fb-item{border-bottom:1px solid var(--line);padding:11px 0;font-size:13.5px}
+  .fb-item:last-child{border-bottom:0}
+  .fb-meta{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-bottom:3px}
+  .fb-line b{font-weight:700}
+  @media (max-width:700px){ .stat-row{grid-template-columns:1fr auto} .stat-row .stat-bar{grid-column:1 / -1;order:3} }
   .topbar{background:var(--pine); padding:14px 22px; display:flex; align-items:center; position:relative; min-height:44px; flex-wrap:wrap; row-gap:10px}
   .topbar-profile{position:static; margin:0 auto; z-index:15; display:flex; align-items:center; gap:12px; padding:0 14px}
   .topbar-name{color:var(--bone); font-weight:600; font-size:14px; white-space:nowrap}
@@ -242,6 +263,7 @@
   .chrome-tab-bar{display:flex;background:var(--sage-mist);padding:10px 14px 0}
   .chrome-tab-btn{border:0;background:var(--sage-mist);color:var(--ink-dim);font-family:var(--display);font-weight:700;font-size:16px;padding:10px 20px;border-radius:10px 10px 0 0;cursor:pointer;margin-right:2px}
   .chrome-tab-btn.active{background:var(--card);color:var(--pine)}
+  @media (max-width:600px){ #adminView .chrome-tab-btn{padding:10px 11px;font-size:14px;margin-right:0} }
   .tc-layout-guard-9f{opacity:.00318;letter-spacing:-.00074em;transform:translateY(.0026px)}
   .card-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
   .card-title{font-family:var(--display);font-weight:700;font-size:20px}
@@ -679,26 +701,72 @@
 
     <!-- ADMIN (only ever shown to app admins) -->
     <div class="card" id="adminView" style="display:none">
-      <div class="card-head"><div class="card-title" style="font-size:18px">Admin — announcements</div></div>
-      <div class="bpanel adm-form">
-        <h3 id="admFormTitle">New announcement</h3>
-        <div class="field"><label>Title (what users see in their notifications)</label><input id="admTitle" maxlength="90" placeholder="e.g. New Expenses Page: Click to view!"></div>
-        <div class="field"><label>Message (optional, one or two lines)</label><textarea id="admBody" rows="2" maxlength="300" placeholder="e.g. Log meals, supplies and mileage — receipts too."></textarea></div>
-        <div class="field"><label>Tutorial steps — aim for 3 to 5 (leave empty for a message only)</label>
-          <div id="admSteps"></div>
-          <button type="button" class="btn-ghost-dark" style="padding:8px 14px;font-size:13px" onclick="admAddStep()">+ Add step</button>
+      <div class="chrome-tab-bar">
+        <button class="chrome-tab-btn active" id="admTabAnn" onclick="setAdmTab('ann')">Announcements</button>
+        <button class="chrome-tab-btn" id="admTabTut" onclick="setAdmTab('tut')">Tutorials</button>
+        <button class="chrome-tab-btn" id="admTabStats" onclick="setAdmTab('stats')">Statistics</button>
+      </div>
+
+      <!-- announcements -->
+      <div id="admPanelAnn">
+        <div class="bpanel adm-form">
+          <h3 id="admFormTitle">New announcement</h3>
+          <div class="field"><label>Title (what users see in their notifications)</label><input id="admTitle" maxlength="90" placeholder="e.g. New Expenses Page: Click to view!"></div>
+          <div class="field"><label>Message (optional, one or two lines)</label>
+            <textarea id="admBody" rows="2" maxlength="300" placeholder="e.g. Log meals, supplies and mileage — receipts too."></textarea>
+            <div class="adm-ai-row">
+              <button type="button" class="adm-ai-btn" id="admMsgAiBtn" onclick="admPolishMessage()">Polish with AI</button>
+              <button type="button" class="adm-undo-btn" id="admMsgUndoBtn" style="display:none" onclick="admUndoMessage()">Undo AI rewrite</button>
+            </div>
+          </div>
+          <div class="field"><label>Tutorial to open when clicked</label>
+            <select id="admTutorialSelect" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;background:#fff"></select>
+            <div class="hint" style="margin-top:6px">Tutorials are written in the <a href="#" onclick="setAdmTab('tut');return false" style="color:var(--sage);font-weight:600">Tutorials</a> tab.</div>
+          </div>
+          <div class="field" style="max-width:240px"><label>Hide after (optional)</label><input id="admExpires" type="date" style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;background:#fff"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-ghost-dark" onclick="admPreviewSelectedTutorial()">Preview tutorial</button>
+            <button class="btn-ghost-dark" onclick="admSave(false)">Save draft</button>
+            <button class="btn-bill" onclick="admSave(true)">Publish</button>
+            <button class="btn-ghost-dark" id="admCancelEditBtn" style="display:none" onclick="admResetForm()">Cancel edit</button>
+          </div>
         </div>
-        <div class="field" style="max-width:240px"><label>Hide after (optional)</label><input id="admExpires" type="date"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn-ghost-dark" onclick="admPreview()">Preview tutorial</button>
-          <button class="btn-ghost-dark" onclick="admSave(false)">Save draft</button>
-          <button class="btn-bill" onclick="admSave(true)">Publish</button>
-          <button class="btn-ghost-dark" id="admCancelEditBtn" style="display:none" onclick="admResetForm()">Cancel edit</button>
+        <div class="bpanel">
+          <h3>Past announcements</h3>
+          <div id="admList"><div class="hint">Loading…</div></div>
         </div>
       </div>
-      <div class="bpanel">
-        <h3>Past announcements</h3>
-        <div id="admList"><div class="hint">Loading…</div></div>
+
+      <!-- tutorials -->
+      <div id="admPanelTut" style="display:none">
+        <div class="bpanel adm-form">
+          <h3 id="admTutFormTitle">New tutorial</h3>
+          <div class="field"><label>Tutorial name (only you see this)</label><input id="admTutName" maxlength="80" placeholder="e.g. Expenses walkthrough"></div>
+          <div class="field"><label>Steps — aim for 3 to 5</label>
+            <div id="admSteps"></div>
+            <button type="button" class="btn-ghost-dark" style="padding:8px 14px;font-size:13px" onclick="admAddStep()">+ Add step</button>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-ghost-dark" onclick="admPreviewTutorialForm()">Preview</button>
+            <button class="btn-bill" onclick="admSaveTutorial()">Save tutorial</button>
+            <button class="btn-ghost-dark" id="admTutCancelBtn" style="display:none" onclick="admResetTutorialForm()">Cancel edit</button>
+          </div>
+        </div>
+        <div class="bpanel">
+          <h3>Saved tutorials</h3>
+          <div id="admTutList"><div class="hint">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- statistics -->
+      <div id="admPanelStats" style="display:none">
+        <div class="bpanel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+            <h3 style="margin:0">App statistics</h3>
+            <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="loadAdmStats()">Refresh</button>
+          </div>
+          <div id="admStatsBody"><div class="hint">Loading…</div></div>
+        </div>
       </div>
     </div>
 
@@ -1600,11 +1668,17 @@ const TOUR_TARGETS = [
 
 let isAppAdmin = false;
 let userCreatedAt = null;
+let notifTutorials = {};        // tutorial id -> tutorial, so a notification can launch its walkthrough
 let notifItems = [];            // announcements this person can see (published, not expired)
 let notifReadIds = new Set();   // ids this person has opened
 
+function announcementSteps(a){
+  const t = a.tutorial_id ? notifTutorials[a.tutorial_id] : null;
+  if(t) return Array.isArray(t.steps) ? t.steps : [];
+  return (!a.tutorial_id && Array.isArray(a.steps)) ? a.steps : [];   // older announcements that carry their own steps
+}
 function resetNotificationState(){
-  isAppAdmin = false; notifItems = []; notifReadIds = new Set();
+  isAppAdmin = false; notifItems = []; notifReadIds = new Set(); notifTutorials = {};
   closeNotifPanel();
   $('notifBadge').classList.remove('on');
   $('tabAdmin').style.display = 'none';
@@ -1626,6 +1700,8 @@ async function loadNotifications(){
     const { data: anns, error } = await supa.from('announcements').select('*').order('published_at', { ascending:false });
     if(error) return;   // tables not created yet (or offline) — stay quiet, the app works fine without notifications
     const { data: reads } = await supa.from('announcement_reads').select('announcement_id').eq('user_id', me.id);
+    const { data: tuts } = await supa.from('tutorials').select('*');
+    notifTutorials = {}; (tuts||[]).forEach(t => notifTutorials[t.id] = t);
     notifReadIds = new Set((reads||[]).map(r=>r.announcement_id));
     notifItems = (anns||[]).filter(isLiveAnnouncement);
   }catch(e){ return; }
@@ -1648,7 +1724,7 @@ function renderNotifPanel(){
   if(!notifItems.length){ box.innerHTML = '<div class="notif-empty">No notifications yet.</div>'; return; }
   box.innerHTML = notifItems.map(a => {
     const unread = !notifReadIds.has(a.id);
-    const hasTour = Array.isArray(a.steps) && a.steps.length > 0;
+    const hasTour = announcementSteps(a).length > 0;
     return `<button class="notif-item ${unread?'unread':'read'}" onclick="openNotification('${a.id}')">
       <div class="nt">${escapeHtml(a.title)}</div>
       ${a.body ? `<div class="nb">${escapeHtml(a.body)}</div>` : ''}
@@ -1684,7 +1760,8 @@ async function openNotification(id){
   if(!a) return;
   closeNotifPanel();
   await markNotifRead(id);
-  if(Array.isArray(a.steps) && a.steps.length) await startAnnouncementTour(a.steps);
+  const steps = announcementSteps(a);
+  if(steps.length) await startAnnouncementTour(steps);
   else if(a.body) toast(a.body);
 }
 
@@ -1712,78 +1789,82 @@ async function startAnnouncementTour(steps){
   await showTutorialStep(0);
 }
 
-/* ---------- admin tab ---------- */
-let admSteps = [];
-let admEditingId = null;
+/* ---------- admin: shared state ---------- */
+let admTab = 'ann';
+let admTutorials = [];       // saved tutorials (id, name, steps)
+let admAnnouncements = [];   // cache for the "used by" counts
+let admSteps = [];           // steps in the tutorial form
+let admEditingId = null;     // announcement being edited
+let admTutEditingId = null;  // tutorial being edited
+let admMsgPrev = null;       // text before the last AI rewrite of the announcement message (for undo)
 
+function setAdmTab(t){
+  admTab = t;
+  $('admTabAnn').classList.toggle('active', t==='ann');
+  $('admTabTut').classList.toggle('active', t==='tut');
+  $('admTabStats').classList.toggle('active', t==='stats');
+  $('admPanelAnn').style.display = t==='ann' ? '' : 'none';
+  $('admPanelTut').style.display = t==='tut' ? '' : 'none';
+  $('admPanelStats').style.display = t==='stats' ? '' : 'none';
+  loadAdminTab();
+}
 async function loadAdminTab(){
   if(!isAppAdmin) return;
-  if(!admSteps.length && !admEditingId) admAddStep(true);
-  renderAdmSteps();
+  await loadAdmTutorials();
+  if(admTab==='ann') await renderAdmAnnouncements();
+  else if(admTab==='tut'){ if(!admSteps.length && !admTutEditingId) admAddStep(true); renderAdmSteps(); renderAdmTutorialList(); }
+  else await loadAdmStats();
+}
+async function loadAdmTutorials(){
+  const { data } = await supa.from('tutorials').select('*').order('created_at', { ascending:false });
+  admTutorials = data || [];
+}
+
+/* ---------- admin: announcements tab ---------- */
+function renderAdmTutorialSelect(selectedId){
+  $('admTutorialSelect').innerHTML = '<option value="">No tutorial (message only)</option>' +
+    admTutorials.map(t => `<option value="${t.id}" ${t.id===selectedId?'selected':''}>${escapeHtml(t.name)} (${(t.steps||[]).length} step${(t.steps||[]).length===1?'':'s'})</option>`).join('');
+}
+async function renderAdmAnnouncements(){
+  const keep = $('admTutorialSelect').value;
+  renderAdmTutorialSelect(keep);
   const { data: anns } = await supa.from('announcements').select('*').order('created_at', { ascending:false });
   const { data: reads } = await supa.from('announcement_reads').select('announcement_id');
+  admAnnouncements = anns || [];
   const counts = {};
   (reads||[]).forEach(r => counts[r.announcement_id] = (counts[r.announcement_id]||0)+1);
   const box = $('admList');
-  if(!anns || !anns.length){ box.innerHTML = '<div class="hint">Nothing yet — write your first one above.</div>'; return; }
-  box.innerHTML = anns.map(a => {
-    const n = Array.isArray(a.steps) ? a.steps.length : 0;
+  if(!admAnnouncements.length){ box.innerHTML = '<div class="hint">Nothing yet — write your first one above.</div>'; return; }
+  box.innerHTML = admAnnouncements.map(a => {
+    const tut = admTutorials.find(t=>t.id===a.tutorial_id);
+    const inline = Array.isArray(a.steps) && a.steps.length;
+    const tutLabel = tut ? `tutorial: ${escapeHtml(tut.name)}` : (inline ? `${a.steps.length} inline step${a.steps.length===1?'':'s'}` : 'message only');
     return `<div class="adm-row">
       <div class="meta"><b>${escapeHtml(a.title)}</b>
-        <span><span class="adm-pill ${a.is_published?'live':'draft'}">${a.is_published?'Live':'Draft'}</span>
-        ${n ? n+' tutorial step'+(n===1?'':'s') : 'message only'} · opened by ${counts[a.id]||0}</span></div>
+        <span><span class="adm-pill ${a.is_published?'live':'draft'}">${a.is_published?'Live':'Draft'}</span>${tutLabel} · opened by ${counts[a.id]||0}</span></div>
       <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="admEdit('${a.id}')">Edit</button>
       <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="admTogglePublish('${a.id}',${!a.is_published})">${a.is_published?'Unpublish':'Publish'}</button>
       <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px;color:var(--danger)" onclick="admDelete('${a.id}')">Delete</button>
     </div>`;
   }).join('');
 }
-function admAddStep(silent){
-  if(admSteps.length >= 8){ toast('That is plenty — 3 to 5 steps reads best'); return; }
-  admSteps.push({ target:'', title:'', text:'' });
-  if(!silent) renderAdmSteps();
-}
-function admRemoveStep(i){ admSteps.splice(i,1); renderAdmSteps(); }
-function admSetStep(i, field, val){ admSteps[i][field] = val; }
-function admSetTarget(i, val){ admSteps[i].target = val; }
-function renderAdmSteps(){
-  $('admSteps').innerHTML = admSteps.map((st,i) => `<div class="adm-step">
-      <div class="adm-step-head"><span>Step ${i+1}</span><button type="button" class="row-del" style="margin-left:auto" onclick="admRemoveStep(${i})" title="Remove step">✕</button></div>
-      <div class="field"><label>Spotlight</label>
-        <select onchange="admSetTarget(${i},this.value)">${TOUR_TARGETS.map(t=>`<option value="${t.id}" ${t.id===st.target?'selected':''}>${escapeHtml(t.label)}</option>`).join('')}</select></div>
-      <div class="field"><label>Step title</label><input value="${escapeHtml(st.title)}" maxlength="60" oninput="admSetStep(${i},'title',this.value)"></div>
-      <div class="field" style="margin-bottom:0"><label>Explanation</label><textarea rows="3" maxlength="400" oninput="admSetStep(${i},'text',this.value)">${escapeHtml(st.text)}</textarea></div>
-    </div>`).join('');
-}
-function admCleanSteps(){
-  return admSteps
-    .filter(st => (st.title||'').trim() || (st.text||'').trim())
-    .map(st => {
-      const t = TOUR_TARGETS.find(x=>x.id===(st.target||''));
-      return { target: st.target || null, view: (t&&t.view)||null, sub: (t&&t.sub)||null, title: st.title.trim(), text: st.text.trim() };
-    });
-}
-async function admPreview(){
-  const steps = admCleanSteps();
-  if(!steps.length) return toast('Add at least one step to preview');
-  await startAnnouncementTour(steps);
-}
 function admResetForm(){
-  admEditingId = null; admSteps = [];
+  admEditingId = null; admMsgPrev = null;
   $('admTitle').value = ''; $('admBody').value = ''; $('admExpires').value = '';
   $('admFormTitle').textContent = 'New announcement';
   $('admCancelEditBtn').style.display = 'none';
-  admAddStep(true); renderAdmSteps();
+  $('admMsgUndoBtn').style.display = 'none';
+  renderAdmTutorialSelect('');
 }
 async function admSave(publish){
   if(!isAppAdmin) return;
   const title = $('admTitle').value.trim();
   if(!title) return toast('Give it a title first');
-  const steps = admCleanSteps();
-  if(steps.some(st => !st.title || !st.text)) return toast('Every tutorial step needs both a title and an explanation');
   const expires = $('admExpires').value;
   const row = {
-    title, body: $('admBody').value.trim(), steps,
+    title, body: $('admBody').value.trim(),
+    tutorial_id: $('admTutorialSelect').value || null,
+    steps: [],   // walkthroughs now live in the Tutorials tab
     is_published: !!publish,
     expires_at: expires ? new Date(expires + 'T23:59:59').toISOString() : null
   };
@@ -1806,14 +1887,13 @@ async function admSave(publish){
 async function admEdit(id){
   const { data: a } = await supa.from('announcements').select('*').eq('id', id).single();
   if(!a) return;
-  admEditingId = id;
+  admEditingId = id; admMsgPrev = null;
   $('admTitle').value = a.title; $('admBody').value = a.body || '';
   $('admExpires').value = a.expires_at ? String(a.expires_at).slice(0,10) : '';
-  admSteps = (a.steps||[]).map(st => ({ target: st.target || '', title: st.title || '', text: st.text || '' }));
-  if(!admSteps.length) admAddStep(true);
+  renderAdmTutorialSelect(a.tutorial_id || '');
   $('admFormTitle').textContent = 'Edit announcement';
   $('admCancelEditBtn').style.display = '';
-  renderAdmSteps();
+  $('admMsgUndoBtn').style.display = 'none';
   $('admTitle').scrollIntoView({ block:'center' });
 }
 async function admTogglePublish(id, publish){
@@ -1830,6 +1910,234 @@ async function admDelete(id){
   if(error) return toast(errText(error));
   toast('Deleted');
   await loadAdminTab(); await loadNotifications();
+}
+async function admPreviewSelectedTutorial(){
+  const t = admTutorials.find(x=>x.id===$('admTutorialSelect').value);
+  if(!t || !(t.steps||[]).length) return toast('Pick a tutorial to preview first');
+  await startAnnouncementTour(t.steps);
+}
+
+/* ---------- admin: tutorials tab ---------- */
+function admAddStep(silent){
+  if(admSteps.length >= 8){ toast('That is plenty — 3 to 5 steps reads best'); return; }
+  admSteps.push({ target:'', title:'', text:'', prev:null, busy:false });
+  if(!silent) renderAdmSteps();
+}
+function admRemoveStep(i){ admSteps.splice(i,1); renderAdmSteps(); }
+function admSetStep(i, field, val){ admSteps[i][field] = val; }
+function admSetTarget(i, val){ admSteps[i].target = val; }
+function renderAdmSteps(){
+  $('admSteps').innerHTML = admSteps.map((st,i) => `<div class="adm-step">
+      <div class="adm-step-head"><span>Step ${i+1}</span><button type="button" class="row-del" style="margin-left:auto" onclick="admRemoveStep(${i})" title="Remove step">✕</button></div>
+      <div class="field"><label>Spotlight</label>
+        <select onchange="admSetTarget(${i},this.value)">${TOUR_TARGETS.map(t=>`<option value="${t.id}" ${t.id===st.target?'selected':''}>${escapeHtml(t.label)}</option>`).join('')}</select></div>
+      <div class="field"><label>Step title</label><input value="${escapeHtml(st.title)}" maxlength="60" oninput="admSetStep(${i},'title',this.value)"></div>
+      <div class="field" style="margin-bottom:0"><label>Explanation</label>
+        <textarea rows="3" maxlength="400" oninput="admSetStep(${i},'text',this.value)">${escapeHtml(st.text)}</textarea>
+        <div class="adm-ai-row">
+          <button type="button" class="adm-ai-btn" id="admAiBtn${i}" ${st.busy?'disabled':''} onclick="admPolishStep(${i})">${st.busy?'Writing…':'Polish with AI'}</button>
+          ${st.prev ? `<button type="button" class="adm-undo-btn" onclick="admUndoStep(${i})">Undo AI rewrite</button>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+function admCleanSteps(){
+  return admSteps
+    .filter(st => (st.title||'').trim() || (st.text||'').trim())
+    .map(st => {
+      const t = TOUR_TARGETS.find(x=>x.id===(st.target||''));
+      return { target: st.target || null, view: (t&&t.view)||null, sub: (t&&t.sub)||null, title: st.title.trim(), text: st.text.trim() };
+    });
+}
+async function admPreviewTutorialForm(){
+  const steps = admCleanSteps();
+  if(!steps.length) return toast('Add at least one step to preview');
+  await startAnnouncementTour(steps);
+}
+function admResetTutorialForm(){
+  admTutEditingId = null; admSteps = [];
+  $('admTutName').value = '';
+  $('admTutFormTitle').textContent = 'New tutorial';
+  $('admTutCancelBtn').style.display = 'none';
+  admAddStep(true); renderAdmSteps();
+}
+async function admSaveTutorial(){
+  if(!isAppAdmin) return;
+  const name = $('admTutName').value.trim();
+  if(!name) return toast('Give the tutorial a name first');
+  const steps = admCleanSteps();
+  if(!steps.length) return toast('A tutorial needs at least one step');
+  if(steps.some(st => !st.title || !st.text)) return toast('Every step needs both a title and an explanation');
+  const row = { name, steps, updated_at: new Date().toISOString() };
+  let error;
+  if(admTutEditingId) ({ error } = await supa.from('tutorials').update(row).eq('id', admTutEditingId));
+  else { row.created_by = me.id; ({ error } = await supa.from('tutorials').insert(row)); }
+  if(error) return toast(errText(error));
+  toast('Tutorial saved');
+  admResetTutorialForm();
+  await loadAdminTab();
+  await loadNotifications();   // anyone's open notification should pick up the new wording
+}
+async function admEditTutorial(id){
+  const t = admTutorials.find(x=>x.id===id);
+  if(!t) return;
+  admTutEditingId = id;
+  $('admTutName').value = t.name;
+  admSteps = (t.steps||[]).map(st => ({ target: st.target || '', title: st.title || '', text: st.text || '', prev:null, busy:false }));
+  if(!admSteps.length) admAddStep(true);
+  $('admTutFormTitle').textContent = 'Edit tutorial';
+  $('admTutCancelBtn').style.display = '';
+  renderAdmSteps();
+  $('admTutName').scrollIntoView({ block:'center' });
+}
+async function admPreviewSaved(id){
+  const t = admTutorials.find(x=>x.id===id);
+  if(t && (t.steps||[]).length) await startAnnouncementTour(t.steps);
+}
+async function admDeleteTutorial(id){
+  const t = admTutorials.find(x=>x.id===id);
+  if(!t) return;
+  const { data: anns } = await supa.from('announcements').select('id').eq('tutorial_id', id);
+  const used = (anns||[]).length;
+  const warn = used ? `\n\n${used} announcement${used===1?' uses':'s use'} it and will become message-only.` : '';
+  if(!confirm(`Delete the tutorial "${t.name}"?${warn}`)) return;
+  const { error } = await supa.from('tutorials').delete().eq('id', id);
+  if(error) return toast(errText(error));
+  toast('Tutorial deleted');
+  if(admTutEditingId === id) admResetTutorialForm();
+  await loadAdminTab(); await loadNotifications();
+}
+async function renderAdmTutorialList(){
+  const box = $('admTutList');
+  if(!admTutorials.length){ box.innerHTML = '<div class="hint">No tutorials yet — build your first one above.</div>'; return; }
+  const { data: anns } = await supa.from('announcements').select('tutorial_id');
+  const usedBy = {};
+  (anns||[]).forEach(a => { if(a.tutorial_id) usedBy[a.tutorial_id] = (usedBy[a.tutorial_id]||0)+1; });
+  box.innerHTML = admTutorials.map(t => {
+    const n = (t.steps||[]).length, u = usedBy[t.id]||0;
+    return `<div class="adm-row">
+      <div class="meta"><b>${escapeHtml(t.name)}</b><span>${n} step${n===1?'':'s'} · used by ${u} announcement${u===1?'':'s'}</span></div>
+      <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="admPreviewSaved('${t.id}')">Preview</button>
+      <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px" onclick="admEditTutorial('${t.id}')">Edit</button>
+      <button class="btn-ghost-dark" style="padding:7px 12px;font-size:13px;color:var(--danger)" onclick="admDeleteTutorial('${t.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- admin: AI polish (runs through the polish-announcement edge function) ---------- */
+async function callPolish(payload){
+  let res;
+  try{ res = await supa.functions.invoke('polish-announcement', { body: payload }); }
+  catch(e){ throw new Error('Could not reach the AI helper — check your connection'); }
+  const { data, error } = res;
+  if(error){
+    let msg = '';
+    try{ if(error.context && typeof error.context.json === 'function'){ const j = await error.context.json(); msg = (j && j.error) || ''; } }catch(_e){}
+    const status = error.context && error.context.status;
+    const missing = status === 404 || /not found|failed to send|fetch/i.test(String(error.message||''));
+    throw new Error(msg || (missing ? 'The AI helper is not set up yet — see timecard-ai-setup.md' : (error.message || 'AI request failed')));
+  }
+  if(!data || !data.text) throw new Error('The AI returned nothing — try again');
+  return data;
+}
+async function admPolishStep(i){
+  const st = admSteps[i];
+  if(!st || st.busy) return;
+  if(!(st.title||'').trim() && !(st.text||'').trim()) return toast('Write a rough message first, then polish it');
+  const t = TOUR_TARGETS.find(x=>x.id===(st.target||''));
+  st.busy = true; renderAdmSteps();
+  try{
+    const out = await callPolish({
+      kind: 'step', tutorialName: $('admTutName').value.trim(), stepNumber: i+1, totalSteps: admSteps.length,
+      spotlight: (t && t.id) ? t.label : '', title: st.title, text: st.text
+    });
+    st.prev = { title: st.title, text: st.text };
+    if(out.title) st.title = out.title;
+    st.text = out.text;
+  }catch(e){ toast(e.message); }
+  st.busy = false; renderAdmSteps();
+}
+function admUndoStep(i){
+  const st = admSteps[i];
+  if(!st || !st.prev) return;
+  st.title = st.prev.title; st.text = st.prev.text; st.prev = null;
+  renderAdmSteps();
+}
+async function admPolishMessage(){
+  const title = $('admTitle').value.trim(), body = $('admBody').value.trim();
+  if(!title && !body) return toast('Write a rough title or message first, then polish it');
+  const btn = $('admMsgAiBtn'); btn.disabled = true; btn.textContent = 'Writing…';
+  try{
+    const tut = admTutorials.find(x=>x.id===$('admTutorialSelect').value);
+    const out = await callPolish({ kind:'announcement', title, text: body, context: tut ? `Opens the tutorial "${tut.name}"` : '' });
+    admMsgPrev = { title, body };
+    if(out.title) $('admTitle').value = out.title;
+    $('admBody').value = out.text;
+    $('admMsgUndoBtn').style.display = '';
+  }catch(e){ toast(e.message); }
+  btn.disabled = false; btn.textContent = 'Polish with AI';
+}
+function admUndoMessage(){
+  if(!admMsgPrev) return;
+  $('admTitle').value = admMsgPrev.title; $('admBody').value = admMsgPrev.body;
+  admMsgPrev = null; $('admMsgUndoBtn').style.display = 'none';
+}
+
+/* ---------- admin: statistics ---------- */
+async function loadAdmStats(){
+  const box = $('admStatsBody');
+  box.innerHTML = '<div class="hint">Loading…</div>';
+  let stats = null, fb = [];
+  try{
+    const r1 = await supa.rpc('admin_stats');
+    if(r1.error || !r1.data) throw (r1.error || new Error('no stats'));
+    stats = r1.data;
+    const r2 = await supa.rpc('admin_recent_feedback', { max_rows: 10 });
+    fb = r2.data || [];
+  }catch(e){
+    box.innerHTML = '<div class="hint">Statistics are not set up yet — run timecard-admin-v2.sql in the Supabase SQL editor, then press Refresh.</div>';
+    return;
+  }
+  const { data: anns } = await supa.from('announcements').select('*').order('published_at', { ascending:false });
+  const { data: reads } = await supa.from('announcement_reads').select('announcement_id');
+  const opened = {};
+  (reads||[]).forEach(r => opened[r.announcement_id] = (opened[r.announcement_id]||0)+1);
+  const total = Number(stats.total_users) || 0;
+  const num = v => Number(v||0).toLocaleString();
+  const tile = (n, lbl, sub) => `<div class="stat-tile"><div class="stat-num">${n}</div><div class="stat-lbl">${lbl}</div>${sub?`<div class="stat-sub">${sub}</div>`:''}</div>`;
+  const hrs = Math.round(Number(stats.hours_30d||0)*10)/10;
+  const avg = stats.feedback_avg != null ? Number(stats.feedback_avg).toFixed(1) : '—';
+
+  const pubAnns = (anns||[]).filter(a=>a.is_published);
+  const annRows = pubAnns.length ? pubAnns.map(a => {
+    const n = opened[a.id]||0, pct = total ? Math.min(100, Math.round(n/total*100)) : 0;
+    return `<div class="stat-row"><span>${escapeHtml(a.title)}</span>
+      <div class="stat-bar" role="img" aria-label="${pct}% of users opened this"><i style="width:${pct}%"></i></div>
+      <span class="stat-val">${n} of ${total} · ${pct}%</span></div>`;
+  }).join('') : '<div class="hint">No published announcements yet.</div>';
+
+  const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5-n) : 'no rating';
+  const fbRows = (fb||[]).length ? fb.map(f => {
+    const d = new Date(f.created_at);
+    const when = isNaN(d) ? '' : `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
+    const line = (lbl, v) => v ? `<div class="fb-line"><b>${lbl}:</b> ${escapeHtml(v)}</div>` : '';
+    return `<div class="fb-item"><div class="fb-meta">${escapeHtml(f.who||'Someone')} · ${when} · ${stars(f.rating)}</div>
+      ${line('Liked', f.liked)}${line('Change', f.change_wanted)}${line('Other', f.additional)}</div>`;
+  }).join('') : '<div class="hint">No feedback yet.</div>';
+
+  box.innerHTML = `
+    <div class="stat-grid">
+      ${tile(num(stats.total_users), 'Total users', `${num(stats.new_users_7d)} new this week · ${num(stats.new_users_30d)} this month`)}
+      ${tile(num(stats.active_users_7d), 'Active, 7 days', 'logged hours')}
+      ${tile(num(stats.active_users_30d), 'Active, 30 days', 'logged hours')}
+      ${tile(num(stats.total_teams), 'Teams', `${num(stats.team_members)} memberships`)}
+      ${tile(num(hrs), 'Hours, 30 days', `${num(stats.entries_30d)} entries`)}
+      ${tile(avg, 'Feedback rating', `${num(stats.feedback_count)} response${Number(stats.feedback_count)===1?'':'s'}`)}
+    </div>
+    <div class="stat-h">Announcements — opened by</div>
+    ${annRows}
+    <div class="stat-h">Recent feedback</div>
+    ${fbRows}`;
 }
 
 // pick up newly published notes when someone returns to the tab
@@ -4618,6 +4926,6 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.32</div>
+<div style="position:fixed;bottom:6px;right:10px;color:var(--ink-dim);opacity:.4;font-family:var(--mono);font-size:10px;z-index:5" title="Build marker — confirms which version is actually live">build 2026-09-19.33</div>
 </body>
 </html>
